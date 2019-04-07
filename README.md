@@ -256,8 +256,6 @@ NetBots communicates using UDP/IP datagrams and messages are serialized with Mes
 
 Create UDP socket and bind it to listen on sourceIP and sourcePort.
 
-
-
 *   sourceIP: IP the socket will listen on. This must be 127.0.0.1 (locahost), 0.0.0.0 (all interfaces), or a valid IP address on the computer.
 *   sourcePort: port to listen on. This is an integer number.
 *   destinationIP and destinationPort are passed to setDestinationAddress()
@@ -342,11 +340,9 @@ Returns True if p is valid port number, otherwise returns False.
 
 All messages are python dict type and contain a str 'type' key with a value of type str. All message key/value pairs are described below in the format:
 
-
 ```
 { 'type': <str>, '<key>': <type>, '<key>': <type>, ... }
 ```
-
 
 All keys are type str and types may include acceptable min and max values. For example, messages of type 'setDirectionRequest' have a str key 'requestedDirection' with value of type float between 0 and 2*pi:
 
@@ -375,6 +371,7 @@ Messages described below are grouped by request (sent by robot) and the expected
 
 IMPORTANT: When a robots health is 0, only joinRequest and getInfoRequest will return the approreapte reply. All other request messages will return a reply of type "Error".
 
+
 **Join**
 
 A robot must send a joinRequest before any other message type. The server will return a joinReply if the robot has successfully joined, otherwise an message of type "Error" will be returned. Sending other message types before a join request will also return messages of type "Error".
@@ -393,7 +390,6 @@ Format: `{ 'type': 'joinReply', 'conf': dict } `or Error
 
 Example: 
 
-
 ```
 { 
 'type': 'joinReply', 
@@ -408,9 +404,7 @@ Example:
 }
 ```
 
-
 'conf' is a dict containing the server configuration values. Robots may find this useful in determining the size of the arena among other things. For example:
-
 
 ```
     conf = {
@@ -462,6 +456,7 @@ Example: `{ 'type': 'getInfoReply', 'gameNumber': 5, 'gameStep': 170, 'health': 
 
 If gameNumber == 0 then the server is still waiting for robots to join before is starts the first game.
 
+
 **getLocation**
 
 Robot Sends: 
@@ -475,6 +470,7 @@ Server Returns:
 Format: `{ 'type': 'getLocationReply', 'x': float (min 0, max 999999), 'y': float (min 0, max 999999) }` or Error
 
 Example: `{ 'type': 'getLocationReply', 'x': 40.343, 'y': 694.323 ) }`
+
 
 **getSpeed**
 
@@ -492,6 +488,7 @@ Example: `{ 'type': 'getSpeedReply', 'requestedSpeed': float (min 0, max 100) 'c
 
 If requestedSpeed != currentSpeed then the robot is accelerating or decelerating to the requestedSpeed. Robots change speed at 
 
+
 **setSpeed**
 
 Set desired speepd of rebot from 0% (stop) to 100%. See server conf for how far a robot travles per step at 100% speed.
@@ -507,6 +504,7 @@ Server Returns:
 Format: `{ 'type': 'setSpeedReply' }` or Error
 
 Example: `{ 'type': 'setSpeedReply' }`
+
 
 **getDirection**
 
@@ -524,6 +522,7 @@ Example: `{ 'type': 'getDirectionReply', 'requestedDirection': 3.282 'currentDir
 
 If requestedDirection != currentDirection then the reboot is turning towards requestedDirection. The number of steps required to complete the turn is affected by the current speed. The faster the robot is moving the slower it can turn.
 
+
 **setDirection**
 
 Robot Sends: 
@@ -537,6 +536,7 @@ Server Returns:
 Format: `{ 'type': 'setDirectionReply' }` or Error
 
 Example: `{ 'type': 'setDirectionReply' }`
+
 
 **getCanon**
 
@@ -552,6 +552,7 @@ Format: `{ 'type': 'getCanonReply', 'shellInProgress': bool }` or Error
 
 Example: `{ 'type': 'getCanonReply', 'shellInProgress': bool }`
 
+
 **fireCanon**
 
 Robot Sends: 
@@ -565,6 +566,7 @@ Server Returns:
 Format: `{ 'type': 'fireCanonReply' }` or Error
 
 Example: `{ 'type': 'fireCanonReply' }`
+
 
 **Scan**
 
@@ -582,6 +584,7 @@ Example: `{ 'type': 'scanReply', 'distance': 70 }`
 
 If distance == 0 then the scan did not detect any other bots.
 
+
 **Error**
 
 Server Returns: 
@@ -598,35 +601,33 @@ Example: `{ 'type': 'Error', 'result':  'Can't process setSpeedRequest when heal
 
 # Proposed Learning Goals
 
-
-
 1. Understand NetBots demo robots:
-    1. Run the demo and examine the code for the demo robots. What is the strengths and weaknesses of each.
-    2. Understand how robots communicate with the server.
-    3. Run the server with the '-h' option to learn how the server behaviour can be changed.
-    4. Read the entire NetBots Readme to learn more.
+    * Run the demo and examine the code for the demo robots. What is the strengths and weaknesses of each.
+    * Understand how robots communicate with the server.
+    * Run the server with the '-h' option to learn how the server behaviour can be changed.
+    * Read the entire NetBots Readme to learn more.
 2. Learn to program for a real-time environment with limited information. Make a robot that can beat all the demo robots. Some suggested improvements over the demo robots:
-    5. Have movement, scanning, and firing all happening at the same time.
-    6. Use binary search to quickly find the best enemy to fire at.
-    7. Take notice of if your robots health is going down or not. How should the robot behaviour change based on this information?
-    8. Avoid colliding with other robots and walls.
-    9. If a game is close to ending (gameStep is close to maxSteps) can your robot change behaviour to win as quickly as possible.
-    10. Find other strategies that win faster with less health lost.
+    * Have movement, scanning, and firing all happening at the same time.
+    * Use binary search to quickly find the best enemy to fire at.
+    * Take notice of if your robots health is going down or not. How should the robot behaviour change based on this information?
+    * Avoid colliding with other robots and walls.
+    * If a game is close to ending (gameStep is close to maxSteps) can your robot change behaviour to win as quickly as possible.
+    * Find other strategies that win faster with less health lost.
 3. Understand what IP port numbers are. 
-    11. Why can only one program use a port number at a time? 
-    12. Why can a different computer use the same port number? 
-    13. Remove the need to specify robot port (-p) by having the robot find an available port.
+    * Why can only one program use a port number at a time? 
+    * Why can a different computer use the same port number? 
+    * Remove the need to specify robot port (-p) by having the robot find an available port.
 4. Understand how computer resources and network reliability affect a real-time system.
-    14. Run a tournament all on one computer then run the same tournament all on different computers. Watch the network and CPU use.
-    15. What's the difference in outcome? 
-    16. What if you speed up the server by using the -stepsec server option or change the -msgdrop server option? 
-    17. How do the stats differ? Why do they differ?
+    * Run a tournament all on one computer then run the same tournament all on different computers. Watch the network and CPU use.
+    * What's the difference in outcome? 
+    * What if you speed up the server by using the -stepsec server option or change the -msgdrop server option? 
+    * How do the stats differ? Why do they differ?
 5. Learn how having access to more information can improve program logic.
-    18. Make one program that acts as two robots and have them work together and share information.
+    * Make one program that acts as two robots and have them work together and share information.
 6. Learn to work with multiple sockets and custom message formats.
-    19. Make two programs, each acting as one robot, that work together by sending messages to each other.
-    20. Add message types to netbots_ipc for your own use.
+    * Make two programs, each acting as one robot, that work together by sending messages to each other.
+    * Add message types to netbots_ipc for your own use.
 7. Learn to communicate asynchronously with server.
-    21. Inspect and understand how BotSocket.sendrecvMessage() works.
-    22. Stop using synchronous BotSocket.sendrecvMessage() in your robot. Use asynchronous BotSocket.sendMessage() and BotSocket.recvMessage() instead. 
-    23. Send more than 1 message to the server per step. The server processes up to 4 messages from each robot per step (discards more than 4). This offers 4 times the information per step than sendrecvMessage() can provide.
+    * Inspect and understand how BotSocket.sendrecvMessage() works.
+    * Stop using synchronous BotSocket.sendrecvMessage() in your robot. Use asynchronous BotSocket.sendMessage() and BotSocket.recvMessage() instead. 
+    * Send more than 1 message to the server per step. The server processes up to 4 messages from each robot per step (discards more than 4). This offers 4 times the information per step than sendrecvMessage() can provide.
