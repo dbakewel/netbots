@@ -149,7 +149,7 @@ See netbots_ipc module reference below for details.
 
 The game is played on a square grid. By default the grid is 1000 units on each side with (x=0,y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise.
 
-!(arena.png)
+![Arena Coordinates and Angles](arena.png "Arena Coordinates and Angles")
 
 ## Demo Robots
 
@@ -213,7 +213,7 @@ Turn DEBUG and VERBOSE printing on or off. Both are off by default. Note, debug 
 
 netbots_math is a convenience module with geometry/trigonometry functions. Note, all angles are in radians.
 
-See python ([math]https://docs.python.org/3/library/math.html) module for other useful math functions, such as math.degrees() and math.radians(), and constants, such as the value of pi (math.pi).
+See python ([math](https://docs.python.org/3/library/math.html)) module for other useful math functions, such as math.degrees() and math.radians(), and constants, such as the value of pi (math.pi).
 
 
 ### Functions
