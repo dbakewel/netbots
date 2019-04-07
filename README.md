@@ -163,7 +163,7 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 **train.py**: Is a more complex moving robot that monitors its location and avoids hitting walls.
 
-**lighthouse.py**: Lighthouse demonstrates the scanning and firing the robot canon.
+**lighthouse.py**: Lighthouse demonstrates scanning and firing the robot's canon.
 
 
 ---
@@ -647,6 +647,7 @@ Example: `{ 'type': 'Error', 'result':  'Can't process setSpeedRequest when heal
     * Understand how robots communicate with the server.
     * Run the server with the '-h' option to learn how the server behavior can be changed.
     * Read the entire NetBots README to learn more.
+
 2. Learn to program for a real-time environment with limited information. Make a robot that can beat all the demo robots. Some suggested improvements over the demo robots:
     * Have movement, scanning, and firing all happening at the same time.
     * Use binary search to quickly find the best enemy to fire at.
@@ -654,20 +655,25 @@ Example: `{ 'type': 'Error', 'result':  'Can't process setSpeedRequest when heal
     * Avoid colliding with other robots and walls.
     * If a game is close to ending (gameStep is close to maxSteps) can your robot change behavior to win as quickly as possible.
     * Find other strategies that win faster with less health lost.
+
 3. Understand what IP addresses and port numbers are. 
     * Why can only one program use a port number at a time? 
     * Why can a different computer use the same port number? 
     * Remove the need to specify robot port (-p) by having the robot find an available port.
+
 4. Understand how computer resources and network reliability affect a real-time system.
     * Run a tournament all on one computer and then run the same tournament all on different computers. Watch the network and CPU use.
     * What's the difference in outcome? 
     * What if you speed up the server by using the -stepsec server option or change the -msgdrop server option? 
     * How do the stats differ? Why do they differ?
+
 5. Learn how having access to more information can improve program logic.
     * Make one program that acts as two robots and have them work together and share information.
+
 6. Learn to work with multiple sockets and custom message formats.
     * Make two programs, each acting as one robot, that work together by sending messages to each other.
     * Add message types to netbots_ipc for your own use.
+
 7. Learn to communicate asynchronously with server.
     * Inspect and understand how BotSocket.sendrecvMessage() works.
     * Stop using synchronous BotSocket.sendrecvMessage() in your robot. Use asynchronous BotSocket.sendMessage() and BotSocket.recvMessage() instead. 
