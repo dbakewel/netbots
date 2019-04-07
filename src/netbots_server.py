@@ -22,29 +22,35 @@ class SrvData():
         #Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server v1",
 
-        'arenaSize' : 1000, #Area is a square with each side = arenaSize units
-        'botRadius': 25, #bots are circles with radius botRadius
-        'explRadius': 150, #Radius of shell explosion
-
-        'botMaxSpeed': 10, #bots distance traveled per step at 100% speed
-        'botAccRate': 5, #Amount % bot can accelerate (or decelerate) per step
-        'botMinTurnRate': math.pi/200, #Amount bot can rotate per turn in radians at 100 speed
-        'botMaxTurnRate': math.pi/20, #Amount bot can rotate per turn in radians at 0 speed
-        'shellSpeed': 30, #distance traveled by shell per step
-
-        'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
-        'explDamage': 20, #Damage bot takes from direct hit from shell
-
-        'botsInGame': 4, #Number of bots required to play game.
+        #Game and Tournament
+        'botsInGame': 4, #Number of bots required to join before game can start.
         'gamesToPlay': 10, #Number of games to play before server quits.
-        'allowRejoin' : True, #Return "OK" if bots sends second join request. Allows crashed bots to rejoin game in progress.
-        
-        'maxSteps' : 10000, #After this all bots will be killed off and points given based on most health
-        'stepSec': 0.1, #Amount of time server targets for each step to take. Server will sleep if game is running faster than this.
-        'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict.
-        
+        'maxSteps' : 1000, #After this many steps in a game all bots will be killed
+        'stepSec': 0.1, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
+
+        #Messaging
         'dropRate': 100, #Drop a messages every N messages
         'botMsgsPerStep': 4, #Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
+        'allowRejoin' : True, #Allows crashed bots to rejoin game in progress.
+
+        #Sizes
+        'arenaSize' : 1000, #Area is a square with each side = arenaSize units (0,0 is bottom left, positive x is to right and positive y is up.)
+        'botRadius': 25, #bots are circles with radius botRadius
+        'explRadius': 150, #Radius of shell explosion. Beyond this radius bots will not take any damage.
+
+        #Speeds and Rates of Change
+        'botMaxSpeed': 10, #bots distance traveled per step at 100% speed
+        'botAccRate': 5, #Amount in % bot can accelerate (or decelerate) per step
+        'shellSpeed': 30, #distance traveled by shell per step
+        'botMinTurnRate': math.pi/200, #Amount bot can rotate per turn in radians at 100% speed
+        'botMaxTurnRate': math.pi/20, #Amount bot can rotate per turn in radians at 0% speed
+        
+        #Damage
+        'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
+        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explotion will result in less damage.
+
+        #Misc
+        'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
     }
 
     state = {
