@@ -42,7 +42,7 @@ Only the standard python 3 libraries are required.
 
 ### NetBots Git Repository
 
-The NetBots code can be cloned with git from: [https://dbakewel@bitbucket.org/dbakewel/netbots.git](https://dbakewel@bitbucket.org/dbakewel/netbots.git) or downloaded in zip form from: [https://bitbucket.org/dbakewel/netbots](https://bitbucket.org/dbakewel/netbots)
+The NetBots code can be cloned with git from: [https://github.com/dbakewel/netbots.git](https://github.com/dbakewel/netbots.git) or downloaded in zip form from: [https://github.com/dbakewel/netbots/archive/master.zip](https://github.com/dbakewel/netbots/archive/master.zip)
 
 
 ### Firewall Settings
