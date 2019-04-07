@@ -2,7 +2,7 @@
 
 NetBots is a python programming game. The game consists of a number of robots, 4 by default, that battle in an arena until only one remains. To play, a python program must be written. The program can control the robot's speed and direction, scan for enemy robots and fire exploding shells from it's canon. Robots suffer damage if they hit the edge of the arena, hit other robots, or are hit by an exploding shell. The game ends when only one robot remains or the maximum number of game steps is reached. Normally, many games are played in a tournament to determine which robot is the overall winner.
 
-NetBots is inspired by ([RobotWar](https://en.wikipedia.org/wiki/RobotWar)) from the 1970s. RobotWar has been cloned many times, one popular example is ([Crobots](https://en.wikipedia.org/wiki/Crobots)). 
+NetBots is inspired by [RobotWar](https://en.wikipedia.org/wiki/RobotWar) from the 1970s. RobotWar has been cloned many times, one popular example is [Crobots](https://en.wikipedia.org/wiki/Crobots). 
 
 
 ### How is NetBots different?
@@ -213,7 +213,7 @@ Turn DEBUG and VERBOSE printing on or off. Both are off by default. Note, debug 
 
 netbots_math is a convenience module with geometry/trigonometry functions. Note, all angles are in radians.
 
-See python ([math](https://docs.python.org/3/library/math.html)) module for other useful math functions, such as math.degrees() and math.radians(), and constants, such as the value of pi (math.pi).
+See python [math](https://docs.python.org/3/library/math.html) module for other useful math functions, such as math.degrees() and math.radians(), and constants, such as the value of pi (math.pi).
 
 
 ### Functions
