@@ -95,6 +95,30 @@ python robot.py -p 20010 -sp 20000
 
 Note that even though the robots on computer 1 and computer 2 use the same port (20010) they are on separate computers so it works. If you try running two robots on the same port on the same computer you will get an error.
 
+## Command Line Help
+
+The server, viewer, and demo robots all allow some customization with command line switches. Run each with the **-h** switch to display help. For example:
+
+```
+D:\netbots\src>python netbots_server.py -h
+usage: netbots_server.py [-h] [-ip [Server IP]] [-p [Server Port]] [-g N]
+                         [-stepsec sec] [-stepsmax int] [-stats sec]
+                         [-msgdrop int] [-debug] [-verbose]
+
+optional arguments:
+  -h, --help        show this help message and exit
+  -ip [Server IP]   My IP Address (default: 127.0.0.1)
+  -p [Server Port]  My port number (default: 20000)
+  -g N              Games server will play before quiting. (default: 10)
+  -stepsec sec      How many seconds between server steps. (default: 0.1)
+  -stepsmax int     Max steps in one game. (default: 1000)
+  -stats sec        How many seconds between printing server stats. (default:
+                    60)
+  -msgdrop int      Drop over nth message. (default: 10)
+  -debug            Print DEBUG level log messages. (default: False)
+  -verbose          Print VERBOSE level log messages. Note, -debug includes
+                    -verbose. (default: False)
+```
 
 ---
 
@@ -123,7 +147,9 @@ See netbots_ipc module reference below for details.
 
 ## Coordinates and Angles
 
-The game is played on a TODO
+The game is played on a square grid. By default the grid is 1000 units on each side with (x=0,y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise.
+
+!(arena.png)
 
 ## Demo Robots
 
@@ -187,7 +213,7 @@ Turn DEBUG and VERBOSE printing on or off. Both are off by default. Note, debug 
 
 netbots_math is a convenience module with geometry/trigonometry functions. Note, all angles are in radians.
 
-See python math module for other useful math functions, such as math.degrees() and math.radians(), and constants, such as the value of pi (math.pi).
+See python ([math]https://docs.python.org/3/library/math.html) module for other useful math functions, such as math.degrees() and math.radians(), and constants, such as the value of pi (math.pi).
 
 
 ### Functions
