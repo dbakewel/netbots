@@ -435,19 +435,19 @@ Example:
         'stepSec': 0.1, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
 
         #Messaging
-        'dropRate': 100, #Drop a messages every N messages
+        'dropRate': 10, #Drop a messages every N messages
         'botMsgsPerStep': 4, #Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
         'allowRejoin' : True, #Allows crashed bots to rejoin game in progress.
 
         #Sizes
         'arenaSize' : 1000, #Area is a square with each side = arenaSize units (0,0 is bottom left, positive x is to right and positive y is up.)
         'botRadius': 25, #bots are circles with radius botRadius
-        'explRadius': 150, #Radius of shell explosion. Beyond this radius bots will not take any damage.
+        'explRadius': 75, #Radius of shell explosion. Beyond this radius bots will not take any damage.
 
         #Speeds and Rates of Change
-        'botMaxSpeed': 10, #bots distance traveled per step at 100% speed
+        'botMaxSpeed': 5, #bots distance traveled per step at 100% speed
         'botAccRate': 5, #Amount in % bot can accelerate (or decelerate) per step
-        'shellSpeed': 30, #distance traveled by shell per step
+        'shellSpeed': 50, #distance traveled by shell per step
         'botMinTurnRate': math.pi/200, #Amount bot can rotate per turn in radians at 100% speed
         'botMaxTurnRate': math.pi/20, #Amount bot can rotate per turn in radians at 0% speed
         

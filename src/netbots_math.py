@@ -12,9 +12,9 @@ import math
 
 def normalizeAngle(a):
     """ Return a in range 0 - 2pi. a must be in radians. """
-    if a < 0:
+    while a < 0:
         a += math.pi*2
-    elif a >= math.pi*2:
+    while a >= math.pi*2:
         a -= math.pi*2
     return a
 
