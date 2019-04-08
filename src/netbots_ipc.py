@@ -148,6 +148,9 @@ class NetBotSocket:
         self.sendRecvMessageCalls = 0 #Number of calls to sendRecvMessage
         self.sendRecvMessageResends = 0 #Number of resends made by sendRecvMessage
         self.sendRecvMessageTime = 0 #Total time in sendRecvMessage
+        self.sendTypes = {}
+        self.recvTypes = {}
+
 
         self.sendrecvDelay = 0.1
 
@@ -188,7 +191,16 @@ class NetBotSocket:
                    "\n   sendRecvMessage Resends: " + str(self.sendRecvMessageResends) +\
                    "\n  Avg sendRecvMessage Time: " + '%.6f'%(self.sendRecvMessageTime/self.sendRecvMessageCalls) + " secs."
     
+        output += "\n\n                Messages Sent by Type"
+        for t in self.sendTypes:
+            output += "\n"+'%26s'%(t)+": " + str(self.sendTypes[t])
+
+        output += "\n\n                Messages Recv by Type"
+        for t in self.recvTypes:
+            output += "\n"+'%26s'%(t) +": " + str(self.recvTypes[t])
+
         output += "\n\n"
+
         return output
 
     def setDestinationAddress(self, destinationIP, destinationPort):
@@ -241,6 +253,10 @@ class NetBotSocket:
         log("Sending msg to " + destinationIP + ":" + str(destinationPort) + " len="  + str(len(networkbytes)) + " bytes " + str(msg), "DEBUG")
         self.s.sendto(networkbytes, (destinationIP, destinationPort))
         self.sent = self.sent + 1
+        if msg['type'] in self.sendTypes:
+            self.sendTypes[msg['type']] += 1
+        else:
+            self.sendTypes[msg['type']] = 1
         
     def recvMessage(self):
         """
@@ -275,6 +291,10 @@ class NetBotSocket:
             log("Recived msg from " + ip + ":" + str(port) + " len="  + str(len(bytesAddressPair[0])) + " bytes " + str(msg), "DEBUG")
         
             self.recv = self.recv + 1
+            if msg['type'] in self.recvTypes:
+                self.recvTypes[msg['type']] += 1
+            else:
+                self.recvTypes[msg['type']] = 1
         except (BlockingIOError, socket.timeout):
             #There was no data in the recive buffer.
             raise NetBotSocketException("Receive buffer empty.")

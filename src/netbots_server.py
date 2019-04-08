@@ -80,7 +80,9 @@ class SrvData():
         'requestedSpeed': 0,
         'currentDirection': 0,
         'requestedDirection': 0,
-        'points': 0
+        'points': 0,
+        'firedCount': 0,
+        'shellDamage': 0
     }
 
     shells = {}
@@ -398,6 +400,9 @@ def step(d):
                         if distance < d.conf['explRadius']:
                             damage = d.conf['explDamage'] * (1 - distance/d.conf['explRadius'])
                             bot['health'] = max(0,bot['health']-damage)
+                            #allow recording of inflicting damage that is greater than health of hit robot.
+                            #also record damage to oneself.
+                            d.bots[src]['shellDamage'] += damage
 
                 #store the explotion so viewers can display it. we cannont use src as index becuase it is possible for two explotions
                 #from same bot to exist (but not likly).

@@ -64,7 +64,14 @@ def checkForUpdates(d):
                 d.botWidgets[src] = d.canvas.create_oval(0,0,0,0,fill=c)
 
             #update text for each bot
-            d.botStatusWidgets[src].config(text=bot['name'] + "\n\nHealth = "+'%.1f'%(bot['health']) + "\nPoints = "+str(bot['points']))
+            d.botStatusWidgets[src].config(text=bot['name'] + \
+                "\n" + "__________________________________" +
+                "\nPoints: "+str(bot['points'])+ \
+                "\nCanon Fired: "+str(bot['firedCount'])+\
+                "\nShell Damage Inflicted: "+'%.1f'%(bot['shellDamage'])+\
+                "\n" + "__________________________________" +
+                "\nHealth: "+'%.1f'%(bot['health']) + "%"\
+                "   Speed: "+'%.1f'%(bot['currentSpeed']) + "%")
 
             #update location of bot widgets or hide if health == 0
             if bot['health'] == 0:
@@ -135,8 +142,8 @@ def checkForUpdates(d):
 
         #update game status widget
         d.statusWidget.config(text=d.conf['serverName'] +\
-         "\n\nGame " + str(msg['state']['gameNumber']) + " / " + str(d.conf['gamesToPlay']) +\
-         "\nStep " + str(msg['state']['gameStep']) + " / " + str(d.conf['maxSteps']) )
+         "\n\nGame: " + str(msg['state']['gameNumber']) + " / " + str(d.conf['gamesToPlay']) +\
+         "\nStep: " + str(msg['state']['gameStep']) + " / " + str(d.conf['maxSteps']) )
 
         #record the last time we got good view data from server.
         d.lastViewData = time.time()

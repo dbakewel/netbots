@@ -113,6 +113,8 @@ def fireCanonRequest(d, msg, src):
             'distanceRemaining': msg['distance']
         }
 
+        d.bots[src]['firedCount'] += 1
+
         return { 
             'type': "fireCanonReply", 
             'result': "OK"
