@@ -65,16 +65,17 @@ def play(botSocket, srvConf):
                 scanRadStart = nextScanSlice * scanSliceWidth
                 scanRadEnd = min(scanRadStart+scanSliceWidth, math.pi*2)
                 scanReply = botSocket.sendRecvMessage({'type': 'scanRequest', 'startRadians': scanRadStart, 'endRadians': scanRadEnd})
+                
                 if scanReply['distance'] != 0:
                     #fire down the center of the slice we just scanned.
                     fireDirection = scanRadStart+scanSliceWidth/2
                     botSocket.sendRecvMessage({'type': 'fireCanonRequest', 'direction': fireDirection, 'distance': scanReply['distance']})
                     #make sure don't try and shoot again until this shot has exploded.
                     currentMode = "wait"
-                else:
-                    nextScanSlice += 1
-                    if nextScanSlice == scanSlices:
-                        nextScanSlice = 0
+                
+                nextScanSlice += 1
+                if nextScanSlice == scanSlices:
+                    nextScanSlice = 0
 
         except nbipc.NetBotSocketException as e:
             #Consider this a warning here. It may simply be that a request returned 

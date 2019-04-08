@@ -41,12 +41,12 @@ def play(botSocket, srvConf):
             log("Game " + str(gameNumber) + " has started. Points so far = " + str(getInfoReply['points']))
 
             ############################################################################
-            ### This is where all you can reset any varialbes for a new game.
+            ### This is where can go to reset variables for a new game.
             ############################################################################
 
         try:
             ############################################################################
-            ### This is where all the good code would go if we were not a "Sitting Duck".
+            ### This is where game playing code would go if we were not a "Sitting Duck".
             ############################################################################
 
         except nbipc.NetBotSocketException as e:

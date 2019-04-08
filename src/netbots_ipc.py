@@ -186,7 +186,7 @@ class NetBotSocket:
             output += \
                    "\n     sendRecvMessage Calls: " + str(self.sendRecvMessageCalls) +\
                    "\n   sendRecvMessage Resends: " + str(self.sendRecvMessageResends) +\
-                   "\n  Avg sendRecvMessage Time: " + '%.3f'%(self.sendRecvMessageTime/self.sendRecvMessageCalls) + " secs."
+                   "\n  Avg sendRecvMessage Time: " + '%.6f'%(self.sendRecvMessageTime/self.sendRecvMessageCalls) + " secs."
     
         output += "\n\n"
         return output
