@@ -29,7 +29,7 @@ class SrvData():
         'stepSec': 0.1, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
 
         #Messaging
-        'dropRate': 100, #Drop a messages every N messages
+        'dropRate': 10, #Drop a messages every N messages
         'botMsgsPerStep': 4, #Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
         'allowRejoin' : True, #Allows crashed bots to rejoin game in progress.
 
@@ -57,7 +57,6 @@ class SrvData():
         #Dynamic vars
         'gameNumber': 0,
         'gameStep' : 0,
-
         'dropNext': 100, #Drop the next message in N (count down)
         'dropCount' : 0, #How many messages have been dropped since start up.
         'serverSteps' : 0, #Number of steps server has processed.
@@ -544,7 +543,6 @@ def main():
     nextStatsTime = time.time() + args.statsSec
     while True:
         loopStartTime = time.time()
-        recvReplyMsgs(d)
 
         aliveBots = 0
         for src, bot in d.bots.items():
@@ -562,6 +560,8 @@ def main():
                 log("All games have been played.")
                 quit()
 
+        recvReplyMsgs(d)
+        
         sendToViwers(d)
 
         if nextStatsTime < time.time():
