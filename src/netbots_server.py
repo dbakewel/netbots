@@ -57,7 +57,7 @@ class SrvData():
         #Dynamic vars
         'gameNumber': 0,
         'gameStep' : 0,
-        'dropNext': 100, #Drop the next message in N (count down)
+        'dropNext': 10, #Drop the next message in N (count down)
         'dropCount' : 0, #How many messages have been dropped since start up.
         'serverSteps' : 0, #Number of steps server has processed.
         'stepTime' : 0, #Total time spent process steps
@@ -139,13 +139,13 @@ def processMsg(d, msg, src):
 
 def dropMessage(d):
     """Returns True is the server should drop the next message"""
+    if d.conf['dropRate'] != 0:
+        if d.state['dropNext'] == 0:
+            d.state['dropNext'] = d.conf['dropRate']
+            d.state['dropCount'] += 1
+            return True
 
-    if d.state['dropNext'] == 0:
-        d.state['dropNext'] = d.conf['dropRate']
-        d.state['dropCount'] += 1
-        return True
-
-    d.state['dropNext'] -= 1
+        d.state['dropNext'] -= 1
     return False
 
 def recvReplyMsgs(d):
@@ -527,7 +527,7 @@ def main():
     parser.add_argument('-stepsec', metavar='sec', dest='stepSec', type=float, default=0.1, help='How many seconds between server steps.')
     parser.add_argument('-stepsmax', metavar='int', dest='maxSteps', type=int, default=1000, help='Max steps in one game.')
     parser.add_argument('-stats', metavar='sec', dest='statsSec', type=int, default=60, help='How many seconds between printing server stats.')
-    parser.add_argument('-msgdrop', metavar='int', dest='dropRate', type=int, default=10, help='Drop over nth message.')
+    parser.add_argument('-msgdrop', metavar='int', dest='dropRate', type=int, default=10, help='Drop over nth message. 0 == no drop.')
     parser.add_argument('-debug', dest='debug', action='store_true', default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true', default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
     args = parser.parse_args()
