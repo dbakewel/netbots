@@ -19,5 +19,5 @@ A clear and concise description of what you expected to happen.
 **Console Output**
 Include error and several lines leading up to the error. Consider including verbose or debug output.
 
-**Additional context**
-Add any other context about the problem here.
+**Work Around**
+Is there a way to work around the problem?
