@@ -161,7 +161,7 @@ class NetBotSocket:
         self.s = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         try:
             self.s.bind((sourceIP, sourcePort))
-            log("Source Socket Binding Successful", "VERBOSE")
+            log("Source Socket Binding Successful. Listening on "+formatIpPort(sourceIP,sourcePort))
         except Exception as e:
             self.s.close()
             self.s = None
