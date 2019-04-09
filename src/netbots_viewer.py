@@ -38,10 +38,11 @@ def checkForUpdates(d):
             msg, ip, port = d.viewerSocket.recvMessage()
     except nbipc.NetBotSocketException as e:
          #if message type is Error and we have not got good data for 100 steps then quit
-         if msg['type'] == 'Error' and d.lastViewData + d.conf['stepSec']*100 < time.time():
+         #if msg['type'] == 'Error' and d.lastViewData + d.conf['stepSec']*100 < time.time():
             #We didn't get anything from the buffer or it was an invald message.
-            log("Server stopped sending view data.")
-            quit()
+            #log("Server stopped sending view data.")
+            #quit()
+            pass
     except Exception as e:
         log(str(e),"ERROR")
         quit()
