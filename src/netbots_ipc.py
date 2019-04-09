@@ -183,8 +183,8 @@ class NetBotSocket:
     def getStats(self):
         """ Return str of NetBotSocket stats. """
         output = "\n\n                 ====== Stats ======"+\
-             "\n\n               Messages In: " + str(self.recv) +\
-               "\n              Messages Out: " + str(self.sent)
+             "\n\n               Messages Sent: " + str(self.sent) +\
+               "\n              Messages Recv: " + str(self.recv)
 
         if self.sendRecvMessageCalls:
             output += \
@@ -193,12 +193,12 @@ class NetBotSocket:
                    "\n  Avg sendRecvMessage Time: " + '%.6f'%(self.sendRecvMessageTime/self.sendRecvMessageCalls) + " secs."
     
         output += "\n\n                Messages Sent by Type"
-        for t in self.sendTypes:
-            output += "\n"+'%26s'%(t)+": " + str(self.sendTypes[t])
+        for t, c in sorted(self.sendTypes.items(), key=lambda x: x[0]):
+            output += "\n"+'%26s'%(t)+": " + str(c)
 
         output += "\n\n                Messages Recv by Type"
-        for t in self.recvTypes:
-            output += "\n"+'%26s'%(t) +": " + str(self.recvTypes[t])
+        for t, c in sorted(self.recvTypes.items(), key=lambda x: x[0]):
+            output += "\n"+'%26s'%(t) +": " + str(c)
 
         output += "\n\n"
 
