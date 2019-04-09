@@ -472,7 +472,7 @@ def step(d):
 def logStats(d):
     log("\n\n                  ======= Stats ======="+\
         "\n\n                    Run Time: " + '%.3f'%(time.time() - d.state['startTime']) + " secs." +\
-          "\n    Time Processing Pessages: " + '%.3f'%(d.state['msgTime']) + " secs." +\
+          "\n    Time Processing Messages: " + '%.3f'%(d.state['msgTime']) + " secs." +\
           "\n                 Messages In: " + str(d.srvSocket.recv) +\
           "\n                Messages Out: " + str(d.srvSocket.sent) +\
           "\n            Messages Dropped: " + str(d.state['dropCount']) +\
