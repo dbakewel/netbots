@@ -101,8 +101,8 @@ The server, viewer, and demo robots all allow some customization with command li
 
 ```
 D:\netbots\src>python src\netbots_server.py -h
-usage: netbots_server.py [-h] [-ip [Server IP]] [-p [Server Port]]
-                         [-name Server Name] [-games N] [-bots N]
+usage: netbots_server.py [-h] [-ip Server_IP] [-p Server_Port]
+                         [-name Server_Name] [-games int] [-bots int]
                          [-stepsec sec] [-stepmax int] [-droprate int]
                          [-msgperstep int] [-arenasize int] [-botradius int]
                          [-explradius int] [-botmaxspeed int]
@@ -111,12 +111,12 @@ usage: netbots_server.py [-h] [-ip [Server IP]] [-p [Server Port]]
 
 optional arguments:
   -h, --help         show this help message and exit
-  -ip [Server IP]    My IP Address (default: 127.0.0.1)
-  -p [Server Port]   My port number (default: 20000)
-  -name Server Name  Name displayed by connected viewers. (default: Netbots
+  -ip Server_IP      My IP Address (default: 127.0.0.1)
+  -p Server_Port     My port number (default: 20000)
+  -name Server_Name  Name displayed by connected viewers. (default: Netbots
                      Server)
-  -games N           Games server will play before quiting. (default: 10)
-  -bots N            Number of bots required to join before game can start.
+  -games int         Games server will play before quiting. (default: 10)
+  -bots int          Number of bots required to join before game can start.
                      (default: 4)
   -stepsec sec       How many seconds between server steps. (default: 0.1)
   -stepmax int       Max steps in one game. (default: 1000)
