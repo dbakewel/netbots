@@ -550,15 +550,15 @@ def main():
     d.conf['stepMax'] = args.stepMax
     d.conf['dropRate'] = args.dropRate
     d.state['dropNext'] = args.dropRate
-    d.state['botMsgsPerStep'] = args.botMsgsPerStep
-    d.state['arenaSize'] = args.arenaSize
-    d.state['botRadius'] = args.botRadius
-    d.state['explRadius'] = args.explRadius
-    d.state['botMaxSpeed'] = args.botMaxSpeed
-    d.state['botAccRate'] = args.botAccRate
-    d.state['shellSpeed'] = args.shellSpeed
-    d.state['hitDamage'] = args.hitDamage
-    d.state['explDamage'] = args.explDamage
+    d.conf['botMsgsPerStep'] = args.botMsgsPerStep
+    d.conf['arenaSize'] = args.arenaSize
+    d.conf['botRadius'] = args.botRadius
+    d.conf['explRadius'] = args.explRadius
+    d.conf['botMaxSpeed'] = args.botMaxSpeed
+    d.conf['botAccRate'] = args.botAccRate
+    d.conf['shellSpeed'] = args.shellSpeed
+    d.conf['hitDamage'] = args.hitDamage
+    d.conf['explDamage'] = args.explDamage
     setLogLevel(args.debug, args.verbose)
     
     log("Server Configuration: " + str(d.conf),"VERBOSE")

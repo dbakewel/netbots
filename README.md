@@ -55,14 +55,14 @@ The rundemo script will start 6 processes on the local computer: 1 server, 1 vie
 
 ## Running a Tournament
 
-There are two options available on the netbots server that are useful for tournaments. The first lets you change the number of games (**-g**) in the tournament. If robots have similar skills then playing more games will flush out which robot really is best. 
+There are two options available on the netbots server that are useful for tournaments. The first lets you change the number of games (**-games**) in the tournament. If robots have similar skills then playing more games will flush out which robot really is best. 
 
 The second option (**-stepsec**) allows you to speed up the NetBots server. Most modern computers can run NetBots 10 times faster (or more) than the default (0.1 sec/step or 10 steps/sec). The server will produce warnings if it can't keep up with the requested speed. If only a few of these warnings appear then it will not affect the game however if many warnings appear you should stop the server and reduce it's target speed.
 
 For example, to run a 1000 game tournament at 10 times faster (0.01 sec/step or 100 steps/sec) use:
 
 ```
-python netbots_server -g 1000 -stepsec 0.01
+python netbots_server -games 1000 -stepsec 0.01
 ```
 
 ## Running on Separate Computers

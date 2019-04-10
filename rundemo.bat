@@ -1,4 +1,4 @@
-start "NetBot-Server" cmd /K python src/netbots_server.py -p 20000 -stepsec 0.05 -g 10
+start "NetBot-Server" cmd /K python src/netbots_server.py -p 20000 -stepsec 0.05 -games 10
 
 start "hideincorner" cmd /K python robots/hideincorner.py -p 20002 -sp 20000
 start "lighthouse" cmd /K python robots/lighthouse.py -p 20003 -sp 20000
