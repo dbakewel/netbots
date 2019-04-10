@@ -144,7 +144,7 @@ def checkForUpdates(d):
         #update game status widget
         d.statusWidget.config(text=d.conf['serverName'] +\
          "\n\nGame: " + str(msg['state']['gameNumber']) + " / " + str(d.conf['gamesToPlay']) +\
-         "\nStep: " + str(msg['state']['gameStep']) + " / " + str(d.conf['maxSteps']) )
+         "\nStep: " + str(msg['state']['gameStep']) + " / " + str(d.conf['stepMax']) )
 
         #record the last time we got good view data from server.
         d.lastViewData = time.time()

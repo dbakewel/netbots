@@ -100,24 +100,46 @@ Note that even though the robots on computer 1 and computer 2 use the same port 
 The server, viewer, and demo robots all allow some customization with command line switches. Run each with the **-h** switch to display help. For example:
 
 ```
-D:\netbots\src>python netbots_server.py -h
-usage: netbots_server.py [-h] [-ip [Server IP]] [-p [Server Port]] [-g N]
-                         [-stepsec sec] [-stepsmax int] [-stats sec]
-                         [-msgdrop int] [-debug] [-verbose]
+D:\netbots\src>python src\netbots_server.py -h
+usage: netbots_server.py [-h] [-ip [Server IP]] [-p [Server Port]]
+                         [-name Server Name] [-games N] [-bots N]
+                         [-stepsec sec] [-stepmax int] [-droprate int]
+                         [-msgperstep int] [-arenasize int] [-botradius int]
+                         [-explradius int] [-botmaxspeed int]
+                         [-botaccrate int] [-shellspeed int] [-hitdamage int]
+                         [-expldamage int] [-stats sec] [-debug] [-verbose]
 
 optional arguments:
-  -h, --help        show this help message and exit
-  -ip [Server IP]   My IP Address (default: 127.0.0.1)
-  -p [Server Port]  My port number (default: 20000)
-  -g N              Games server will play before quiting. (default: 10)
-  -stepsec sec      How many seconds between server steps. (default: 0.1)
-  -stepsmax int     Max steps in one game. (default: 1000)
-  -stats sec        How many seconds between printing server stats. (default:
-                    60)
-  -msgdrop int      Drop over nth message. (default: 10)
-  -debug            Print DEBUG level log messages. (default: False)
-  -verbose          Print VERBOSE level log messages. Note, -debug includes
-                    -verbose. (default: False)
+  -h, --help         show this help message and exit
+  -ip [Server IP]    My IP Address (default: 127.0.0.1)
+  -p [Server Port]   My port number (default: 20000)
+  -name Server Name  Name displayed by connected viewers. (default: Netbots
+                     Server)
+  -games N           Games server will play before quiting. (default: 10)
+  -bots N            Number of bots required to join before game can start.
+                     (default: 4)
+  -stepsec sec       How many seconds between server steps. (default: 0.1)
+  -stepmax int       Max steps in one game. (default: 1000)
+  -droprate int      Drop over nth message. 0 == no drop. (default: 10)
+  -msgperstep int    Number of msgs from a bot that server will respond to
+                     each step. (default: 4)
+  -arenasize int     Size of arena. (default: 1000)
+  -botradius int     Radius of robots. (default: 25)
+  -explradius int    Radius of explosions. (default: 75)
+  -botmaxspeed int   Robot distance traveled per step at 100% speed (default:
+                     5)
+  -botaccrate int    % robot can accelerate (or decelerate) per step (default:
+                     5)
+  -shellspeed int    Distance traveled by shell per step. (default: 50)
+  -hitdamage int     Damage a robot takes from hitting wall or another bot.
+                     (default: 2)
+  -expldamage int    Damage bot takes from direct hit from shell. (default:
+                     20)
+  -stats sec         How many seconds between printing server stats. (default:
+                     60)
+  -debug             Print DEBUG level log messages. (default: False)
+  -verbose           Print VERBOSE level log messages. Note, -debug includes
+                     -verbose. (default: False)
 ```
 
 ---
@@ -426,12 +448,12 @@ Example:
 ```
     conf = {
         #Static vars (some are settable at start up by server command line switches and then do not change after that.)
-        'serverName': "NetBot Server v1",
+        'serverName': "NetBot Server",
 
         #Game and Tournament
         'botsInGame': 4, #Number of bots required to join before game can start.
         'gamesToPlay': 10, #Number of games to play before server quits.
-        'maxSteps' : 1000, #After this many steps in a game all bots will be killed
+        'stepMax' : 1000, #After this many steps in a game all bots will be killed
         'stepSec': 0.1, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
 
         #Messaging
@@ -453,7 +475,7 @@ Example:
         
         #Damage
         'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
-        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explotion will result in less damage.
+        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
 
         #Misc
         'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
@@ -653,7 +675,7 @@ Example: `{ 'type': 'Error', 'result':  'Can't process setSpeedRequest when heal
     * Use binary search to quickly find the best enemy to fire at.
     * Take notice of if your robots health is going down or not. How should the robot behavior change based on this information?
     * Avoid colliding with other robots and walls.
-    * If a game is close to ending (gameStep is close to maxSteps) can your robot change behavior to win as quickly as possible.
+    * If a game is close to ending (gameStep is close to stepMax) can your robot change behavior to win as quickly as possible.
     * Find other strategies that win faster with less health lost.
 
 3. Understand what IP addresses and port numbers are. 
@@ -664,7 +686,7 @@ Example: `{ 'type': 'Error', 'result':  'Can't process setSpeedRequest when heal
 4. Understand how computer resources and network reliability affect a real-time system.
     * Run a tournament all on one computer and then run the same tournament all on different computers. Watch the network and CPU use.
     * What's the difference in outcome? 
-    * What if you speed up the server by using the -stepsec server option or change the -msgdrop server option? 
+    * What if you speed up the server by using the -stepsec server option or change the -droprate server option? 
     * How do the stats differ? Why do they differ?
 
 5. Learn how having access to more information can improve program logic.

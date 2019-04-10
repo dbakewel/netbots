@@ -20,12 +20,12 @@ class SrvData():
 
     conf = {
         #Static vars (some are settable at start up by server command line switches and then do not change after that.)
-        'serverName': "NetBot Server v1",
+        'serverName': "NetBot Server",
 
         #Game and Tournament
         'botsInGame': 4, #Number of bots required to join before game can start.
         'gamesToPlay': 10, #Number of games to play before server quits.
-        'maxSteps' : 1000, #After this many steps in a game all bots will be killed
+        'stepMax' : 1000, #After this many steps in a game all bots will be killed
         'stepSec': 0.1, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
 
         #Messaging
@@ -47,7 +47,7 @@ class SrvData():
         
         #Damage
         'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
-        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explotion will result in less damage.
+        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
 
         #Misc
         'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
@@ -440,8 +440,8 @@ def step(d):
         points = 5 #died in second half
 
     #Kill all bots if we have reached the max steps and there is still more than one bot alive.
-    if d.state['gameStep'] == d.conf['maxSteps'] and len(aliveBots) != 1:
-        log("Game reached maxSteps with more than one bot alive. Killing all bots.")
+    if d.state['gameStep'] == d.conf['stepMax'] and len(aliveBots) != 1:
+        log("Game reached stepMax with more than one bot alive. Killing all bots.")
         for src in aliveBots:
             d.bots[src]['health'] = 0
 
@@ -523,20 +523,44 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-ip', metavar='Server IP', dest='serverIP', type=nbipc.argParseCheckIPFormat, nargs='?', default='127.0.0.1', help='My IP Address')
     parser.add_argument('-p', metavar='Server Port',dest='serverPort', type=int, nargs='?', default=20000, help='My port number')
-    parser.add_argument('-g', metavar='N', dest='gamesToPlay', type=int, default=10, help='Games server will play before quiting.')
+    parser.add_argument('-name', metavar='Server Name', dest='serverName', type=str, default="Netbots Server", help='Name displayed by connected viewers.')
+    parser.add_argument('-games', metavar='N', dest='gamesToPlay', type=int, default=10, help='Games server will play before quiting.')
+    parser.add_argument('-bots', metavar='N', dest='botsInGame', type=int, default=4, help='Number of bots required to join before game can start.')
     parser.add_argument('-stepsec', metavar='sec', dest='stepSec', type=float, default=0.1, help='How many seconds between server steps.')
-    parser.add_argument('-stepsmax', metavar='int', dest='maxSteps', type=int, default=1000, help='Max steps in one game.')
+    parser.add_argument('-stepmax', metavar='int', dest='stepMax', type=int, default=1000, help='Max steps in one game.')
+    parser.add_argument('-droprate', metavar='int', dest='dropRate', type=int, default=10, help='Drop over nth message. 0 == no drop.')
+    parser.add_argument('-msgperstep', metavar='int', dest='botMsgsPerStep', type=int, default=4, help='Number of msgs from a bot that server will respond to each step.')
+    parser.add_argument('-arenasize', metavar='int', dest='arenaSize', type=int, default=1000, help='Size of arena.')
+    parser.add_argument('-botradius', metavar='int', dest='botRadius', type=int, default=25, help='Radius of robots.')
+    parser.add_argument('-explradius', metavar='int', dest='explRadius', type=int, default=75, help='Radius of explosions.')
+    parser.add_argument('-botmaxspeed', metavar='int', dest='botMaxSpeed', type=int, default=5, help="Robot distance traveled per step at 100%% speed")
+    parser.add_argument('-botaccrate', metavar='int', dest='botAccRate', type=int, default=5, help='%% robot can accelerate (or decelerate) per step')
+    parser.add_argument('-shellspeed', metavar='int', dest='shellSpeed', type=int, default=50, help='Distance traveled by shell per step.')
+    parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int, default=2, help='Damage a robot takes from hitting wall or another bot.')
+    parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int, default=20, help='Damage bot takes from direct hit from shell.')
     parser.add_argument('-stats', metavar='sec', dest='statsSec', type=int, default=60, help='How many seconds between printing server stats.')
-    parser.add_argument('-msgdrop', metavar='int', dest='dropRate', type=int, default=10, help='Drop over nth message. 0 == no drop.')
     parser.add_argument('-debug', dest='debug', action='store_true', default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true', default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
     args = parser.parse_args()
-    setLogLevel(args.debug, args.verbose)
+    
+    d.conf['serverName'] = args.serverName
+    d.conf['gamesToPlay'] = args.gamesToPlay
+    d.conf['botsInGame'] = args.botsInGame
+    d.conf['stepSec'] = args.stepSec
+    d.conf['stepMax'] = args.stepMax
     d.conf['dropRate'] = args.dropRate
     d.state['dropNext'] = args.dropRate
-    d.conf['gamesToPlay'] = args.gamesToPlay
-    d.conf['maxSteps'] = args.maxSteps
-    d.conf['stepSec'] = args.stepSec
+    d.state['botMsgsPerStep'] = args.botMsgsPerStep
+    d.state['arenaSize'] = args.arenaSize
+    d.state['botRadius'] = args.botRadius
+    d.state['explRadius'] = args.explRadius
+    d.state['botMaxSpeed'] = args.botMaxSpeed
+    d.state['botAccRate'] = args.botAccRate
+    d.state['shellSpeed'] = args.shellSpeed
+    d.state['hitDamage'] = args.hitDamage
+    d.state['explDamage'] = args.explDamage
+    setLogLevel(args.debug, args.verbose)
+    
     log("Server Configuration: " + str(d.conf),"VERBOSE")
 
     try:
