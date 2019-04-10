@@ -50,7 +50,7 @@ If you want to run NetBots across a network then the ports you choose must be op
 
 On windows, **double click "rundemo.bat"** in the root of the NetBots directory. 
 
-The rundemo script will start 6 processes on the local computer: 1 server, 1 viewer, and 4 robots. A default tournament (10 games) will run and then the server will quit. Each process will send its output to it's own cmd window. The title of the window indicates what is running it in. Each process can be quit by clicking in the window and pressing "Ctrl-C" (cmd window stays open) or clicking the close box (cmd window closes).
+The rundemo script will start 6 processes on the local computer: 1 server, 1 viewer, and 4 robots. A default tournament (10 games) will run and then the server will quit. Each process will send its output to it's own cmd window. The title of the window indicates what is running it in. Each process can be quit by clicking in the window and pressing "Ctrl-C" (cmd window stays open) or clicking the close box (cmd window closes). Use "Close all windows" in the task bar to quickly quit all processes. 
 
 
 ## Running a Tournament
@@ -159,7 +159,7 @@ To write a robot you should have a basic familiarity with python 3. The links be
 
 ## Robot / Server Communication
 
-Netbots robots use the netbots_ipc module to communicate with the server. All messages that can be sent to the server and what will be returned is documented below in the module reference.The netbots_ipc module supports both synchronous and asynchronous communication. The synchronous method allows only one message to be processed by the server per step while the asynchronous method allows up to 4 messages per step. It's recommended that all programmers start with the synchronous method since it eliminates issues of messages being dropped and works more like a function call.
+Netbots robots use the netbots_ipc module to communicate with the server. All messages that can be sent to the server and what will be returned is documented below in the module reference. The netbots_ipc module supports both synchronous and asynchronous communication. The synchronous method allows only one message to be processed by the server per step while the asynchronous method allows up to 4 messages per step. It's recommended that all programmers start with the synchronous method since it eliminates issues of messages being dropped and works more like a function call.
 
 Robots must start all new communications with a server using a **joinRequest** message. Once a robot has joined, it must keep asking the server if the game has started by using the **getInfoRequest** Message. Once the game has started the robot can use any of the other message types to play the game until either their health is 0 or they win and the game ends. When a game ends the server will immediately start the next game and robots need to detect this event, again using the getInfoRequest. This continues until the server has completed the tournament and quits.
 
@@ -169,7 +169,7 @@ See netbots_ipc module reference below for details.
 
 ## Coordinates and Angles
 
-The game is played on a square grid. By default the grid is 1000 units on each side with (x=0,y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise.
+The game is played on a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise.
 
 ![Arena Coordinates and Angles](arena.png "Arena Coordinates and Angles")
 
@@ -196,7 +196,7 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 ## netbots_log (debug output)
 
-The netbots_log module gives a simple method to print output to the console. Best practice is to use the log() rather than print(). log() will include the time and function name which can help with debugging. 
+The netbots_log module prints output to the console. Best practice is to use the log() rather than print(). log() will include the time and function name which can help with debugging. 
 
 notbots_log allows turning detailed output on/off without having to remove log lines from your code. You can turn DEBUG and VERBOSE output on/off from the command line with -debug and -verbose. Use -h switch to learn more.
 
@@ -226,6 +226,7 @@ level is of type str and should be one of DEBUG, VERBOSE, INFO, WARNING, ERROR, 
 *   ERROR: Can not continue as planned but don't need to quit or reinitialize.
 *   FAILURE: program will need to quit or reinitialize.
 
+
 **setLogLevel(debug=False, verbose=False)**
 
 Turn DEBUG and VERBOSE printing on or off. Both are off by default. Note, debug = True will set verbose = True.
@@ -242,18 +243,18 @@ See python [math](https://docs.python.org/3/library/math.html) module for other 
 
 **angle(x1, y1, x2, y2)**
 
-Return angle from (x1,y1) to (x2,y2).
+Return angle from (x1,y1) to (x2,y2). i.e.
+
 
 **contains(x1, y1, startRad, endRad, x2, y2)**
 
-Return distance between points only if point falls inside a specific range of angles, otherwise return 0. startRad and endRad should be in the range 0 to 2pi and startRad should be less than EndRad.
+Return distance between points only if point falls inside a specific range of angles, otherwise return 0. startRad and endRad should be in the range 0 to 2pi.
 
 In pseudocode:
 
-
 ```
 if angle from (x1,y1) to (x2,y2) is between startRad and 
-  clockwise to endRad then
+  counter clockwise to endRad then
     return distance from (x1,y1) to (x2,y2)
 else
     return 0
@@ -286,7 +287,7 @@ NetBots communicates using UDP/IP datagrams and messages are serialized with Mes
 
 Create UDP socket and bind it to listen on sourceIP and sourcePort.
 
-*   sourceIP: IP the socket will listen on. This must be 127.0.0.1 (locahost), 0.0.0.0 (all interfaces), or a valid IP address on the computer.
+*   sourceIP: IP the socket will listen on. This must be 127.0.0.1 (localhost), 0.0.0.0 (all interfaces), or a valid IP address on the computer.
 *   sourcePort: port to listen on. This is an integer number.
 *   destinationIP and destinationPort are passed to setDestinationAddress()
 
@@ -330,7 +331,7 @@ If destinationIP or destinationPort is not provided then the default will be use
 
 **sendRecvMessage(self, msg, destinationIP=None, destinationPort=None, retries=10, delay=None, delayMultiplier=1.2)**
 
-Sends msg to destinationIP:destinationPort and then returns the reply. sendRecvMessage is considered **synchronous** because it will not return until a reply is received. Programmers can think of this much like a normal function call.
+Sends msg to destinationIP:destinationPort and then waits and returns the reply. sendRecvMessage is considered **synchronous** because it will not return until a reply is received. Programmers can think of this much like a normal function call.
 
 msg must be a valid message.
 
@@ -340,7 +341,7 @@ Raises NetBotSocketException exception if the sent or received msg is not a vali
 
 If no reply is received then the message will be sent again (retried) in case it was dropped by the network. If the maximum number of retries is reached then a NetBotSocketException exception will be raised.
 
-Note, sendRecvMessage (synchronous) should not be mixed with sendMessage and recvMessage (asynchronous) without careful consideration. When sendRecvMessage is called it will discard all messages that are waiting to be received by the robot that do not match the reply it is looping for.
+Note, sendRecvMessage (synchronous) should not be mixed with sendMessage and recvMessage (asynchronous) without careful consideration. When sendRecvMessage is called it will discard all messages that are waiting to be received by the robot that do not match the reply it is looking for.
 
 
 **setDestinationAddress(self, destinationIP, destinationPort)**
@@ -377,7 +378,7 @@ Returns True if p is valid port number, otherwise returns False.
 
 ### Messages
 
-All messages are python dict type and contain a str 'type' key with a value of type str. All message key/value pairs are described below in the format:
+All messages are python dict type and contain a 'type' key with a value of type str. All message key/value pairs are described below in the format:
 
 ```
 { 'type': <str>, '<key>': <type>, '<key>': <type>, ... }
@@ -396,7 +397,7 @@ All keys are type str and types may include acceptable min and max values. For e
 
 There are two special keys that can optionally be added to any request message. These keys are not used by the server but will be copied to the reply message by the server. This can be very useful to track asynchronous messages:
 
-*   'replyData': any of int, float, str, dict, orlist
+*   'replyData': any of int, float, str, dict, or list
 *   'msgID': int
 
 Note, msgID is used by NetBotSocket.sendrecvMessage() so should not be used by robot code directly.
@@ -406,7 +407,7 @@ Note, msgID is used by NetBotSocket.sendrecvMessage() so should not be used by r
 
 Messages described below are grouped by request (sent by robot) and the expected reply (sent by server). All keys listed below are required. 
 
-IMPORTANT: When a robot's health is 0, only joinRequest and getInfoRequest will return the appropriate reply. Other request messages will return a reply of type "Error" when a robots health is 0.
+IMPORTANT: When a robot's health == 0, only joinRequest and getInfoRequest will return the appropriate reply. Other request messages will return a reply of type "Error" when a robot's health == 0.
 
 
 **Join**
@@ -613,7 +614,7 @@ Example: `{ 'type': 'getCanonReply', 'shellInProgress': bool }`
 
 **fireCanon**
 
-Fires a shell in 'direction' angle from robots location and will trigger it to explode once it has traveled 'distance'. If a shell is already in progress then this will replace the previous shell and the previous shell will not explode.
+Fires a shell in 'direction' angle from robots location and will trigger it to explode once it has traveled 'distance'. If a shell is already in progress (shellInProgress == True) then this will replace the previous shell and the previous shell will not explode.
 
 Robot Sends: 
 
@@ -631,7 +632,7 @@ Example: `{ 'type': 'fireCanonReply' }`
 
 **Scan**
 
-Determines the distance to the closet enemy robot that is between startRadians and endRadians anagle from the robots location. If distance == 0 then the scan did not detect any enemy robots.
+Determines the distance to the closet enemy robot that is between startRadians and clockwise to endRadians angle from the robots location. If distance == 0 then the scan did not detect any enemy robots.
 
 
 Robot Sends: 
@@ -684,7 +685,7 @@ Example: `{ 'type': 'Error', 'result':  'Can't process setSpeedRequest when heal
     * Remove the need to specify robot port (-p) by having the robot find an available port.
 
 4. Understand how computer resources and network reliability affect a real-time system.
-    * Run a tournament all on one computer and then run the same tournament all on different computers. Watch the network and CPU use.
+    * Run a tournament with all processes on one computer and then run the same tournament with all processes on different computers. Watch the network and CPU use.
     * What's the difference in outcome? 
     * What if you speed up the server by using the -stepsec server option or change the -droprate server option? 
     * How do the stats differ? Why do they differ?

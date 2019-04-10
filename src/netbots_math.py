@@ -36,7 +36,7 @@ def contains(x1,y1,startRad,endRad,x2,y2):
     Return distance between points only if point falls inside a specific range of angles.
     Otherwise return 0.
 
-    if angle from (x1,y1) to (x2,y2) is between startRad and clockwise to endRad then
+    if angle from (x1,y1) to (x2,y2) is between startRad and counter clockwise to endRad then
         return distance from (x1,y1) to (x2,y2)
     else
         return 0
