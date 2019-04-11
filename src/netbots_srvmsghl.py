@@ -128,11 +128,18 @@ def scanRequest(d, msg, src):
         bot = d.bots[src]
         for src2, bot2 in d.bots.items():
             if src != src2 and bot2['health'] != 0:
-                dis = nbmath.contains(bot['x'],bot['y'],msg['startRadians'],msg['endRadians'],bot2['x'],bot2['y'])
-                if dis != 0 and distance == 0:
-                    distance = dis
-                elif dis != 0 and dis < distance:
-                    distance = dis
+                #don't detect bot2 if it's fully inside a jam Zone.
+                jammed = False
+                for jz in d.conf['jamZones']:
+                    if nbmath.distance(bot2['x'],bot2['y'],jz['x'],jz['y']) + d.conf['botRadius'] < jz['radius']:
+                        jammed = True
+
+                if not jammed:
+                    dis = nbmath.contains(bot['x'],bot['y'],msg['startRadians'],msg['endRadians'],bot2['x'],bot2['y'])
+                    if dis != 0 and distance == 0:
+                        distance = dis
+                    elif dis != 0 and dis < distance:
+                        distance = dis
 
         return {
             'type': "scanReply", 
