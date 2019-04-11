@@ -62,3 +62,55 @@ def project(x,y,rad,dis):
     yp = y + dis * math.sin(rad)
 
     return xp, yp
+
+def sgn(x):
+    if x < 0:
+        return -1
+    return 1
+
+def intersectLineCircle(x1,y1,x2,y2,cx,cy,cradius):
+    """ 
+    Return True if line segment between (x1,y1) and (x2,y2) intersects circle 
+    centered at (cx,cy) with radius cradius, or if line segment is entirely 
+    inside circle. 
+    """
+
+    #move points so circle is at origin (0,0)
+    x1 -= cx
+    y1 -= cy
+    x2 -= cx
+    y2 -= cy
+
+    #easy way first. Just see if one of the points is inside the circle
+    d1 = math.sqrt(x1*x1 + y1*y1)
+    d2 = math.sqrt(x1*x1 + y1*y1)
+    if d1 <= cradius or d2 <= cradius:
+        return True
+
+    #Find out if infinite line intersect circle
+    #From http://mathworld.wolfram.com/Circle-LineIntersection.html
+    dx = x2 - x1
+    dy = y2 - y1
+    dr = math.sqrt(dx*dx+dy*dy)
+    D = x1*y2 - x2*y1
+    delta = (cradius*cradius) * (dr*dr) - (D*D)
+    if delta < 0:
+        return False
+
+    #now we know that the line to infinity intersects the circle.
+    #we need to figure out if the line segment touches or not.
+    #start by finding one of of points that intersects.
+
+    ix = (D*dy+sgn(dy)*dx*math.sqrt(delta)) / (dr*dr)
+    iy = (-1*D*dx+abs(dy)*math.sqrt(delta)) / (dr*dr)
+
+    if ix > x1 and ix > x2:
+        return False
+    elif ix < x1 and ix < x2:
+        return False
+    elif iy > y1 and iy > y2:
+        return False
+    elif iy < y1 and iy < y2:
+        return False
+
+    return True

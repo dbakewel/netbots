@@ -265,6 +265,10 @@ else
 
 Return distance between (x1,y1) and (x2,y2)
 
+**intersectLineCircle(x1,y1,x2,y2,cx,cy,cradius)**
+
+Return True if line segment between (x1,y1) and (x2,y2) intersects circle centered at (cx,cy) with radius cradius, or if line segment is entirely inside circle. 
+
 
 **normalizeAngle(a)**
 
