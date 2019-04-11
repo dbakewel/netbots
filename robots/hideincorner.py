@@ -36,11 +36,11 @@ def play(botSocket, srvConf):
             continue
 
         if getInfoReply['gameNumber'] != gameNumber:
-            #A new game has started. Record new gameNumber and reset any varialbes back to their inital state
+            #A new game has started. Record new gameNumber and reset any variables back to their initial state
             gameNumber = getInfoReply['gameNumber']
             log("Game " + str(gameNumber) + " has started. Points so far = " + str(getInfoReply['points']))
 
-            #We only try and go to a corner at the begining of the game and then hope for the best. 
+            #We only try and go to a corner at the beginning of the game and then hope for the best. 
             try:
                 #get location data from server
                 getLocationReply = botSocket.sendRecvMessage({'type': 'getLocationRequest'})
@@ -65,13 +65,13 @@ def play(botSocket, srvConf):
                 #Request we start accelerating to max speed
                 botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 100})
 
-                #log some usful information.
+                #log some useful information.
                 degrees = str(int(round(math.degrees(radians))))
                 log("Requested to go " + degrees + " degress at max speed.","INFO")
 
             except nbipc.NetBotSocketException as e:
                 #Consider this a warning here. It may simply be that a request returned 
-                # an Error reply becuase our health == 0 since we last check. We can 
+                #an Error reply because our health == 0 since we last checked. We can 
                 #continue until the next game starts.
                 log(str(e),"WARNING")
             continue
@@ -85,12 +85,7 @@ def play(botSocket, srvConf):
 
 def quit(signal=None, frame=None):
     global botSocket
-    log("\n\n                 ====== Stats ======"+\
-        "\n\n               Messages In: " + str(botSocket.recv) +\
-          "\n              Messages Out: " + str(botSocket.sent) +\
-          "\n   sendRecvMessage() Calls: " + str(botSocket.sendRecvMessageCalls) +\
-          "\n sendRecvMessage() Resends: " + str(botSocket.sendRecvMessageResends) +\
-        "\n\n")
+    log(botSocket.getStats())
     log("Quiting","INFO")
     exit()
 
@@ -118,7 +113,7 @@ def main():
 
     log("Join server was successful. We are ready to play!")
 
-    #the server configuration tells us all about how big the playing field is and other useful stuff.
+    #the server configuration tells us all about how big the arena is and other useful stuff.
     srvConf = joinReply['conf']
     log(str(srvConf), "VERBOSE")
 

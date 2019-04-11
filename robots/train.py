@@ -36,11 +36,12 @@ def play(botSocket, srvConf):
             continue
 
         if getInfoReply['gameNumber'] != gameNumber:
-            #A new game has started. Record new gameNumber and reset any varialbes back to their inital state
+            #A new game has started. Record new gameNumber and reset any variables back to their initial state
             gameNumber = getInfoReply['gameNumber']
             log("Game " + str(gameNumber) + " has started. Points so far = " + str(getInfoReply['points']))
 
-            #currentMode is the wall we are closet to. We drive along this.
+            #currentMode is the wall we are closet to. We drive along this the currentMode wall.
+            #Use special mode of "start" when we don't know where we are yet.
             currentMode = "start" 
 
             #distance from a wall to start turning (1/5 arena size)
@@ -63,7 +64,6 @@ def play(botSocket, srvConf):
                     ('top', srvConf['arenaSize']-getLocationReply['y']) # distance to top wall
                 ]
 
-                #guess that the first choice is the best then check the others to see if they are better.
                 pickMode = choices[0][0]
                 pickDistance = choices[0][1] 
                 for i in range(1,len(choices)):
@@ -110,13 +110,14 @@ def play(botSocket, srvConf):
                 botSocket.sendRecvMessage({'type': 'setDirectionRequest', 'requestedDirection': newDirection})
                 requestedDirection = newDirection
 
-            #Request we start accelerating to 50 speed. That should be fast enough to not get shot at but still make the turns without hitting walls.
-            #Se need to keep sending this since we could hit things and stop)
+            #Request we start accelerating to 50 speed. That should be fast enough to get shot less
+            #still make the turns without hitting walls.
+            #Need to keep sending speed msgs in case we hit things and stop.
             botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 50})
 
         except nbipc.NetBotSocketException as e:
             #Consider this a warning here. It may simply be that a request returned 
-            # an Error reply becuase our health == 0 since we last check. We can 
+            #an Error reply because our health == 0 since we last checked. We can 
             #continue until the next game starts.
             log(str(e),"WARNING")
             continue
@@ -155,7 +156,7 @@ def main():
 
     log("Join server was successful. We are ready to play!")
 
-    #the server configuration tells us all about how big the playing field is and other useful stuff.
+    #the server configuration tells us all about how big the arena is and other useful stuff.
     srvConf = joinReply['conf']
     log(str(srvConf), "VERBOSE")
 
