@@ -173,11 +173,28 @@ def openWindow(d):
     d.canvas.config(highlightthickness = d.borderSize)
     d.canvas.pack(side = t.LEFT)
 
+    lineAt = d.borderSize + d.conf['arenaSize'] / 40
+    while lineAt < d.conf['arenaSize'] + d.borderSize:
+        d.canvas.create_line(d.borderSize,lineAt,d.conf['arenaSize'] + d.borderSize,lineAt, width = 1, fill="#cecece")
+        d.canvas.create_line(lineAt,d.borderSize,lineAt,d.conf['arenaSize'] + d.borderSize, width = 1, fill="#cecece")
+        lineAt += d.conf['arenaSize'] / 40
+
     lineAt = d.borderSize + d.conf['arenaSize'] / 10
     while lineAt < d.conf['arenaSize'] + d.borderSize:
-        d.canvas.create_line(d.borderSize,lineAt,d.conf['arenaSize'] + d.borderSize,lineAt, width = 2, fill="#ccc")
-        d.canvas.create_line(lineAt,d.borderSize,lineAt,d.conf['arenaSize'] + d.borderSize, width = 2, fill="#ccc")
+        d.canvas.create_line(d.borderSize,lineAt,d.conf['arenaSize'] + d.borderSize,lineAt, width = 2, fill="#c0c0c0")
+        d.canvas.create_line(lineAt,d.borderSize,lineAt,d.conf['arenaSize'] + d.borderSize, width = 2, fill="#c0c0c0")
         lineAt += d.conf['arenaSize'] / 10
+
+    for o in d.conf['jamZones']:
+        centerX = o['x']*d.scale + d.borderSize
+        centerY = d.conf['arenaSize']-o['y']*d.scale + d.borderSize
+        radius = o['radius'] * d.scale
+        d.canvas.create_oval(
+            centerX-radius,
+            centerY-radius,
+            centerX+radius,
+            centerY+radius,
+            fill='#ddd', outline='#c0c0c0',width=2)
 
     for o in d.conf['obstacles']:
         centerX = o['x']*d.scale + d.borderSize

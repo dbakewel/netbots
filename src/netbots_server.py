@@ -49,9 +49,12 @@ class SrvData():
         'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
         'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
 
-        #Obstacles
+        #Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
         'obstacles': [], #Obstacles of form {x:float,y:float,radius:float}
         'obstacleRadius': 5, #Radius of obstacles as % of arenaSize
+
+        #Jam Zones (robots fully inside jam zone are not detected by scan)
+        'jamZones': [], #Obstacles of form {x:float,y:float,radius:float}
 
         #Misc
         'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
@@ -272,6 +275,22 @@ def mkObstacles(d,n):
                     quit()
     
     return obstacles
+
+def mkJamZones(d,n):
+    '''
+    Randomly lay out jam zones. There are no rules about overlaps of anything else in arena.
+    '''
+    jamZones = []
+    rad = d.conf['botRadius']*2
+
+    for i in range(n):
+        jamZones.append({
+            'x': random.random() * d.conf['arenaSize'],
+            'y': random.random() * d.conf['arenaSize'],
+            'radius': rad
+        })
+    
+    return jamZones
 
 def initGame(d):
     log("Starting New Game")
@@ -625,6 +644,7 @@ def main():
     parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int, default=20, help='Damage bot takes from direct hit from shell.')
     parser.add_argument('-obstacles', metavar='int', dest='obstacles', type=int, default=0, help='How many obstacles does the arena have.')
     parser.add_argument('-obstacleradius', metavar='int', dest='obstacleRadius', type=int, default=5, help='Radius of obstacles as %% of arenaSize.')
+    parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int, default=0, help='How many jam zones does the arena have.')
     parser.add_argument('-stats', metavar='sec', dest='statsSec', type=int, default=60, help='How many seconds between printing server stats.')
     parser.add_argument('-debug', dest='debug', action='store_true', default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true', default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
@@ -647,8 +667,10 @@ def main():
     d.conf['shellSpeed'] = args.shellSpeed
     d.conf['hitDamage'] = args.hitDamage
     d.conf['explDamage'] = args.explDamage
-    d.conf['obstacles'] = mkObstacles(d,args.obstacles)
     d.conf['obstacleRadius'] = args.obstacleRadius
+    d.conf['obstacles'] = mkObstacles(d,args.obstacles)
+    d.conf['jamZones'] = mkJamZones(d,args.jamZones)
+    
     
     log("Server Configuration: " + str(d.conf),"VERBOSE")
 
