@@ -1,3 +1,5 @@
+CD /d "%~dp0"
+
 start "NetBot-Server" cmd /K py -3 src/netbots_server.py -p 20000 -stepsec 0.05 -games 10
 
 start "hideincorner" cmd /K py -3 robots/hideincorner.py -p 20002 -sp 20000
