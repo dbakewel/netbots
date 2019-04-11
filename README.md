@@ -4,18 +4,18 @@ NetBots is a python programming game. The game consists of a number of robots, 4
 
 NetBots is inspired by [RobotWar](https://en.wikipedia.org/wiki/RobotWar) from the 1970s. RobotWar has been cloned many times, one popular example is [Crobots](https://en.wikipedia.org/wiki/Crobots). 
 
-The below is the NetBots Viewer. The colored filled in circles are robots and the unfilled circle is an explosion.
+The image below is the NetBots Viewer. The colored filled in circles are robots and the unfilled circle is an explosion.
 
 <img src="basicgame.png" width="50%">
-
-The image belows add obstacles (black circles) and jam zones (gray circles).
-
-<img src="advancedgame.png" width="50%">
 
 
 ### How is NetBots different?
 
 NetBots differs from RobotWar, and it's clones by being real-time and network centric. The server and robots each run in separate processes and can run on the same or separate computers. The server runs a specific rate (steps/second) regardless of if robots can keep up. The server will keep playing the game even if robots crash. Additionally, the server emulates an unreliable network where message (packet) loss is common. Writing programs to deal with the real-time nature and network unreliability provides additional programming challenges. Finally, NetBots offers two optional challenges for robot logic: obstacles in the arena that block robots and shells but are transparent to scans, and jam zones which allow robots to hide from scans.
+
+The image below adds obstacles (black circles) and jam zones (gray circles).
+
+<img src="advancedgame.png" width="50%">
 
 
 ### Netbots as a Learning Tool
