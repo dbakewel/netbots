@@ -4,7 +4,13 @@ NetBots is a python programming game. The game consists of a number of robots, 4
 
 NetBots is inspired by [RobotWar](https://en.wikipedia.org/wiki/RobotWar) from the 1970s. RobotWar has been cloned many times, one popular example is [Crobots](https://en.wikipedia.org/wiki/Crobots). 
 
-<img src="basicgame.png" width="40%"> <img src="advancedgame.png" width="40%">
+The below is the NetBots Viewer. The colored filled in circles are robots and the unfilled circle is an explosion.
+
+<img src="basicgame.png" width="50%">
+
+The image belows add obstacles (black circles) and jam zones (gray circles).
+
+<img src="advancedgame.png" width="50%">
 
 
 ### How is NetBots different?
