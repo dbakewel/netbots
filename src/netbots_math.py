@@ -1,5 +1,7 @@
 import math
 
+from netbots_log import log
+
 ############################################################
 ### Note, all angles below are in radians. You can convert 
 ### between degrees and radians in your code as follows:
@@ -62,3 +64,55 @@ def project(x,y,rad,dis):
     yp = y + dis * math.sin(rad)
 
     return xp, yp
+
+def sgn(x):
+    if x < 0:
+        return -1
+    return 1
+
+def intersectLineCircle(x1,y1,x2,y2,cx,cy,cradius):
+    """ 
+    Return True if line segment between (x1,y1) and (x2,y2) intersects circle 
+    centered at (cx,cy) with radius cradius, or if line segment is entirely 
+    inside circle. 
+    """
+    
+    #move points so circle is at origin (0,0)
+    x1 -= cx
+    y1 -= cy
+    x2 -= cx
+    y2 -= cy
+
+    #easy way first. Just see if one of the points is inside the circle
+    d1 = math.sqrt(x1*x1 + y1*y1)
+    d2 = math.sqrt(x2*x2 + y2*y2)
+    if d1 <= cradius or d2 <= cradius:
+        return True
+    
+    #Find out if infinite line intersect circle
+    #From http://mathworld.wolfram.com/Circle-LineIntersection.html
+    dx = x2 - x1
+    dy = y2 - y1
+    dr = math.sqrt(dx*dx+dy*dy)
+    D = x1*y2 - x2*y1
+    delta = (cradius*cradius) * (dr*dr) - (D*D)
+    if delta < 0:
+        return False
+    
+    #now we know that the line to infinity intersects the circle.
+    #but we need to figure out if the line segment touches or not.
+    #really only need to test x or y, if one is true so will the other be.
+    ix = (D*dy+sgn(dy)*dx*math.sqrt(delta)) / (dr*dr)
+    iy = (-1*D*dx+abs(dy)*math.sqrt(delta)) / (dr*dr)
+    if (x1 < ix and ix < x2) or (x1 > ix and ix > x2) or \
+       (y1 < ix and ix < y2) or (y1 > ix and ix > y2):
+        return True
+    
+    return False
+
+def main():
+    """ Tests """
+    log(intersectLineCircle(56-50,-11-5,105-50,-16-5,0,0,50))
+
+if __name__ == "__main__":
+    main()
