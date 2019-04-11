@@ -179,6 +179,17 @@ def openWindow(d):
         d.canvas.create_line(lineAt,d.borderSize,lineAt,d.conf['arenaSize'] + d.borderSize, width = 2, fill="#ccc")
         lineAt += d.conf['arenaSize'] / 10
 
+    for o in d.conf['obstacles']:
+        centerX = o['x']*d.scale + d.borderSize
+        centerY = d.conf['arenaSize']-o['y']*d.scale + d.borderSize
+        radius = o['radius'] * d.scale
+        d.canvas.create_oval(
+            centerX-radius,
+            centerY-radius,
+            centerX+radius,
+            centerY+radius,
+            fill='black')
+
     d.frame = t.Frame(d.window, width=200, height=1020, bg='#888')
     d.frame.pack(side = t.RIGHT)
 
@@ -216,6 +227,7 @@ def main():
         d.viewerSocket = nbipc.NetBotSocket(args.myIP, args.myPort, d.srvIP, d.srvPort)
         reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'})
         d.conf = reply['conf']
+        log("Server Configuration: "+str(d.conf),"VERBOSE")
     except Exception as e:
         log(str(e),"FAILURE")
         quit()

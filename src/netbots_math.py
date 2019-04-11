@@ -1,5 +1,7 @@
 import math
 
+from netbots_log import log
+
 ############################################################
 ### Note, all angles below are in radians. You can convert 
 ### between degrees and radians in your code as follows:
@@ -74,7 +76,7 @@ def intersectLineCircle(x1,y1,x2,y2,cx,cy,cradius):
     centered at (cx,cy) with radius cradius, or if line segment is entirely 
     inside circle. 
     """
-
+    
     #move points so circle is at origin (0,0)
     x1 -= cx
     y1 -= cy
@@ -83,10 +85,10 @@ def intersectLineCircle(x1,y1,x2,y2,cx,cy,cradius):
 
     #easy way first. Just see if one of the points is inside the circle
     d1 = math.sqrt(x1*x1 + y1*y1)
-    d2 = math.sqrt(x1*x1 + y1*y1)
+    d2 = math.sqrt(x2*x2 + y2*y2)
     if d1 <= cradius or d2 <= cradius:
         return True
-
+    
     #Find out if infinite line intersect circle
     #From http://mathworld.wolfram.com/Circle-LineIntersection.html
     dx = x2 - x1
@@ -96,21 +98,21 @@ def intersectLineCircle(x1,y1,x2,y2,cx,cy,cradius):
     delta = (cradius*cradius) * (dr*dr) - (D*D)
     if delta < 0:
         return False
-
+    
     #now we know that the line to infinity intersects the circle.
-    #we need to figure out if the line segment touches or not.
-    #start by finding one of of points that intersects.
-
+    #but we need to figure out if the line segment touches or not.
+    #really only need to test x or y, if one is true so will the other be.
     ix = (D*dy+sgn(dy)*dx*math.sqrt(delta)) / (dr*dr)
     iy = (-1*D*dx+abs(dy)*math.sqrt(delta)) / (dr*dr)
+    if (x1 < ix and ix < x2) or (x1 > ix and ix > x2) or \
+       (y1 < ix and ix < y2) or (y1 > ix and ix > y2):
+        return True
+    
+    return False
 
-    if ix > x1 and ix > x2:
-        return False
-    elif ix < x1 and ix < x2:
-        return False
-    elif iy > y1 and iy > y2:
-        return False
-    elif iy < y1 and iy < y2:
-        return False
+def main():
+    """ Tests """
+    log(intersectLineCircle(56-50,-11-5,105-50,-16-5,0,0,50))
 
-    return True
+if __name__ == "__main__":
+    main()

@@ -49,6 +49,10 @@ class SrvData():
         'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
         'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
 
+        #Obstacles
+        'obstacles': [], #Obstacles of form {x:float,y:float,radius:float}
+        'obstacleRadius': 5, #Radius of obstacles as % of arenaSize
+
         #Misc
         'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
     }
@@ -227,6 +231,48 @@ def findOverlapingBots(d):
 
     return False
 
+def findOverlapingBotsAndObstacles(d):
+    """Return any pair (src,i) of (src,obstacle) that overlap, else return False"""
+    for src in d.bots:
+        bot = d.bots[src]
+        for obstacle in d.conf['obstacles']:
+            if nbmath.distance(bot['x'],bot['y'],obstacle['x'],obstacle['y']) <= d.conf['botRadius']+obstacle['radius']:
+                return [src,obstacle]
+
+    return False
+
+def mkObstacles(d,n):
+    '''
+    Randomly lay out obstacles with so they are at least 2 and a bit bot diameters away from any wall or other obstacle.
+    '''
+    obstacles = []
+    rad = d.conf['arenaSize'] * d.conf['obstacleRadius']/100.0
+
+    for i in range(n):
+        overlaps = True
+        attempts=0
+        while overlaps:
+            attempts += 1
+            new = {
+                'x': random.random() * (d.conf['arenaSize'] - rad*8.1) + rad*4.1,
+                'y': random.random() * (d.conf['arenaSize'] - rad*8.1) + rad*4.1,
+                'radius': rad
+            }
+            overlaps = False
+            for o in obstacles:
+                if nbmath.distance(o['x'],o['y'],new['x'],new['y']) < o['radius'] + new['radius'] + d.conf['botRadius']*4.1:
+                    overlaps = True
+                    break
+            if overlaps == False:
+                obstacles.append(new)
+            else:
+                log("Obstacle overlapped during random layout. Trying again.","VERBOSE")
+                if attempts > 999:
+                    log("Could not layout obstacles without overlapping.","FAILURE")
+                    quit()
+    
+    return obstacles
+
 def initGame(d):
     log("Starting New Game")
     """
@@ -242,7 +288,9 @@ def initGame(d):
         reset speed and direction values to 0
     """
     botsOverlap = True #loop must run at least once.
-    while botsOverlap:
+    botsObsOverlap = True
+    attempts=0
+    while botsOverlap or botsObsOverlap:
         for src, bot in d.bots.items():
             bot['health'] = 100
             bot['x'] = random.random() * (d.conf['arenaSize'] * 0.8) + (d.conf['arenaSize'] * 0.1)
@@ -251,12 +299,22 @@ def initGame(d):
             bot['requestedSpeed'] = 0
             bot['currentDirection'] = 0
             bot['requestedDirection'] = 0
+
         botsOverlap = findOverlapingBots(d)
+        botsObsOverlap = findOverlapingBotsAndObstacles(d)
         if botsOverlap:
-            log("Bots overlaped during random layout, trying again.","VERBOSE")
+            log("Bots overlapped during random layout, trying again.","VERBOSE")
+        elif botsObsOverlap:
+            log("Bots overlapped obstacles during random layout, trying again.","VERBOSE")
+
+        attempts += 1
+        if attempts > 999:
+            log("Could not layout bots without overlapping.","FAILURE")
+            quit()
+
 
     """
-    delete all shells and explotions.
+    delete all shells and explosions.
     """
     d.shells = {}
     d.explotions = {}
@@ -327,12 +385,12 @@ def step(d):
             if bot['currentSpeed'] != 0:
                 bot['x'],bot['y'] = nbmath.project(bot['x'],bot['y'],bot['currentDirection'],bot['currentSpeed']/100.0*d.conf['botMaxSpeed'])
 
-    #do until we get one clean pass where no bot hitting wall or other bot.
+    #do until we get one clean pass where no bot hitting wall, obstacle or other bot.
     foundOverlap = True
     while foundOverlap:
         foundOverlap = False
 
-        #detect if bots hit walls. if they, did move them so they are just barly not touching,
+        #detect if bots hit walls. if they, did move them so they are just barely not touching,
         for src, bot in d.bots.items():
             if bot['x'] - d.conf['botRadius'] < 0:
                 bot['x'] = d.conf['botRadius'] + 1
@@ -351,7 +409,23 @@ def step(d):
                 bot['hitDamage'] = True
                 foundOverlap = True
         
-        #detect if bots hit other bots, if the did move them so they are just barly not touching,
+        #detect if bots hit obstacles, if the did move them so they are just barely not touching,
+        overlap = findOverlapingBotsAndObstacles(d)
+        while overlap:
+            foundOverlap = True
+            b = d.bots[overlap[0]]
+            o = overlap[1]
+            #find angle to move bot directly away from obstacle
+            a = nbmath.angle(o['x'],o['y'],b['x'],b['y'])
+            #find min distance to move bot so it don't touch (plus 0.5 for safety).
+            distance = d.conf['botRadius'] + o['radius'] + 0.5 - nbmath.distance(o['x'],o['y'],b['x'],b['y'])
+            #move bot
+            b['x'], b['y'] = nbmath.project(b['x'], b['y'], a, distance)
+            #record damage and check for more bots overlapping
+            b['hitDamage'] = True
+            overlap = findOverlapingBotsAndObstacles(d)
+
+        #detect if bots hit other bots, if the did move them so they are just barely not touching,
         overlap = findOverlapingBots(d)
         while overlap:
             foundOverlap = True
@@ -382,14 +456,25 @@ def step(d):
     for src in list(d.shells.keys()):
         shell = d.shells[src]
 
+        #remember shells start point before moving
+        oldx = shell['x']
+        oldy = shell['y']
+
         #move shell
         distance = min(d.conf['shellSpeed'], shell['distanceRemaining'])
         shell['x'],shell['y'] = nbmath.project(shell['x'],shell['y'],shell['direction'],distance)
-        shell['distanceRemaining'] -= distance
+        shell['distanceRemaining'] -= distance 
 
-        #if shell's explotion would touch inside of arena
-        if shell['x'] > d.conf['explRadius']*-1 and shell['x'] < d.conf['arenaSize']+d.conf['explRadius'] and \
-           shell['y'] > d.conf['explRadius']*-1 and shell['y'] < d.conf['arenaSize']+d.conf['explRadius']:
+        #did shell hit an obstacle?
+        shellHitObstacle = False
+        for o in d.conf['obstacles']:
+            if nbmath.intersectLineCircle(oldx,oldy,shell['x'],shell['y'],o['x'],o['y'],o['radius']):
+                shellHitObstacle = True
+
+        #if did not hit an obstacle and shell's explosion would touch inside of arena
+        if not shellHitObstacle and \
+           (shell['x'] > d.conf['explRadius']*-1 and shell['x'] < d.conf['arenaSize']+d.conf['explRadius'] and \
+            shell['y'] > d.conf['explRadius']*-1 and shell['y'] < d.conf['arenaSize']+d.conf['explRadius']):
 
             #if shell has reached it destination then explode.
             if shell['distanceRemaining'] <= 0:
@@ -404,7 +489,7 @@ def step(d):
                             #also record damage to oneself.
                             d.bots[src]['shellDamage'] += damage
 
-                #store the explotion so viewers can display it. we cannont use src as index becuase it is possible for two explotions
+                #store the explosion so viewers can display it. we can't use src as index because it is possible for two explotions
                 #from same bot to exist (but not likly).
                 d.explotions[d.state['explIndex']] = {
                     'x': shell['x'],
@@ -419,7 +504,7 @@ def step(d):
                 #this shell exploed so remove it
                 del d.shells[src]
         else:
-            #shell left arena so remove it without exploding
+            #shell hit obstacle or left arena so remove it without exploding
             del d.shells[src]
 
     #Remove old explotions and add 1 to other explotions stepsAgo.
@@ -538,11 +623,14 @@ def main():
     parser.add_argument('-shellspeed', metavar='int', dest='shellSpeed', type=int, default=50, help='Distance traveled by shell per step.')
     parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int, default=2, help='Damage a robot takes from hitting wall or another bot.')
     parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int, default=20, help='Damage bot takes from direct hit from shell.')
+    parser.add_argument('-obstacles', metavar='int', dest='obstacles', type=int, default=0, help='How many obstacles does the arena have.')
+    parser.add_argument('-obstacleradius', metavar='int', dest='obstacleRadius', type=int, default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-stats', metavar='sec', dest='statsSec', type=int, default=60, help='How many seconds between printing server stats.')
     parser.add_argument('-debug', dest='debug', action='store_true', default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true', default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
     args = parser.parse_args()
     
+    setLogLevel(args.debug, args.verbose)
     d.conf['serverName'] = args.serverName
     d.conf['gamesToPlay'] = args.gamesToPlay
     d.conf['botsInGame'] = args.botsInGame
@@ -559,7 +647,8 @@ def main():
     d.conf['shellSpeed'] = args.shellSpeed
     d.conf['hitDamage'] = args.hitDamage
     d.conf['explDamage'] = args.explDamage
-    setLogLevel(args.debug, args.verbose)
+    d.conf['obstacles'] = mkObstacles(d,args.obstacles)
+    d.conf['obstacleRadius'] = args.obstacleRadius
     
     log("Server Configuration: " + str(d.conf),"VERBOSE")
 
