@@ -50,11 +50,11 @@ class SrvData():
         'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
 
         #Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
-        'obstacles': [], #Obstacles of form {x:float,y:float,radius:float}
+        'obstacles': [], #Obstacles of form [{x:float,y:float,radius:float},...]
         'obstacleRadius': 5, #Radius of obstacles as % of arenaSize
 
         #Jam Zones (robots fully inside jam zone are not detected by scan)
-        'jamZones': [], #Obstacles of form {x:float,y:float,radius:float}
+        'jamZones': [], #Jam Zones of form [{x:float,y:float,radius:float},...]
 
         #Misc
         'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).

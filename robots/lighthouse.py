@@ -36,7 +36,7 @@ def play(botSocket, srvConf):
             continue
 
         if getInfoReply['gameNumber'] != gameNumber:
-            #A new game has started. Record new gameNumber and reset any varialbes back to their inital state
+            #A new game has started. Record new gameNumber and reset any variables back to their initial state
             gameNumber = getInfoReply['gameNumber']
             log("Game " + str(gameNumber) + " has started. Points so far = " + str(getInfoReply['points']))
 
@@ -66,11 +66,12 @@ def play(botSocket, srvConf):
                 scanRadEnd = min(scanRadStart+scanSliceWidth, math.pi*2)
                 scanReply = botSocket.sendRecvMessage({'type': 'scanRequest', 'startRadians': scanRadStart, 'endRadians': scanRadEnd})
                 
+                #if we found an enemy robot with our scan
                 if scanReply['distance'] != 0:
                     #fire down the center of the slice we just scanned.
                     fireDirection = scanRadStart+scanSliceWidth/2
                     botSocket.sendRecvMessage({'type': 'fireCanonRequest', 'direction': fireDirection, 'distance': scanReply['distance']})
-                    #make sure don't try and shoot again until this shot has exploded.
+                    #make sure don't try and shoot again until this shell has exploded.
                     currentMode = "wait"
                 
                 nextScanSlice += 1
@@ -79,7 +80,7 @@ def play(botSocket, srvConf):
 
         except nbipc.NetBotSocketException as e:
             #Consider this a warning here. It may simply be that a request returned 
-            # an Error reply becuase our health == 0 since we last check. We can 
+            #an Error reply because our health == 0 since we last checked. We can 
             #continue until the next game starts.
             log(str(e),"WARNING")
             continue
@@ -118,7 +119,7 @@ def main():
 
     log("Join server was successful. We are ready to play!")
 
-    #the server configuration tells us all about how big the playing field is and other useful stuff.
+    #the server configuration tells us all about how big the arena is and other useful stuff.
     srvConf = joinReply['conf']
     log(str(srvConf), "VERBOSE")
 

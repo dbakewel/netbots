@@ -36,11 +36,11 @@ def play(botSocket, srvConf):
             continue
 
         if getInfoReply['gameNumber'] != gameNumber:
-            #A new game has started. Record new gameNumber and reset any varialbes back to their inital state
+            #A new game has started. Record new gameNumber and reset any variables back to their initial state
             gameNumber = getInfoReply['gameNumber']
             log("Game " + str(gameNumber) + " has started. Points so far = " + str(getInfoReply['points']))
 
-            # Wallbanger is not smart enough to have any variables to reset, bit if it did this is where
+            # Wallbanger is not smart enough to have any variables to reset, but if it did this is where
             # they would be. ;)
 
         try:
@@ -48,11 +48,12 @@ def play(botSocket, srvConf):
             getSpeedReply = botSocket.sendRecvMessage({'type': 'getSpeedRequest'})
 
             #if our requested speed is 0 then it's the start of the game or we hit something.
-            #note, we will stop when we hit a wall or another bot. 'currentSpeed' and 'requestedSpeed' will be reset to 0
+            #note, we will stop when we hit a wall or another bot. 'currentSpeed' and 'requestedSpeed' 
+            #will be reset to 0
             if getSpeedReply['requestedSpeed'] == 0:
-                #pick a new random direction (hopefully away from what we just hit)
-                #random.random() return value between 0 and 1.
-                #2*math.pi is a full circle in radians
+                #pick a new random direction (hopefully away from what we just hit).
+                #random.random() returns value between 0 and 1.
+                #2*math.pi is a full circle in radians.
                 radians = random.random() * 2*math.pi
 
                 #Turn in a new direction
@@ -61,12 +62,12 @@ def play(botSocket, srvConf):
                 #Request we start accelerating to max speed
                 botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 100})
 
-                #log some usful information.
+                #log some useful information.
                 degrees = str(int(round(math.degrees(radians))))
                 log("Requested to go " + degrees + " degress at max speed.","INFO")
         except nbipc.NetBotSocketException as e:
             #Consider this a warning here. It may simply be that a request returned 
-            # an Error reply becuase our health == 0 since we last check. We can 
+            #an Error reply because our health == 0 since we last checked. We can 
             #continue until the next game starts.
             log(str(e),"WARNING")
             continue
@@ -105,7 +106,7 @@ def main():
 
     log("Join server was successful. We are ready to play!")
 
-    #the server configuration tells us all about how big the playing field is and other useful stuff.
+    #the server configuration tells us all about how big the arena is and other useful stuff.
     srvConf = joinReply['conf']
     log(str(srvConf), "VERBOSE")
 
