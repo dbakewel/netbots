@@ -19,7 +19,8 @@ class ViewerData():
     botStatusWidgets = {}
     shellWidgets ={}
     explWidgets = {}
-    colors = ['red','green','blue','cyan','orange','purple','DarkKhaki','magenta']
+    bigMsg = None
+    colors = ['red','green','blue','purple','orange','cyan','DarkKhaki','magenta']
     lastViewData = time.time()
     scale = 1
 
