@@ -565,7 +565,7 @@ Server Returns:
 
 Format: `{ 'type': 'getSpeedReply', 'requestedSpeed': float (min 0, max 100) 'currentSpeed': float (min 0, max 100) }` or Error
 
-Example: `{ 'type': 'getSpeedReply', 'requestedSpeed': float (min 0, max 100) 'currentSpeed': float (min 0, max 100) }`
+Example: `{ 'type': 'getSpeedReply', 'requestedSpeed': 80 'currentSpeed': 50.3223 }`
 
 <a name="setSpeed"></a>
 **setSpeed**
@@ -639,7 +639,7 @@ Server Returns:
 
 Format: `{ 'type': 'getCanonReply', 'shellInProgress': bool }` or Error
 
-Example: `{ 'type': 'getCanonReply', 'shellInProgress': bool }`
+Example: `{ 'type': 'getCanonReply', 'shellInProgress': False }`
 
 
 <a name="fireCanon"></a>
