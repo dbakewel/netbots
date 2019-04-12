@@ -26,7 +26,7 @@ class SrvData():
         'botsInGame': 4, #Number of bots required to join before game can start.
         'gamesToPlay': 10, #Number of games to play before server quits.
         'stepMax' : 1000, #After this many steps in a game all bots will be killed
-        'stepSec': 0.1, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
+        'stepSec': 0.05, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
 
         #Messaging
         'dropRate': 10, #Drop a messages every N messages
@@ -40,10 +40,10 @@ class SrvData():
 
         #Speeds and Rates of Change
         'botMaxSpeed': 5, #bots distance traveled per step at 100% speed
-        'botAccRate': 5, #Amount in % bot can accelerate (or decelerate) per step
-        'shellSpeed': 50, #distance traveled by shell per step
-        'botMinTurnRate': math.pi/200, #Amount bot can rotate per turn in radians at 100% speed
-        'botMaxTurnRate': math.pi/20, #Amount bot can rotate per turn in radians at 0% speed
+        'botAccRate': 1.0, #Amount in % bot can accelerate (or decelerate) per step
+        'shellSpeed': 40, #distance traveled by shell per step
+        'botMinTurnRate': math.pi/6000, #Amount bot can rotate per turn in radians at 100% speed
+        'botMaxTurnRate': math.pi/50, #Amount bot can rotate per turn in radians at 0% speed
         
         #Damage
         'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
@@ -630,7 +630,7 @@ def main():
     parser.add_argument('-name', metavar='Server_Name', dest='serverName', type=str, default="Netbots Server", help='Name displayed by connected viewers.')
     parser.add_argument('-games', metavar='int', dest='gamesToPlay', type=int, default=10, help='Games server will play before quiting.')
     parser.add_argument('-bots', metavar='int', dest='botsInGame', type=int, default=4, help='Number of bots required to join before game can start.')
-    parser.add_argument('-stepsec', metavar='sec', dest='stepSec', type=float, default=0.1, help='How many seconds between server steps.')
+    parser.add_argument('-stepsec', metavar='sec', dest='stepSec', type=float, default=0.05, help='How many seconds between server steps.')
     parser.add_argument('-stepmax', metavar='int', dest='stepMax', type=int, default=1000, help='Max steps in one game.')
     parser.add_argument('-droprate', metavar='int', dest='dropRate', type=int, default=10, help='Drop over nth message. 0 == no drop.')
     parser.add_argument('-msgperstep', metavar='int', dest='botMsgsPerStep', type=int, default=4, help='Number of msgs from a bot that server will respond to each step.')
@@ -638,8 +638,8 @@ def main():
     parser.add_argument('-botradius', metavar='int', dest='botRadius', type=int, default=25, help='Radius of robots.')
     parser.add_argument('-explradius', metavar='int', dest='explRadius', type=int, default=75, help='Radius of explosions.')
     parser.add_argument('-botmaxspeed', metavar='int', dest='botMaxSpeed', type=int, default=5, help="Robot distance traveled per step at 100%% speed")
-    parser.add_argument('-botaccrate', metavar='int', dest='botAccRate', type=int, default=5, help='%% robot can accelerate (or decelerate) per step')
-    parser.add_argument('-shellspeed', metavar='int', dest='shellSpeed', type=int, default=50, help='Distance traveled by shell per step.')
+    parser.add_argument('-botaccrate', metavar='float', dest='botAccRate', type=float, default=1.0, help='%% robot can accelerate (or decelerate) per step')
+    parser.add_argument('-shellspeed', metavar='int', dest='shellSpeed', type=int, default=40, help='Distance traveled by shell per step.')
     parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int, default=2, help='Damage a robot takes from hitting wall or another bot.')
     parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int, default=20, help='Damage bot takes from direct hit from shell.')
     parser.add_argument('-obstacles', metavar='int', dest='obstacles', type=int, default=0, help='How many obstacles does the arena have.')
