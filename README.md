@@ -1,4 +1,4 @@
-Jump to: [How to Run](#how-to-run-netbots) | [Write a Robot](#how-to-write-a-robot) | [Modules](#module-reference) | [Messages](#message-reference) | [Learning Goals](#proposed-learning-goals)
+[How to Run](#how-to-run-netbots) | [Write a Robot](#how-to-write-a-robot) | [Modules](#module-reference) | [Messages](#messages) | [Learning Goals](#proposed-learning-goals)
 
 # NetBots
 
@@ -169,7 +169,7 @@ To write a robot you should have a basic familiarity with python 3. The links be
 
 *   [Python Introductions](https://docs.python-guide.org/intro/learning/)
 *   Important Python types used in netbots: [str](https://docs.python.org/3/library/stdtypes.html#text-sequence-type-str), [int and float](https://docs.python.org/3/library/stdtypes.html#numeric-types-int-float-complex), [dict](https://docs.python.org/3/tutorial/datastructures.html#dictionaries).
-*   Other important python skills: [default arguments](https://www.geeksforgeeks.org/default-arguments-in-python/) and [exceptions](https://docs.python.org/3/tutorial/errors.html): 
+*   Other important python skills: [default arguments](https://www.geeksforgeeks.org/default-arguments-in-python/) and [exceptions](https://docs.python.org/3/tutorial/errors.html). 
 
 
 ## Robot / Server Communication
@@ -208,6 +208,7 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 # Module Reference
 
+[netbots_log](#netbots_log-debug-output) | [netbots_math](#netbots_math) | [netbots_ipc](#netbots_ipc-interprocess-communication) | [Messages](#messages)
 
 ## netbots_log (debug output)
 
@@ -424,12 +425,14 @@ Note, msgID is used by NetBotSocket.sendrecvMessage() so should not be used by r
 
 ### Message Reference
 
+[join](#join) | [getInfo](#getInfo) | [getLocation](#getLocation) | [getSpeed](#getSpeed) | [setSpeed](#setSpeed) | [getDirection](#getDirection) | [setDirection](#setDirection) | [getCanon](#getCanon) | [fireCanon](#fireCanon) | [scan](#scan) | [Error](#Error)
+
 Messages described below are grouped by request (sent by robot) and the expected reply (sent by server). All keys listed below are required. 
 
 IMPORTANT: When a robot's health == 0, only joinRequest and getInfoRequest will return the appropriate reply. Other request messages will return a reply of type "Error" when a robot's health == 0.
 
-
-**Join**
+<a name="join"></a>
+**join**
 
 A robot must send a joinRequest before any other message type. The server will return a joinReply if the robot has successfully joined, otherwise a message of type "Error" will be returned. Sending other message types before a join request will return a message of type "Error".
 
@@ -509,7 +512,7 @@ Example:
     }
 ```
 
-
+<a name="getInfo"></a>
 **getInfo**
 
 Gets information about the current game and robot health. If gameNumber == 0 then the server is still waiting for robots to join before is starts the first game.
@@ -527,7 +530,7 @@ Format: `{ 'type': 'getInfoReply', 'gameNumber': int, 'gameStep': int, 'health':
 
 Example: `{ 'type': 'getInfoReply', 'gameNumber': 5, 'gameStep': 170, 'health': 80.232, 'points': 44 }`
 
-
+<a name="getLocation"></a>
 **getLocation**
 
 
@@ -544,7 +547,7 @@ Format: `{ 'type': 'getLocationReply', 'x': float (min 0, max 999999), 'y': floa
 
 Example: `{ 'type': 'getLocationReply', 'x': 40.343, 'y': 694.323 ) }`
 
-
+<a name="getSpeed"></a>
 **getSpeed**
 
 Get information about the robots speed. If requestedSpeed != currentSpeed then the robot is accelerating or decelerating to the requestedSpeed. Note, if a robot hits a wall, obstacle, or another robot then currentSpeed and requestedSpeed will be set to 0.
@@ -562,7 +565,7 @@ Format: `{ 'type': 'getSpeedReply', 'requestedSpeed': float (min 0, max 100) 'cu
 
 Example: `{ 'type': 'getSpeedReply', 'requestedSpeed': float (min 0, max 100) 'currentSpeed': float (min 0, max 100) }`
 
-
+<a name="setSpeed"></a>
 **setSpeed**
 
 Set desired speed of robot from 0% (stop) to 100%. See server configuration for how far a robot travels per step at 100% speed.
@@ -581,7 +584,7 @@ Format: `{ 'type': 'setSpeedReply' }` or Error
 
 Example: `{ 'type': 'setSpeedReply' }`
 
-
+<a name="getDirection"></a>
 **getDirection**
 
 Gets the direction a robot will move if speed is greater than 0. If requestedDirection != currentDirection then the reboot is turning towards requestedDirection. The number of steps required to complete the turn is affected by the current speed. The faster the robot is moving the slower it can turn.
@@ -600,7 +603,7 @@ Format: `{ 'type': 'getDirectionReply', 'requestedDirection': float (min 0, max 
 Example: `{ 'type': 'getDirectionReply', 'requestedDirection': 3.282 'currentDirection': 2.473 }`
 
 
-
+<a name="setDirection"></a>
 **setDirection**
 
 
@@ -617,7 +620,7 @@ Format: `{ 'type': 'setDirectionReply' }` or Error
 
 Example: `{ 'type': 'setDirectionReply' }`
 
-
+<a name="getCanon"></a>
 **getCanon**
 
 Used to determine if the robot has fired a shell that has not exploded yet.
@@ -637,7 +640,7 @@ Format: `{ 'type': 'getCanonReply', 'shellInProgress': bool }` or Error
 Example: `{ 'type': 'getCanonReply', 'shellInProgress': bool }`
 
 
-
+<a name="fireCanon"></a>
 **fireCanon**
 
 Fires a shell in 'direction' angle from robots location and will trigger it to explode once it has traveled 'distance'. If a shell is already in progress (shellInProgress == True) then this will replace the previous shell and the previous shell will not explode. If a shell hits an obstacle before reaching 'distance' then it will stop and not explode.
@@ -655,8 +658,8 @@ Format: `{ 'type': 'fireCanonReply' }` or Error
 
 Example: `{ 'type': 'fireCanonReply' }`
 
-
-**Scan**
+<a name="scan"></a>
+**scan**
 
 Determines the distance to the closet enemy robot that is between startRadians and clockwise to endRadians angle from the robots location. If distance == 0 then the scan did not detect any enemy robots. Robots fully within a jam zone will not be detected. Obstacles are transparent to scan, i.e., scan results are the same with or without obstacles. 
 
@@ -674,7 +677,7 @@ Format: `{ 'type': 'scanReply', 'distance': float (min 0, max 1415) }` or Error
 
 Example: `{ 'type': 'scanReply', 'distance': 70 }`
 
-
+<a name="Error"></a>
 **Error**
 
 Server Returns: 
