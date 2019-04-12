@@ -8,7 +8,7 @@ NetBots is inspired by [RobotWar](https://en.wikipedia.org/wiki/RobotWar) from t
 
 The image below is the NetBots Viewer. The colored filled in circles are robots and the unfilled circle is an explosion.
 
-<img src="basicgame.png" width="50%">
+<img src="images/basicgame.png" width="60%">
 
 
 ### How is NetBots different?
@@ -17,7 +17,7 @@ NetBots differs from RobotWar, and it's clones by being real-time and network ce
 
 The image below adds obstacles (black circles) and jam zones (gray circles).
 
-<img src="advancedgame.png" width="50%">
+<img src="images/advancedgame.png" width="60%">
 
 
 ### Netbots as a Learning Tool
@@ -188,7 +188,7 @@ See netbots_ipc module reference below for details.
 
 The game is played on a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise.
 
-![Arena Coordinates and Angles](arena.png "Arena Coordinates and Angles")
+![Arena Coordinates and Angles](images/arena.png "Arena Coordinates and Angles")
 
 ## Demo Robots
 
