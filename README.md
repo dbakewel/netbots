@@ -65,14 +65,16 @@ The rundemo script will start 6 processes on the local computer: 1 server, 1 vie
 
 ## Running a Tournament
 
-There are two options available on the netbots server that are useful for tournaments. The first lets you change the number of games (**-games**) in the tournament. If robots have similar skills then playing more games will flush out which robot really is best. 
+There are three options available on the netbots server that are useful for tournaments. The first lets you change the number of games (**-games**) in the tournament. If robots have similar skills then playing more games will flush out which robot really is best. 
 
-The second option (**-stepsec**) allows you to speed up the NetBots server. Most modern computers can run NetBots 10 times faster (or more) than the default (0.1 sec/step or 10 steps/sec). The server will produce warnings if it can't keep up with the requested speed. If only a few of these warnings appear then it will not affect the game however if many warnings appear you should stop the server and reduce it's target speed.
+The second option (**-stepsec**) allows you to speed up the NetBots server. Most modern computers can run NetBots 5 times faster (or more) than the default (0.05 sec/step or 20 steps/sec). The server will produce warnings if it can't keep up with the requested speed. If only a few of these warnings appear then it will not affect the game however if many warnings appear you should stop the server and reduce it's target speed.
 
-For example, to run a 1000 game tournament at 10 times faster (0.01 sec/step or 100 steps/sec) use:
+The final option (**-stepmax**) changes the maximum steps in a game. If games are ending because steps runs out than increasing this will give robots more times to demonstrate their skills.
+
+For example, to run a 1000 game tournament at 5 times faster (0.01 sec/step or 100 steps/sec) with a maximum of 2000 steps per game use:
 
 ```
-python netbots_server -games 1000 -stepsec 0.01
+python netbots_server -games 1000 -stepsec 0.01 -stepmax 2000
 ```
 
 ## Running on Separate Computers
@@ -116,8 +118,8 @@ usage: netbots_server.py [-h] [-ip Server_IP] [-p Server_Port]
                          [-stepsec sec] [-stepmax int] [-droprate int]
                          [-msgperstep int] [-arenasize int] [-botradius int]
                          [-explradius int] [-botmaxspeed int]
-                         [-botaccrate int] [-shellspeed int] [-hitdamage int]
-                         [-expldamage int] [-obstacles int]
+                         [-botaccrate float] [-shellspeed int]
+                         [-hitdamage int] [-expldamage int] [-obstacles int]
                          [-obstacleradius int] [-jamzones int] [-stats sec]
                          [-debug] [-verbose]
 
@@ -130,7 +132,7 @@ optional arguments:
   -games int           Games server will play before quiting. (default: 10)
   -bots int            Number of bots required to join before game can start.
                        (default: 4)
-  -stepsec sec         How many seconds between server steps. (default: 0.1)
+  -stepsec sec         How many seconds between server steps. (default: 0.05)
   -stepmax int         Max steps in one game. (default: 1000)
   -droprate int        Drop over nth message. 0 == no drop. (default: 10)
   -msgperstep int      Number of msgs from a bot that server will respond to
@@ -140,9 +142,9 @@ optional arguments:
   -explradius int      Radius of explosions. (default: 75)
   -botmaxspeed int     Robot distance traveled per step at 100% speed
                        (default: 5)
-  -botaccrate int      % robot can accelerate (or decelerate) per step
-                       (default: 5)
-  -shellspeed int      Distance traveled by shell per step. (default: 50)
+  -botaccrate float    % robot can accelerate (or decelerate) per step
+                       (default: 1.0)
+  -shellspeed int      Distance traveled by shell per step. (default: 40)
   -hitdamage int       Damage a robot takes from hitting wall or another bot.
                        (default: 2)
   -expldamage int      Damage bot takes from direct hit from shell. (default:
@@ -477,7 +479,7 @@ Example:
         'botsInGame': 4, #Number of bots required to join before game can start.
         'gamesToPlay': 10, #Number of games to play before server quits.
         'stepMax' : 1000, #After this many steps in a game all bots will be killed
-        'stepSec': 0.1, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
+        'stepSec': 0.05, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
 
         #Messaging
         'dropRate': 10, #Drop a messages every N messages
@@ -491,10 +493,10 @@ Example:
 
         #Speeds and Rates of Change
         'botMaxSpeed': 5, #bots distance traveled per step at 100% speed
-        'botAccRate': 5, #Amount in % bot can accelerate (or decelerate) per step
-        'shellSpeed': 50, #distance traveled by shell per step
-        'botMinTurnRate': math.pi/200, #Amount bot can rotate per turn in radians at 100% speed
-        'botMaxTurnRate': math.pi/20, #Amount bot can rotate per turn in radians at 0% speed
+        'botAccRate': 1.0, #Amount in % bot can accelerate (or decelerate) per step
+        'shellSpeed': 40, #distance traveled by shell per step
+        'botMinTurnRate': math.pi/6000, #Amount bot can rotate per turn in radians at 100% speed
+        'botMaxTurnRate': math.pi/50, #Amount bot can rotate per turn in radians at 0% speed
         
         #Damage
         'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
