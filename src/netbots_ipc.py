@@ -299,6 +299,10 @@ class NetBotSocket:
         except (BlockingIOError, socket.timeout):
             #There was no data in the recive buffer.
             raise NetBotSocketException("Receive buffer empty.")
+        except (ConnectionResetError):
+            #Windows raises this when it gets back an ICMP destination unreachable packet
+            log("The destination ip:port returned ICMP destination unreachable. Is the destination running?", "WARNING")
+            raise NetBotSocketException("The destination ip:port returned ICMP destination unreachable. Is the destination running?")
 
         if not isValidMsg(msg):
             raise NetBotSocketException("Received message invalid format.")
