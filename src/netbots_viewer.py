@@ -19,7 +19,8 @@ class ViewerData():
     botStatusWidgets = {}
     shellWidgets ={}
     explWidgets = {}
-    colors = ['red','green','blue','cyan','orange','purple','DarkKhaki','magenta']
+    bigMsg = None
+    colors = ['red','green','blue','purple','orange','cyan','DarkKhaki','magenta']
     lastViewData = time.time()
     scale = 1
 
@@ -38,18 +39,28 @@ def checkForUpdates(d):
             msg, ip, port = d.viewerSocket.recvMessage()
     except nbipc.NetBotSocketException as e:
          #if message type is Error and we have not got good data for 100 steps then quit
-         #if msg['type'] == 'Error' and d.lastViewData + d.conf['stepSec']*100 < time.time():
-            #We didn't get anything from the buffer or it was an invald message.
-            #log("Server stopped sending view data.")
-            #quit()
-            pass
+         if msg['type'] == 'Error' and d.lastViewData + d.conf['stepSec']*100 < time.time():
+            #We didn't get anything from the buffer or it was an invalid message.
+            d.canvas.itemconfigure(d.bigMsg,text="Server stopped sending data.")
     except Exception as e:
         log(str(e),"ERROR")
         quit()
     
     if msg['type'] == 'viewData':
+        #if gameNumber == 0 then post message
+        if msg['state']['gameNumber'] == 0:
+            leftToJoin = d.conf['botsInGame'] - len(msg['bots'])
+            if leftToJoin == 1:
+                s = ""
+            else:
+                s = "s"
+            d.canvas.itemconfigure(d.bigMsg,text="Waiting for " + \
+                str(leftToJoin) + \
+                " robot"+s+" to join.")
+        else:
+            d.canvas.itemconfigure(d.bigMsg,text="")
+        
         for src, bot in msg['bots'].items():
-
             #ensure all bots on server have widgets
             if not src in d.botStatusWidgets:
                 #pick color for this bot
@@ -206,6 +217,13 @@ def openWindow(d):
             centerX+radius,
             centerY+radius,
             fill='black')
+
+    d.bigMsg = canvasText = d.canvas.create_text(
+        d.conf['arenaSize']/2 + d.borderSize,
+        d.conf['arenaSize']/2 + d.borderSize,
+        fill="darkblue",
+        font="Times 20 italic bold",
+        text="")
 
     d.frame = t.Frame(d.window, width=200, height=1020, bg='#888')
     d.frame.pack(side = t.RIGHT)

@@ -8,7 +8,7 @@ NetBots is inspired by [RobotWar](https://en.wikipedia.org/wiki/RobotWar) from t
 
 The image below is the NetBots Viewer. The colored filled in circles are robots and the unfilled circle is an explosion.
 
-<img src="basicgame.png" width="50%">
+<img src="images/basicgame.png" width="60%">
 
 
 ### How is NetBots different?
@@ -17,7 +17,7 @@ NetBots differs from RobotWar, and it's clones by being real-time and network ce
 
 The image below adds obstacles (black circles) and jam zones (gray circles).
 
-<img src="advancedgame.png" width="50%">
+<img src="images/advancedgame.png" width="60%">
 
 
 ### Netbots as a Learning Tool
@@ -25,9 +25,9 @@ The image below adds obstacles (black circles) and jam zones (gray circles).
 NetBots can be used in a learning environment. Students can be challenged in two ways:
 
 1. Learn to write programs that must interact with a constantly changing real-time environment with limited information and limited control.
-2. Learn about networking, the impact of unreliable networks, and synchronous vs asynchronous programing.
+2. Learn about networking, the impact of unreliable networks, and synchronous vs asynchronous programming.
 
-See Proposed Learning Goals below.
+See [Proposed Learning Goals](#proposed-learning-goals) below.
 
 
 ---
@@ -58,7 +58,7 @@ If you want to run NetBots across a network then the ports you choose must be op
 
 ## Running the Demo
 
-On windows, **double click "rundemo.bat"** in the root of the NetBots directory. 
+On windows, **double click "rundemo.bat"** in the root of the NetBots directory. If this does not work, open a command window (cmd), cd into the directory containing rundemo.bat and type "rundemo.bat".
 
 The rundemo script will start 6 processes on the local computer: 1 server, 1 viewer, and 4 robots. A default tournament (10 games) will run and then the server will quit. Each process will send its output to it's own cmd window. The title of the window indicates what is running it in. Each process can be quit by clicking in the window and pressing "Ctrl-C" (cmd window stays open) or clicking the close box (cmd window closes). Use "Close all windows" in the task bar to quickly quit all processes. 
 
@@ -176,19 +176,19 @@ To write a robot you should have a basic familiarity with python 3. The links be
 
 ## Robot / Server Communication
 
-Netbots robots use the netbots_ipc module to communicate with the server. All messages that can be sent to the server and what will be returned is documented below in the module reference. The netbots_ipc module supports both synchronous and asynchronous communication. The synchronous method allows only one message to be processed by the server per step while the asynchronous method allows up to 4 messages per step. It's recommended that all programmers start with the synchronous method since it eliminates issues of messages being dropped and works more like a function call.
+Netbots robots use the netbots_ipc module to communicate with the server. All messages that can be sent to the server and what will be returned is documented below in the [messages](#messages) reference. The netbots_ipc module supports both synchronous and asynchronous communication. The synchronous method allows only one message to be processed by the server per step while the asynchronous method allows up to 4 messages per step. It's recommended that all programmers start with the synchronous method since it eliminates issues of messages being dropped and works more like a function call.
 
 Robots must start all new communications with a server using a **joinRequest** message. Once a robot has joined, it must keep asking the server if the game has started by using the **getInfoRequest** Message. Once the game has started the robot can use any of the other message types to play the game until either their health is 0 or they win and the game ends. When a game ends the server will immediately start the next game and robots need to detect this event, again using the getInfoRequest. This continues until the server has completed the tournament and quits.
 
 It's important to understand that the server will not wait for robots to send messages. Once a robot joins the server successfully, the server will play the tournament regardless of if the robot continues to send messages or not. It is up to the robot to send request messages to the server, to recognize when new games have started, and to realize that their health is 0 (server will return errors when robot is dead).
 
-See netbots_ipc module reference below for details.
+See [netbots_ipc](#netbots_ipc-interprocess-communication) module reference below for details.
 
 ## Coordinates and Angles
 
 The game is played on a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise.
 
-![Arena Coordinates and Angles](arena.png "Arena Coordinates and Angles")
+![Arena Coordinates and Angles](images/arena.png "Arena Coordinates and Angles")
 
 ## Demo Robots
 
@@ -346,7 +346,7 @@ Note, the text above assumes the socket timeout is set to 0 (non-blocking), whic
 
 Sends msg to destinationIP:destinationPort and then returns immediately. sendMessage is considered **asynchronous** because it does not wait for a reply message and returns no value. Therefore there is no indication if msg will be received by the destination.
 
-Raises NetBotSocketException exception if the msg is not a valid format. (see Messages below)
+Raises NetBotSocketException exception if the msg is not a valid format. (see [Messages](#messages) below)
 
 If destinationIP or destinationPort is not provided then the default will be used (see setDestinationAddress()).
 

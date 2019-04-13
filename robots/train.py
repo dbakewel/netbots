@@ -110,8 +110,8 @@ def play(botSocket, srvConf):
                 botSocket.sendRecvMessage({'type': 'setDirectionRequest', 'requestedDirection': newDirection})
                 requestedDirection = newDirection
 
-            #Request we start accelerating to 50 speed. That should be fast enough to get shot less
-            #still make the turns without hitting walls.
+            #Request we start accelerating to 50 speed. That should be fast enough to get
+            #shot less but still slow enough to make tight turns without hitting walls.
             #Need to keep sending speed msgs in case we hit things and stop.
             botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 50})
 
