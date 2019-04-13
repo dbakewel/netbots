@@ -41,7 +41,9 @@ See [Proposed Learning Goals](#proposed-learning-goals) below.
 
 ### Python 3
 
-NetBots uses Python 3 (tested on python 3.7.3) which can be installed from [https://www.python.org/downloads/](https://www.python.org/downloads/). Only the standard python 3 libraries are required. If multiple versions of python are installed, ensure you are running python 3, not python 2. The examples below use the "python" command assuming python 3 is the default however the commend "python3" (Linux) or "py -3" (Windows) may be required to force python 3.
+NetBots uses Python 3 (tested on python 3.7.3) which can be installed from [https://www.python.org/downloads/](https://www.python.org/downloads/). Only the standard python 3 libraries are required. 
+
+> If multiple versions of python are installed, ensure you are running python 3, not python 2. The examples below use the "python" command assuming python 3 is the default however the commend "python3" (Linux) or "py -3" (Windows) may be required to force python 3.
 
 
 ### NetBots Git Repository
@@ -51,7 +53,9 @@ The NetBots code can be cloned with git from: [https://github.com/dbakewel/netbo
 
 ## Running the Demo
 
-On windows, **double click "rundemo.bat"** in the root of the NetBots directory. If this does not work, open a command window (cmd), cd into the directory containing rundemo.bat and type "rundemo.bat".
+On windows, **double click "rundemo.bat"** in the root of the NetBots directory.
+
+> If this does not work, open a command window (cmd), cd into the directory containing rundemo.bat and type "rundemo.bat".
 
 The rundemo script will start 6 processes on the local computer: 1 server, 1 viewer, and 4 robots. A default tournament (10 games) will run and then the server will quit. Each process will send its output to it's own cmd window. The title of the window indicates what is running it in. Each process can be quit by clicking in the window and pressing "Ctrl-C" (cmd window stays open) or clicking the close box (cmd window closes). Use "Close all windows" in the task bar to quickly quit all processes. 
 
@@ -102,7 +106,7 @@ A robot can also be run on Computer 1 will the default 127.0.0.01 with:
 python robot.py -p 20010 -sp 20000
 ```
 
-Note that even though the robots on computer 1 and computer 2 use the same port (20010) they are on separate computers so it works. If you try running two robots on the same port on the same computer you will get an error.
+Even though the robots on computer 1 and computer 2 use the same port (20010) they are on separate computers so it works. If you try running two robots on the same port on the same computer you will get an error.
 
 ## Command Line Help
 
@@ -224,7 +228,7 @@ Netbots robots use the netbots_ipc module to communicate with the server. All me
 
 Robots must start all new communications with a server using a **joinRequest** message. Once a robot has joined, it must keep asking the server if the game has started by using the **getInfoRequest** Message. Once the game has started the robot can use any of the other message types to play the game until either their health is 0 or they win and the game ends. When a game ends the server will immediately start the next game and robots need to detect this event, again using the getInfoRequest. This continues until the server has completed the tournament and quits.
 
-It's important to understand that the server will not wait for robots to send messages. Once a robot joins the server successfully, the server will play the tournament regardless of if the robot continues to send messages or not. It is up to the robot to send request messages to the server, to recognize when new games have started, and to realize that their health is 0 (server will return errors when robot is dead).
+> It's important to understand that the server will not wait for robots to send messages. Once a robot joins the server successfully, the server will play the tournament regardless of if the robot continues to send messages or not. It is up to the robot to send request messages to the server, to recognize when new games have started, and to realize that their health is 0 (server will return errors when robot is dead).
 
 See [netbots_ipc](#netbots_ipc-interprocess-communication) module reference below for details.
 
