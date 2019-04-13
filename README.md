@@ -41,19 +41,12 @@ See [Proposed Learning Goals](#proposed-learning-goals) below.
 
 ### Python 3
 
-NetBots uses Python 3 (tested on python 3.7.3) which can be installed from [https://www.python.org/downloads/](https://www.python.org/downloads/) .
-
-Only the standard python 3 libraries are required.
+NetBots uses Python 3 (tested on python 3.7.3) which can be installed from [https://www.python.org/downloads/](https://www.python.org/downloads/). Only the standard python 3 libraries are required. If multiple versions of python are installed, ensure you are running python 3, not python 2. The examples below use the "python" command assuming python 3 is the default however the commend "python3" (Linux) or "py -3" (Windows) may be required to force python 3.
 
 
 ### NetBots Git Repository
 
 The NetBots code can be cloned with git from: [https://github.com/dbakewel/netbots.git](https://github.com/dbakewel/netbots.git) or downloaded in zip form from: [https://github.com/dbakewel/netbots/archive/master.zip](https://github.com/dbakewel/netbots/archive/master.zip)
-
-
-### Firewall Settings
-
-If you want to run NetBots across a network then the ports you choose must be open in the firewall for two way UDP traffic. By default, these ports are in the range 20000 - 20020 range but any available UDP ports can be used.
 
 
 ## Running the Demo
@@ -79,7 +72,11 @@ python netbots_server -games 1000 -stepsec 0.01 -stepmax 2000
 
 ## Running on Separate Computers
 
-By default NetBots only listens on localhost 127.0.0.1 which does not allow messages to be sent or received between computers. To listen on all network interfaces, and allow messages from other computers, use ```-ip 0.0.0.0```. For example:
+By default NetBots only listens on localhost 127.0.0.1 which does not allow messages to be sent or received between computers. To listen on all network interfaces, and allow messages from other computers, use ```-ip 0.0.0.0```. 
+
+> Note, if you want to run NetBots across a network then the ports you choose must be open in the OS and network firewalls for two way UDP traffic. By default, these ports are in the range 20000 - 20020 range but any available UDP ports can be used.
+
+For example:
 
 Assuming:
 *   computer 1 has IP address of 192.168.1.10
@@ -169,12 +166,44 @@ optional arguments:
 
 To write a robot you should have a basic familiarity with python 3. The links below will help:
 
-*   [Python Introductions](https://docs.python-guide.org/intro/learning/)
-*   Important Python types used in netbots: [str](https://docs.python.org/3/library/stdtypes.html#text-sequence-type-str), [int and float](https://docs.python.org/3/library/stdtypes.html#numeric-types-int-float-complex), [dict](https://docs.python.org/3/tutorial/datastructures.html#dictionaries).
-*   Other important python skills: [default arguments](https://www.geeksforgeeks.org/default-arguments-in-python/) and [exceptions](https://docs.python.org/3/tutorial/errors.html). 
+* [Python for Java Programmers (YouTube 1:00:00)](https://www.youtube.com/watch?v=xLovcfIugy8)
+* [Python Introductions](https://docs.python-guide.org/intro/learning/)
+* Important Python types used in netbots: [str](https://docs.python.org/3/library/stdtypes.html#text-sequence-type-str), [int and float](https://docs.python.org/3/library/stdtypes.html#numeric-types-int-float-complex), [dict](https://docs.python.org/3/tutorial/datastructures.html#dictionaries).
+* Other important python skills: [default arguments](https://www.geeksforgeeks.org/default-arguments-in-python/) and [exceptions](https://docs.python.org/3/tutorial/errors.html). 
 
 
-## Robot / Server Communication
+## Game Mechanics
+
+It's important to understand the rules of the game if you want to create a winning robot. Many details are documented throughout this README, so read it. This section discusses a few of the finer details. 
+
+
+### Coordinates and Angles
+
+The game is played on a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise. All coordinators and angles are of type float.
+
+![Arena Coordinates and Angles](images/arena.png "Arena Coordinates and Angles")
+
+
+### Server Step/Message Loop
+
+Once a game starts, the server enters the Step/Message Loop. Each time through the loop the server will update all elements of the game, including: robot speed, robot direction, robot location, robot health, shell location, explosions, etc. The server will then receive all messages from robots and send reply messages. The server has a target speed (stepSec) for each pass through the loop: 0.05 seconds or 20 steps/second by default. If the Step/Message loop takes less time then the server will sleep until the next loop is to start.
+
+
+### Information Confidence
+
+The server step/message loop means that robots (assuming synchronous communication) can only send one message and get one reply per step (pass through the Step/Message Loop). Since everything in the arena is moving, it is difficult to have up to date information on everything at once. 
+
+For example, assume a robot is moving at 100% speed (5 units/step by default) and you send a message asking for it's location followed by a three other requests for other information. After the 3 requests, the location information (the first request) will be 3 steps old and you may assume the robot has moved 15 units however the robot may have hit another robot and stopped. Since you are not sure, this affects your confidence in the location information. Managing information and your confidence in it is a key ingredient for writing good robots.
+
+
+### Server Configuration
+
+The NetBots server has many configuration options so decide on what options you will use beforehand. The default options have been picked to provide a balanced game. For example, robots at 100% speed and half way across the arena can avoid most damage from a shell fired directly at them. By the time the shell explodes they would have moved mostly out of the explosion radius. Changes to the max speed of robots (botMaxSpeed), the speed of shells (shellSpeed), or the radius of explosions (explRadius) changes this fundamental of the game.
+
+Note, changing the speed of the Step/Message loop (stepSec) within a reasonable range should not affect the outcome of the game. This allows the server to run slower, allowing robot behavior to be observed, or faster, so tournaments can be run quickly. 
+
+
+### Robot / Server Communication
 
 Netbots robots use the netbots_ipc module to communicate with the server. All messages that can be sent to the server and what will be returned is documented below in the [messages](#messages) reference. The netbots_ipc module supports both synchronous and asynchronous communication. The synchronous method allows only one message to be processed by the server per step while the asynchronous method allows up to 4 messages per step. It's recommended that all programmers start with the synchronous method since it eliminates issues of messages being dropped and works more like a function call.
 
@@ -184,11 +213,6 @@ It's important to understand that the server will not wait for robots to send me
 
 See [netbots_ipc](#netbots_ipc-interprocess-communication) module reference below for details.
 
-## Coordinates and Angles
-
-The game is played on a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise.
-
-![Arena Coordinates and Angles](images/arena.png "Arena Coordinates and Angles")
 
 ## Demo Robots
 
@@ -697,38 +721,38 @@ Example: `{ 'type': 'Error', 'result':  'Can't process setSpeedRequest when heal
 # Proposed Learning Goals
 
 1. Understand NetBots demo robots:
-    * Run the demo and examine the code for the demo robots. What is the strengths and weaknesses of each demo robot.
+    * Download and run the demo and examine the code for the demo robots. 
+    * What is the strengths and weaknesses of each demo robot?
     * Understand how robots communicate with the server.
     * Run the server with the '-h' option to learn how the server behavior can be changed.
+    * What useful information is in the server conf?
+    * Understand netbots_log module's use of logging level. Try -debug and -verbose.
     * Read the entire NetBots README to learn more.
 
-2. Learn to program for a real-time environment with limited information. Make a robot that can beat all the demo robots. Some suggested improvements over the demo robots:
-    * Have movement, scanning, and firing all happening at the same time.
-    * Use binary search to quickly find the best enemy to fire at.
-    * Take notice of if your robots health is going down or not. How should the robot behavior change based on this information?
-    * Avoid colliding with other robots and walls.
-    * If a game is close to ending (gameStep is close to stepMax) can your robot change behavior to win as quickly as possible.
-    * Find other strategies that win faster with less health lost.
+2. Learn to program for a real-time environment with limited information.
+    * Make a robot that can beat all the demo robots.
+    * How can each demo robot's basic strategy be be improved? e.g. faster locating of enemies, avoiding hit damage.
+    * Can the strategies of multiple demo robots be combined into a single robot? Does this result is a better outcome?
+    * What information is available that none of the demo robots use? How an that information be used effectively?
+    * Look for other strategies that win faster with less health lost.
 
-3. Understand what IP addresses and port numbers are. 
-    * Why can only one program use a port number at a time? 
-    * Why can a different computer use the same port number? 
-    * Remove the need to specify robot port (-p) by having the robot find an available port.
-
-4. Understand how computer resources and network reliability affect a real-time system.
+3. Understand how computer and network resources affect the game.
     * Run a tournament with all processes on one computer and then run the same tournament with all processes on different computers. Watch the network and CPU use.
-    * What's the difference in outcome? 
-    * What if you speed up the server by using the -stepsec server option or change the -droprate server option? 
-    * How do the stats differ? Why do they differ?
+    * What's the difference in resource use and game outcome?
+    * How do the server and robot stat differ? Why do they differ?
+    * What if you speed up the server by using the -stepsec server option or change the -droprate server option?
+    * Understand IP and port number: Why can only one program use a port number at a time? Why can a different computer use the same port number? Remove the need to specify robot port (-p) by having the robot find an available port. Can you remove the need to specify IP?
 
-5. Learn how having access to more information can improve program logic.
-    * Make one program that acts as two robots and have them work together and share information.
+4. Learn how having access to more or less information can improve program logic.
+    * Do some robots perform better if message drop rate is turned off (dropRate = 0). Do some perform worse? Why?
+    * Make one program that acts as two robots and have them share information. Can this combined robot perform better?
 
-6. Learn to work with multiple sockets and custom message formats.
-    * Make two programs, each acting as one robot, that work together by sending messages to each other.
+5. Learn to work with multiple sockets and custom message formats.
+    * Make two programs, each acting as one robot, that work together by sending messages to each other. 
+    * Use of the netbots_ipc asynchronous methods for communication between robots.
     * Add message types to netbots_ipc for your own use.
 
-7. Learn to communicate asynchronously with server.
+6. Learn to communicate asynchronously with server.
     * Inspect and understand how BotSocket.sendrecvMessage() works.
     * Stop using synchronous BotSocket.sendrecvMessage() in your robot. Use asynchronous BotSocket.sendMessage() and BotSocket.recvMessage() instead. 
     * Send more than 1 message to the server per step. The server processes up to 4 messages from each robot per step (discards more than 4). This offers 4 times the information per step than sendrecvMessage() can provide.
