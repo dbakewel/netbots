@@ -172,6 +172,21 @@ To write a robot you should have a basic familiarity with python 3. The links be
 * Other important python skills: [default arguments](https://www.geeksforgeeks.org/default-arguments-in-python/) and [exceptions](https://docs.python.org/3/tutorial/errors.html). 
 
 
+## Demo Robots
+
+The best way to write your own robot is to start with a demo robot. There are five demo robots in the "robots" folder. They demonstrate most of the netbots message types as well as a standard way to implement a robot. These robots all use the synchronous netbots_ipc method.
+
+**sittingduck.py**: Sitting Duck is a very basic template where the robot does nothing at all. Reviewing this robot will help you understand the minimum requirements of a robot.
+
+**hideincorner.py**: Hide in Corner demonstrates how to compute an angle between two points and move in that direction.
+
+**wallbanger.py**: Wall Banger demonstrates how to use the python random module.
+
+**train.py**: Is a more complex moving robot that monitors its location and avoids hitting walls.
+
+**lighthouse.py**: Lighthouse demonstrates scanning and firing the robot's canon.
+
+
 ## Game Mechanics
 
 It's important to understand the rules of the game if you want to create a winning robot. Many details are documented throughout this README, so read it. This section discusses a few of the finer details. 
@@ -212,21 +227,6 @@ Robots must start all new communications with a server using a **joinRequest** m
 It's important to understand that the server will not wait for robots to send messages. Once a robot joins the server successfully, the server will play the tournament regardless of if the robot continues to send messages or not. It is up to the robot to send request messages to the server, to recognize when new games have started, and to realize that their health is 0 (server will return errors when robot is dead).
 
 See [netbots_ipc](#netbots_ipc-interprocess-communication) module reference below for details.
-
-
-## Demo Robots
-
-The best way to write your own robot is to start with a demo robot. There are five demo robots in the "robots" folder. They demonstrate most of the netbots message types as well as a standard way to implement a robot. These robots all use the synchronous netbots_ipc method.
-
-**sittingduck.py**: Sitting Duck is a very basic template where the robot does nothing at all. Reviewing this robot will help you understand the minimum requirements of a robot.
-
-**hideincorner.py**: Hide in Corner demonstrates how to compute an angle between two points and move in that direction.
-
-**wallbanger.py**: Wall Banger demonstrates how to use the python random module.
-
-**train.py**: Is a more complex moving robot that monitors its location and avoids hitting walls.
-
-**lighthouse.py**: Lighthouse demonstrates scanning and firing the robot's canon.
 
 
 ---
