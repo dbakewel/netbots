@@ -25,7 +25,7 @@ The image below adds obstacles (black circles) and jam zones (gray circles).
 NetBots can be used in a learning environment. Students can be challenged in two ways:
 
 1. Learn to write programs that must interact with a constantly changing real-time environment with limited information and limited control.
-2. Learn about networking, the impact of unreliable networks, and synchronous vs asynchronous programing.
+2. Learn about networking, the impact of unreliable networks, and synchronous vs asynchronous programming.
 
 See [Proposed Learning Goals](#proposed-learning-goals) below.
 
@@ -58,7 +58,7 @@ If you want to run NetBots across a network then the ports you choose must be op
 
 ## Running the Demo
 
-On windows, **double click "rundemo.bat"** in the root of the NetBots directory. 
+On windows, **double click "rundemo.bat"** in the root of the NetBots directory. If this does not work, open a command window (cmd), cd into the directory containing rundemo.bat and type "rundemo.bat".
 
 The rundemo script will start 6 processes on the local computer: 1 server, 1 viewer, and 4 robots. A default tournament (10 games) will run and then the server will quit. Each process will send its output to it's own cmd window. The title of the window indicates what is running it in. Each process can be quit by clicking in the window and pressing "Ctrl-C" (cmd window stays open) or clicking the close box (cmd window closes). Use "Close all windows" in the task bar to quickly quit all processes. 
 
