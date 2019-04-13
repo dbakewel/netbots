@@ -333,7 +333,7 @@ NetBots communicates using UDP/IP datagrams and messages are serialized with Mes
 
 ### NetBotSock Class Methods
 
-**__init__(self, sourceIP, sourcePort, destinationIP='127.0.0.1', destinationPort=20000)**
+**__init__(sourceIP, sourcePort, destinationIP='127.0.0.1', destinationPort=20000)**
 
 Create UDP socket and bind it to listen on sourceIP and sourcePort.
 
@@ -346,12 +346,12 @@ Returns NetBotSocket object.
 Raises socket related exceptions.
 
 
-**getStats(self)**
+**getStats()**
 
 Return str of NetBotSocket statistics.
 
 
-**recvMessage(self)**
+**recvMessage()**
 
 Checks the socket receive buffer and returns message, ip, and port only if a valid message is immediately ready to receive. recvMessage is considered **asynchronous** because it will not wait for a message to arrive before raising an exception.
 
@@ -370,7 +370,7 @@ Immediately raises NetBotSocketException if the receive buffer is empty.
 Note, the text above assumes the socket timeout is set to 0 (non-blocking), which is the default in NetBotSocket.
 
 
-**sendMessage(self, msg, destinationIP=None, destinationPort=None)**
+**sendMessage(msg, destinationIP=None, destinationPort=None)**
 
 Sends msg to destinationIP:destinationPort and then returns immediately. sendMessage is considered **asynchronous** because it does not wait for a reply message and returns no value. Therefore there is no indication if msg will be received by the destination.
 
@@ -379,7 +379,7 @@ Raises NetBotSocketException exception if the msg is not a valid format. (see [M
 If destinationIP or destinationPort is not provided then the default will be used (see setDestinationAddress()).
 
 
-**sendRecvMessage(self, msg, destinationIP=None, destinationPort=None, retries=10, delay=None, delayMultiplier=1.2)**
+**sendRecvMessage(msg, destinationIP=None, destinationPort=None, retries=10, delay=None, delayMultiplier=1.2)**
 
 Sends msg to destinationIP:destinationPort and then waits and returns the reply. sendRecvMessage is considered **synchronous** because it will not return until a reply is received. Programmers can think of this much like a normal function call.
 
@@ -394,7 +394,7 @@ If no reply is received then the message will be sent again (retried) in case it
 Note, sendRecvMessage (synchronous) should not be mixed with sendMessage and recvMessage (asynchronous) without careful consideration. When sendRecvMessage is called it will discard all messages that are waiting to be received by the robot that do not match the reply it is looking for.
 
 
-**setDestinationAddress(self, destinationIP, destinationPort)**
+**setDestinationAddress(destinationIP, destinationPort)**
 
 Set default destination used by NetBotSocket methods when destination is not provided in method calls.
 
