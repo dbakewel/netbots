@@ -195,12 +195,15 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 It's important to understand the mechanics of the game if you want to create a winning robot. Many details are documented throughout this README, so read it. This section discusses a few of the finer details. 
 
+### Robot / Server Communication
 
-### Coordinates and Angles
+NetBots  robots use the netbots_ipc module to communicate with the server. All messages that can be sent to the server and what will be returned is documented below in the [messages](#messages) reference. The netbots_ipc module supports both synchronous and asynchronous communication. The synchronous method allows only one message to be processed by the server per step while the asynchronous method allows up to 4 messages per step. It's recommended that all programmers start with the synchronous method since it eliminates issues of messages being dropped and works more like a function call.
 
-The game is played on a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise. All coordinators and angles are of type float.
+Robots must start all new communications with a server using a **joinRequest** message. Once a robot has joined, it must keep asking the server if the game has started by using the **getInfoRequest** Message. Once the game has started the robot can use any of the other message types to play the game until either their health is 0 or they win and the game ends. When a game ends the server will immediately start the next game and robots need to detect this event, again using the getInfoRequest. This continues until the server has completed the tournament and quits.
 
-![Arena Coordinates and Angles](images/arena.png "Arena Coordinates and Angles")
+> It's important to understand that the server will not wait for robots to send messages. Once a robot joins the server successfully, the server will play the tournament regardless of if the robot continues to send messages or not. It is up to the robot to send request messages to the server, to recognize when new games have started, and to realize that their health is 0 (server will return errors when robot is dead).
+
+See [netbots_ipc](#netbots_ipc-interprocess-communication) module reference below for details.
 
 
 ### Server Step/Message Loop
@@ -215,22 +218,81 @@ The server Step/Message Loop means that robots (assuming synchronous communicati
 For example, assume a robot is moving at 100% speed (5 units/step by default) and you send a message asking for it's location followed by three other requests for other information. After all the requests, the location information (the first request) will be 4 steps old and you may assume the robot has moved 20 units however this may not be true. The robot may have hit another robot and stopped. Since you are not sure, this affects your confidence in the location information. Managing information and your confidence in it is a key ingredient for writing good robots.
 
 
+### Coordinates and Angles
+
+The game is played on a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise. All coordinators and angles are of type float.
+
+![Arena Coordinates and Angles](images/arena.png "Arena Coordinates and Angles")
+
+
+### Changing Direction and Speed
+
+When a robot requests for it's speed to change (**setSpeedRequest** message), the change does not happen instantly. It takes many steps for a robot to accelerate or decelerate to the requested speed. The same is true for changing direction (**setDirectionRequest** message) except the rate of change is linked to the robots current speed. A robot that is not moving can change direction very quickly however at 100% speed a robot can barley change direction at all. See server configuration for rates of change.
+
+ > If a robot hits a wall, obstacle, or another robot then currentSpeed and requestedSpeed will be set to 0. The robot will stop instantly and will not start moving again until a new **setSpeedRequest** request is sent.
+
+### Damage
+
+Damage from hitting things is the same regardless of speed.
+
+Shell explosions are of radius explRadius and all robots inside that radius will take damage. Robots in the center of the explosion will be damaged by explDamage. The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear. 
+
+
 ### Server Configuration
 
 The NetBots server has many configuration options so decide on what options you will use beforehand. The default options have been picked to provide a balanced game. For example, robots at 100% speed and half way across the arena can avoid most damage from a shell fired directly at them. By the time the shell explodes they would have moved mostly out of the explosion radius. Changes to the max speed of robots (botMaxSpeed), the speed of shells (shellSpeed), or the radius of explosions (explRadius) change this aspect of the game.
 
 > Changing the speed of the Step/Message loop (stepSec) within a reasonable range will not affect the outcome of the game. This allows the server to run slower, allowing robot behavior to be observed, or faster, so tournaments can be run quickly. 
 
+Robots receive a copy of the server configuration in the **joinReply** message, which is returned by the server when a robot sends a joinRequest. This is useful in determining the size of the arena among other things. For example:
 
-### Robot / Server Communication
+```
+{ 
+    'type': 'joinReply', 
+    'conf': {
+        #Static vars (some are settable at start up by server command line switches and then do not change after that.)
+        'serverName': "NetBot Server",
 
-NetBots  robots use the netbots_ipc module to communicate with the server. All messages that can be sent to the server and what will be returned is documented below in the [messages](#messages) reference. The netbots_ipc module supports both synchronous and asynchronous communication. The synchronous method allows only one message to be processed by the server per step while the asynchronous method allows up to 4 messages per step. It's recommended that all programmers start with the synchronous method since it eliminates issues of messages being dropped and works more like a function call.
+        #Game and Tournament
+        'botsInGame': 4, #Number of bots required to join before game can start.
+        'gamesToPlay': 10, #Number of games to play before server quits.
+        'stepMax' : 1000, #After this many steps in a game all bots will be killed
+        'stepSec': 0.05, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
 
-Robots must start all new communications with a server using a **joinRequest** message. Once a robot has joined, it must keep asking the server if the game has started by using the **getInfoRequest** Message. Once the game has started the robot can use any of the other message types to play the game until either their health is 0 or they win and the game ends. When a game ends the server will immediately start the next game and robots need to detect this event, again using the getInfoRequest. This continues until the server has completed the tournament and quits.
+        #Messaging
+        'dropRate': 10, #Drop a messages every N messages
+        'botMsgsPerStep': 4, #Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
+        'allowRejoin' : True, #Allows crashed bots to rejoin game in progress.
 
-> It's important to understand that the server will not wait for robots to send messages. Once a robot joins the server successfully, the server will play the tournament regardless of if the robot continues to send messages or not. It is up to the robot to send request messages to the server, to recognize when new games have started, and to realize that their health is 0 (server will return errors when robot is dead).
+        #Sizes
+        'arenaSize' : 1000, #Area is a square with each side = arenaSize units (0,0 is bottom left, positive x is to right and positive y is up.)
+        'botRadius': 25, #bots are circles with radius botRadius
+        'explRadius': 75, #Radius of shell explosion. Beyond this radius bots will not take any damage.
 
-See [netbots_ipc](#netbots_ipc-interprocess-communication) module reference below for details.
+        #Speeds and Rates of Change
+        'botMaxSpeed': 5, #bots distance traveled per step at 100% speed
+        'botAccRate': 1.0, #Amount in % bot can accelerate (or decelerate) per step
+        'shellSpeed': 40, #distance traveled by shell per step
+        'botMinTurnRate': math.pi/6000, #Amount bot can rotate per turn in radians at 100% speed
+        'botMaxTurnRate': math.pi/50, #Amount bot can rotate per turn in radians at 0% speed
+        
+        #Damage
+        'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
+        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
+
+        #Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
+        'obstacles': [], #Obstacles of form [{x:float,y:float,radius:float},...]
+        'obstacleRadius': 5, #Radius of obstacles as % of arenaSize
+
+        #Jam Zones (robots fully inside jam zone are not detected by scan)
+        'jamZones': [], #Jam Zones of form [{x:float,y:float,radius:float},...]
+
+        #Misc
+        'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
+    }
+}
+```
+
 
 
 ---
@@ -496,51 +558,8 @@ Example:
 }
 ```
 
-'conf' is a dict containing the server configuration values. Robots may find this useful in determining the size of the arena among other things. For example:
+'conf' is a dict containing the server configuration values.
 
-```
-    conf = {
-        #Static vars (some are settable at start up by server command line switches and then do not change after that.)
-        'serverName': "NetBot Server",
-
-        #Game and Tournament
-        'botsInGame': 4, #Number of bots required to join before game can start.
-        'gamesToPlay': 10, #Number of games to play before server quits.
-        'stepMax' : 1000, #After this many steps in a game all bots will be killed
-        'stepSec': 0.05, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
-
-        #Messaging
-        'dropRate': 10, #Drop a messages every N messages
-        'botMsgsPerStep': 4, #Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
-        'allowRejoin' : True, #Allows crashed bots to rejoin game in progress.
-
-        #Sizes
-        'arenaSize' : 1000, #Area is a square with each side = arenaSize units (0,0 is bottom left, positive x is to right and positive y is up.)
-        'botRadius': 25, #bots are circles with radius botRadius
-        'explRadius': 75, #Radius of shell explosion. Beyond this radius bots will not take any damage.
-
-        #Speeds and Rates of Change
-        'botMaxSpeed': 5, #bots distance traveled per step at 100% speed
-        'botAccRate': 1.0, #Amount in % bot can accelerate (or decelerate) per step
-        'shellSpeed': 40, #distance traveled by shell per step
-        'botMinTurnRate': math.pi/6000, #Amount bot can rotate per turn in radians at 100% speed
-        'botMaxTurnRate': math.pi/50, #Amount bot can rotate per turn in radians at 0% speed
-        
-        #Damage
-        'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
-        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
-
-        #Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
-        'obstacles': [], #Obstacles of form [{x:float,y:float,radius:float},...]
-        'obstacleRadius': 5, #Radius of obstacles as % of arenaSize
-
-        #Jam Zones (robots fully inside jam zone are not detected by scan)
-        'jamZones': [], #Jam Zones of form [{x:float,y:float,radius:float},...]
-
-        #Misc
-        'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
-    }
-```
 
 <a name="getInfo"></a>
 **getInfo**
@@ -580,7 +599,7 @@ Example: `{ 'type': 'getLocationReply', 'x': 40.343, 'y': 694.323 ) }`
 <a name="getSpeed"></a>
 **getSpeed**
 
-Get information about the robots speed. If requestedSpeed != currentSpeed then the robot is accelerating or decelerating to the requestedSpeed. Note, if a robot hits a wall, obstacle, or another robot then currentSpeed and requestedSpeed will be set to 0.
+Get information about the robots speed. If requestedSpeed != currentSpeed then the robot is accelerating or decelerating to the requestedSpeed.
 
 Robot Sends: 
 
@@ -598,7 +617,7 @@ Example: `{ 'type': 'getSpeedReply', 'requestedSpeed': 80 'currentSpeed': 50.322
 <a name="setSpeed"></a>
 **setSpeed**
 
-Set desired speed of robot from 0% (stop) to 100%. See server configuration for how far a robot travels per step at 100% speed.
+Set desired speed of robot from 0% (stop) to 100%. 
 
 
 Robot Sends: 
@@ -617,7 +636,7 @@ Example: `{ 'type': 'setSpeedReply' }`
 <a name="getDirection"></a>
 **getDirection**
 
-Gets the direction a robot will move if speed is greater than 0. If requestedDirection != currentDirection then the reboot is turning towards requestedDirection. The number of steps required to complete the turn is affected by the current speed. The faster the robot is moving the slower it can turn.
+Gets the direction a robot will move if speed is greater than 0. If requestedDirection != currentDirection then the reboot is turning towards requestedDirection.
 
 Robot Sends: 
 
@@ -674,8 +693,6 @@ Example: `{ 'type': 'getCanonReply', 'shellInProgress': False }`
 **fireCanon**
 
 Fires a shell in 'direction' angle from robots location and will trigger it to explode once it has traveled 'distance'. If a shell is already in progress (shellInProgress == True) then this will replace the previous shell and the previous shell will not explode. If a shell hits an obstacle before reaching 'distance' then it will stop and not explode.
-
-> Shell explosions are of radius explRadius and all robots inside that radius will take damage. Robots in the center of the explosion will be damaged by explDamage. The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear. 
 
 Robot Sends: 
 
