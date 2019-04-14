@@ -220,7 +220,7 @@ For example, assume a robot is moving at 100% speed (5 units/step by default) an
 
 ### Coordinates and Angles
 
-The game is played on a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise. All coordinators and angles are of type float.
+The arena a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise. All coordinators and angles are of type float.
 
 ![Arena Coordinates and Angles](images/arena.png "Arena Coordinates and Angles")
 
@@ -233,9 +233,9 @@ When a robot requests for it's speed to change (**setSpeedRequest** message), th
 
 ### Damage
 
-Damage from hitting things is the same regardless of speed.
+Damage from hitting walls, obstacles, or other robots is the same regardless of speed. If two robots collide then both robots will be damaged.
 
-Shell explosions are of radius explRadius and all robots inside that radius will take damage. Robots in the center of the explosion will be damaged by explDamage. The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear. 
+Shell explosions are of radius explRadius (75 by default) and all robots inside that radius will take damage. Robots in the center of the explosion will be damaged by explDamage (20% by default). The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear. 
 
 
 ### Server Configuration
@@ -292,8 +292,6 @@ Robots receive a copy of the server configuration in the **joinReply** message, 
     }
 }
 ```
-
-
 
 ---
 
