@@ -43,7 +43,7 @@ See [Proposed Learning Goals](#proposed-learning-goals) below.
 
 NetBots uses Python 3 (tested on python 3.7.3) which can be installed from [https://www.python.org/downloads/](https://www.python.org/downloads/). Only the standard python 3 libraries are required. 
 
-> If multiple versions of python are installed, ensure you are running python 3, not python 2. The examples in this README use the "python" command assuming python 3 is the default. The commend "python3" (Linux) or "py -3" (Windows) may be required to force python 3.
+> If multiple versions of python are installed, ensure you are running python 3, not python 2. The examples in this README use the "python" command assuming python 3 is the default. The command "python3" (Linux) or "py -3" (Windows) may be required to force python 3.
 
 
 ### NetBots Code
@@ -66,7 +66,7 @@ There are three options available on the NetBots server that are useful for tour
 
 The second option (**-stepsec**) allows you to speed up the NetBots server. Most modern computers can run NetBots 5 times faster (or more) than the default (0.05 sec/step or 20 steps/sec). The server will produce warnings if it can't keep up with the requested speed. If only a few of these warnings appear then it will not affect the game. If many warnings appear you should stop the server and reduce it's target speed.
 
-The final option (**-stepmax**) changes the maximum steps in a game. If games are ending because the maximum steps is reached out than increasing this will give robots more times to demonstrate their skills.
+The final option (**-stepmax**) changes the maximum steps in a game. If most games are ending because the maximum steps is reached than increasing this will give robots more times to demonstrate their skills.
 
 For example, to run a 1000 game tournament at 5 times faster (0.01 sec/step or 100 steps/sec) with a maximum of 2000 steps per game use:
 
@@ -190,7 +190,7 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 **lighthouse.py**: Lighthouse demonstrates scanning and firing the robot's canon.
 
-> Demo robots all use the synchronous [netbots_ipc.sendRecvMessage() method](#netbotsock-class-methods) for communication.
+> Demo robots all use the synchronous netbots_ipc.sendRecvMessage() method for communication.
 
 
 # Game Mechanics
@@ -210,12 +210,10 @@ Robots must start all new communications with a server using a **[joinRequest](#
 
 > It's important to understand that the server will not wait for robots to send messages. Once a robot joins the server successfully, the server will play the tournament regardless of if the robot continues to send messages or not. It is up to the robot to send request messages to the server, to recognize when new games have started, and to realize that their health is 0 (server will return errors when robot is dead).
 
-See [netbots_ipc](#netbots_ipc-interprocess-communication) module reference below for details.
-
 
 ## Server Step/Message Loop
 
-Once a game starts, the server enters the Step/Message Loop. Each time through the loop the server will update all elements of the game, including: robot speed, robot direction, robot location, robot health, shell location, explosions, etc. The server will then receive all messages from robots and send reply messages. The server has a target speed (stepSec) for each pass through the loop: 0.05 seconds or 20 steps/second by default. If the Step/Message Loop takes less time then the server will sleep until the next loop is scheduled to start.
+Once a game starts, the server enters the Step/Message Loop. Each time through the loop the server will take one step and then process all messages. A step updates all elements of the game, including: robot speed, robot direction, robot location, robot health, shell location, explosions, etc. The server then receives all messages from robots and sends reply messages. The server has a target speed for each pass through the loop: 0.05 seconds or 20 steps/second by default. If the Step/Message Loop takes less time then the server will sleep until the next loop is scheduled to start.
 
 
 ## Information Confidence
@@ -227,20 +225,20 @@ For example, assume a robot is moving at 100% speed (5 units/step by default) an
 
 ## Changing Direction and Speed
 
-When a robot requests for it's speed to change (**[setSpeedRequest](#setSpeed)** message), the change does not happen instantly. It takes many steps for a robot to accelerate or decelerate to the requested speed. 
+Robots change their speed by sending a **[setSpeedRequest](#setSpeed)** message. However, the change does not happen instantly. It takes many steps for a robot to accelerate or decelerate to the requested speed. 
 
 If a robot hits a wall, obstacle, or another robot then currentSpeed and requestedSpeed will be set to 0. The robot will not start moving again until a new **setSpeedRequest** request is sent.
 
-Changing direction (**[setDirectionRequest](#setDirection)** message) also takes many steps except the rate of change is linked to the robots current speed. A robot that is not moving can change direction very quickly however at 100% speed a robot can barley change direction at all.
+Direction is changed with a **[setDirectionRequest](#setDirection)** message. This also takes many steps and the rate of change is linked to the robots current speed. A robot that is not moving can change direction very quickly however at 100% speed a robot can barley change direction at all.
 
 See server configuration for rates of change.
 
 
 ## Scanning and Firing
 
-Each robot has a scanner which can detect enemy robots but only in a very limited way. The scanner will detect the distance to the nearest enemy robot within a given range of angles. For example, if a **[scanRequest](#scan)** is sent with startRadians of 0 and endRadians of 1/2pi then the scanner will return the distance to the nearest enemy robot that is above (positive y direction) the robot. Scanning from 0 to 2pi will return the nearest enemy robot but does not give any information about the direction the enemy is in. If the scanner returns a distance of 0 then the scan did not detect any enemy robots between the startRadians and endRadians.
+Each robot has a scanner which can detect enemy robots but only in a very limited way. The scanner will detect the distance to the nearest enemy robot within a given range of angles. For example, if a **[scanRequest](#scan)** is sent with startRadians of 0 and endRadians of 1/2pi then the scanner will return the distance to the nearest enemy robot that is above (positive y direction) and to the right (positive x direction) of the robot (see [angles](#coordinates-and-angles)). Scanning from 0 to 2pi will return the nearest enemy robot but does not give any information about the direction the enemy is in. If the scanner returns a distance of 0 then the scan did not detect any enemy robots between the startRadians and endRadians.
 
-Scanning smaller slices is useful for firing shells from the robots canon. Scanning a small slice is a good indication of the direction of the enemy. Since a scan returns the distance to the enemy the robot then knows both the direction and distance, which is all that is needed for a **[fireCanonRequest](#fireCanon)** message. Shells fired from the canon will travel in the specific direction until they reach the specified distance and then they will explode.
+Scanning smaller slices is useful for firing shells from the robots canon. Scanning a small slice is a good indication of the direction to the enemy. Since a scan returns the distance to the enemy, the robot then knows both the direction and distance. Direction and distance is all that is needed for a **[fireCanonRequest](#fireCanon)** message. Shells fired from the canon will travel in the specific direction until they reach the specified distance and then they will explode.
 
 Only one shell from a robot can be in progress at a time. If a shell is already in progress then firing a new shell will replace the old shell and the old shell with not explode. 
 
@@ -787,6 +785,7 @@ Example: `{ 'type': 'Error', 'result':  'Can't process setSpeedRequest when heal
     * Run the server with the '-h' option to learn how the server behavior can be changed.
     * What useful information is in the server conf?
     * Understand netbots_log module's use of logging level. Try -debug and -verbose.
+    * Run netbots on over several computers.
     * Read the entire NetBots README to learn more.
 
 2. Learn to program for a real-time environment with limited information.
@@ -801,7 +800,8 @@ Example: `{ 'type': 'Error', 'result':  'Can't process setSpeedRequest when heal
     * What's the difference in resource use and game outcome?
     * How do the server and robot stat differ? Why do they differ?
     * What if you speed up the server by using the -stepsec server option or change the -droprate server option?
-    * Understand IP and port number: Why can only one program use a port number at a time? Why can a different computer use the same port number? Remove the need to specify robot port (-p) by having the robot find an available port. Can you remove the need to specify IP?
+    * Understand IP and port number: Why can only one program use a port number at a time? Why can a different computer use the same port number?
+    * Remove the need to specify robot port (-p) by having the robot find an available port. Can you remove the need to specify IP?
 
 4. Learn how having access to more or less information can improve program logic.
     * Do some robots perform better if message drop rate is turned off (dropRate = 0). Do some perform worse? Why?
@@ -817,6 +817,6 @@ Example: `{ 'type': 'Error', 'result':  'Can't process setSpeedRequest when heal
     * Stop using synchronous BotSocket.sendrecvMessage() in your robot. Use asynchronous BotSocket.sendMessage() and BotSocket.recvMessage() instead. 
     * Send more than 1 message to the server per step. The server processes up to 4 messages from each robot per step (discards more than 4). This offers 4 times the information per step than sendrecvMessage() can provide.
 
-7. Other options:
+7. Miscellaneous:
     * Learn GIT and how to contribute to an open source project on GitHub. Add some functionality to NetBots or fix a bug.
     * Learn TK GUI. Make improvements to the NetBots viewer.
