@@ -199,6 +199,8 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 The arena a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise. All coordinators and angles are of type float.
 
+Angles are relative to the robot. In the image below angels are shown relative to "Wall Banger".
+
 <img src="images/arena.png" width="60%">
 
 
@@ -238,7 +240,7 @@ See server configuration for rates of change.
 
 Each robot has a scanner which can detect enemy robots but only in a very limited way. The scanner will detect the distance to the nearest enemy robot within a given slice (range of angles). If the scanner returns a distance of 0 then the scan did not detect any enemy robots in the slice.
 
-For example, if a **[scanRequest](#scan)** is sent with startRadians = pi and endRadians = 1.25pi then the scanner will return the distance to the nearest enemy in that slice.
+For example, if a **[scanRequest](#scan)** is sent with startRadians = pi and endRadians = 1.25pi then the scanner will return the distance to the nearest enemy in that slice. In the image below, "Wall Banger" is performing the scan.
 
 <img src="images/scan.png" width="60%">
 
@@ -246,9 +248,7 @@ The smaller the scan slice the greater the confidence about the direction of the
 
 Scanning smaller slices is useful for firing shells accurately. Scanning a small slice is a good indication of the direction to the enemy. Since a scan returns the distance to the enemy, the robot then knows both the estimated direction and exact distance of the enemy.
 
-Direction and distance is all that is needed for a **[fireCanonRequest](#fireCanon)** message. Shells fired from the canon will travel in the specific direction until they reach the specified distance and then they will explode. Only one shell from a robot can be in progress at a time. 
-
-If a shell is already in progress then firing a new shell will replace the old shell and the old shell with not explode. 
+Direction and distance is all that is needed for a **[fireCanonRequest](#fireCanon)** message. Shells fired from the canon will travel in the specific direction until they reach the specified distance and then they will explode. Only one shell from a robot can be in progress at a time. If a shell is already in progress then firing a new shell will replace the old shell and the old shell with not explode. 
 
 
 ## Obstacles and Jam Zones
