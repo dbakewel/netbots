@@ -199,7 +199,7 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 The arena a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise. All coordinators and angles are of type float.
 
-Angles are relative to the robot. In the image below angels are shown relative to "Wall Banger".
+Coordinates are relative to the arena and angles are relative to the robot. In the image below angels are shown relative to "Wall Banger".
 
 <img src="images/arena.png" width="60%">
 
