@@ -521,7 +521,7 @@ Returns True if msg is a valid message, otherwise returns False.
 Returns True if p is valid port number, otherwise returns False.
 
 
-### Messages
+# Messages
 
 All messages are python dict type and contain a 'type' key with a value of type str. All message key/value pairs are described below in the format:
 
@@ -548,7 +548,7 @@ There are two special keys that can optionally be added to any request message. 
 > msgID is used by NetBotSocket.sendrecvMessage() so should not be used by robot code directly unless NetBotSocket.sendrecvMessage() is not being used.
 
 
-### Message Reference
+## Message Reference
 
 [join](#join) | [getInfo](#getInfo) | [getLocation](#getLocation) | [getSpeed](#getSpeed) | [setSpeed](#setSpeed) | [getDirection](#getDirection) | [setDirection](#setDirection) | [getCanon](#getCanon) | [fireCanon](#fireCanon) | [scan](#scan) | [Error](#Error)
 
@@ -556,8 +556,7 @@ Messages described below are grouped by request (sent by robot) and the expected
 
 IMPORTANT: When a robot's health == 0, only joinRequest and getInfoRequest will return the appropriate reply. Other request messages will return a reply of type "Error" when a robot's health == 0.
 
-<a name="join"></a>
-**join**
+### join
 
 A robot must send a joinRequest before any other message type. The server will return a joinReply if the robot has successfully joined, otherwise a message of type "Error" will be returned. Sending other message types before a join request will return a message of type "Error".
 
@@ -594,8 +593,7 @@ Example:
 'conf' is a dict containing the server configuration values.
 
 
-<a name="getInfo"></a>
-**getInfo**
+### getInfo
 
 Gets information about the current game and robot health. If gameNumber == 0 then the server is still waiting for robots to join before is starts the first game.
 
@@ -612,8 +610,7 @@ Format: `{ 'type': 'getInfoReply', 'gameNumber': int, 'gameStep': int, 'health':
 
 Example: `{ 'type': 'getInfoReply', 'gameNumber': 5, 'gameStep': 170, 'health': 80.232, 'points': 44 }`
 
-<a name="getLocation"></a>
-**getLocation**
+### getLocation
 
 Get the robot's location in the arena.
 
@@ -630,8 +627,8 @@ Format: `{ 'type': 'getLocationReply', 'x': float (min 0, max 999999), 'y': floa
 
 Example: `{ 'type': 'getLocationReply', 'x': 40.343, 'y': 694.323 ) }`
 
-<a name="getSpeed"></a>
-**getSpeed**
+
+### getSpeed
 
 Get information about the robots speed. If requestedSpeed != currentSpeed then the robot is accelerating or decelerating to the requestedSpeed.
 
@@ -648,8 +645,8 @@ Format: `{ 'type': 'getSpeedReply', 'requestedSpeed': float (min 0, max 100) 'cu
 
 Example: `{ 'type': 'getSpeedReply', 'requestedSpeed': 80 'currentSpeed': 50.3223 }`
 
-<a name="setSpeed"></a>
-**setSpeed**
+
+### setSpeed
 
 Set desired speed of robot from 0% (stop) to 100%. 
 
@@ -667,8 +664,8 @@ Format: `{ 'type': 'setSpeedReply' }` or Error
 
 Example: `{ 'type': 'setSpeedReply' }`
 
-<a name="getDirection"></a>
-**getDirection**
+
+### getDirection
 
 Gets the direction a robot will move if speed is greater than 0. If requestedDirection != currentDirection then the reboot is turning towards requestedDirection.
 
@@ -686,8 +683,8 @@ Format: `{ 'type': 'getDirectionReply', 'requestedDirection': float (min 0, max 
 Example: `{ 'type': 'getDirectionReply', 'requestedDirection': 3.282 'currentDirection': 2.473 }`
 
 
-<a name="setDirection"></a>
-**setDirection**
+
+### setDirection
 
 Set desired direction of robot from 0 to 2pi radians.
 
@@ -704,8 +701,8 @@ Format: `{ 'type': 'setDirectionReply' }` or Error
 
 Example: `{ 'type': 'setDirectionReply' }`
 
-<a name="getCanon"></a>
-**getCanon**
+
+### getCanon
 
 Used to determine if the robot has fired a shell that has not exploded yet.
 
@@ -724,8 +721,8 @@ Format: `{ 'type': 'getCanonReply', 'shellInProgress': bool }` or Error
 Example: `{ 'type': 'getCanonReply', 'shellInProgress': False }`
 
 
-<a name="fireCanon"></a>
-**fireCanon**
+
+### fireCanon
 
 Fires a shell in 'direction' angle from robots location and will trigger it to explode once it has traveled 'distance'. If a shell is already in progress (shellInProgress == True) then this will replace the old shell and the old shell will not explode.
 
@@ -742,8 +739,8 @@ Format: `{ 'type': 'fireCanonReply' }` or Error
 
 Example: `{ 'type': 'fireCanonReply' }`
 
-<a name="scan"></a>
-**scan**
+
+### scan
 
 Determines the distance to the closet enemy robot that is between startRadians and counter clockwise to endRadians angle from the robots location. If distance == 0 then the scan did not detect any enemy robots. Robots fully within a jam zone will not be detected. Obstacles are transparent to scan, i.e., scan results are the same with or without obstacles. 
 
@@ -761,8 +758,8 @@ Format: `{ 'type': 'scanReply', 'distance': float (min 0, max 1415) }` or Error
 
 Example: `{ 'type': 'scanReply', 'distance': 70 }`
 
-<a name="Error"></a>
-**Error**
+
+### Error
 
 Server Returns: 
 
