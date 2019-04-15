@@ -122,13 +122,13 @@ def checkForUpdates(d):
                 centerY+2
             )
 
-        #remove explotion widgets veiwer has but are not on server.
+        #remove explosion widgets veiwer has but are not on server.
         for k in list(d.explWidgets.keys()):
-            if not k in msg['explotions']:
+            if not k in msg['explosions']:
                 d.canvas.delete(d.explWidgets[k])
                 del d.explWidgets[k]
 
-        #reduce existing explotion size by 30% and turn off fill
+        #reduce existing explosion size by 30% and turn off fill
         for k in d.explWidgets:
             bbox = d.canvas.bbox(d.explWidgets[k])
             d.canvas.coords(d.explWidgets[k],
@@ -139,8 +139,8 @@ def checkForUpdates(d):
             )
             d.canvas.itemconfig(d.explWidgets[k],fill='')
 
-        #add explotion widgets server has that viewer doesn't
-        for k, expl in msg['explotions'].items():
+        #add explosion widgets server has that viewer doesn't
+        for k, expl in msg['explosions'].items():
             if not k in d.explWidgets:
                 c = d.canvas.itemcget(d.botWidgets[expl['src']],'fill')
                 centerX = expl['x']*d.scale + d.borderSize

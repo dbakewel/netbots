@@ -57,7 +57,7 @@ class SrvData():
         'jamZones': [], #Jam Zones of form [{x:float,y:float,radius:float},...]
 
         #Misc
-        'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
+        'keepExplosionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
     }
 
     state = {
@@ -100,12 +100,12 @@ class SrvData():
         'distanceRemaining': 100
     }
 
-    explotions = {}
-    explotionTemplate = {
+    explosions = {}
+    explosionTemplate = {
         'x': 500,
         'y': 500,
         'stepsAgo': 0,
-        'src': "" #this is neede by viewer to color this explotion
+        'src': "" #this is needed by viewer to color this explosion
     }
 
     viewers = {}
@@ -198,6 +198,13 @@ def recvReplyMsgs(d):
 
 def sendToViwers(d):
     now = time.time()
+    bmsg = d.srvSocket.serialize({
+                'type': 'viewData',
+                'state': d.state,
+                'bots': d.bots,
+                'shells': d.shells, 
+                'explosions': d.explosions
+            })
     for src in list(d.viewers.keys()): #we need a list of keys so we can del from the viewers dict below
         v = d.viewers[src]
         if v['lastKeepAlive'] + 10 < now:
@@ -205,15 +212,8 @@ def sendToViwers(d):
             log("Viewer " + src + " didn't send keep alive in last 10 secs and was removed.")
         else:
             try:
-                d.srvSocket.sendMessage( 
-                    {
-                     'type': 'viewData',
-                     'state': d.state,
-                     'bots': d.bots,
-                     'shells': d.shells, 
-                     'explotions': d.explotions
-                    },
-                    v['ip'], v['port'])
+                #sending with a prepacked message makes it faster to send to a lot of viewers.
+                d.srvSocket.sendMessage(bmsg, v['ip'], v['port'], packedAndChecked=True)
             except Exception as e:
                 log(str(e),"ERROR")
 
@@ -336,7 +336,7 @@ def initGame(d):
     delete all shells and explosions.
     """
     d.shells = {}
-    d.explotions = {}
+    d.explosions = {}
     
 
 def step(d):
@@ -508,13 +508,13 @@ def step(d):
                             #also record damage to oneself.
                             d.bots[src]['shellDamage'] += damage
 
-                #store the explosion so viewers can display it. we can't use src as index because it is possible for two explotions
+                #store the explosion so viewers can display it. we can't use src as index because it is possible for two explosions
                 #from same bot to exist (but not likly).
-                d.explotions[d.state['explIndex']] = {
+                d.explosions[d.state['explIndex']] = {
                     'x': shell['x'],
                     'y': shell['y'],
                     'stepsAgo': 0,
-                    'src': src #this is needed by viewer to color this explotion based on the bot who fired it.
+                    'src': src #this is needed by viewer to color this explosion based on the bot who fired it.
                 }
                 d.state['explIndex'] += 1
                 if d.state['explIndex'] > 65000:
@@ -526,12 +526,12 @@ def step(d):
             #shell hit obstacle or left arena so remove it without exploding
             del d.shells[src]
 
-    #Remove old explotions and add 1 to other explotions stepsAgo.
+    #Remove old explosions and add 1 to other explosions stepsAgo.
     #Note, We only keep these around so the viewer can do a nice animation over a number of steps before they are removed.
-    for key in list(d.explotions.keys()):
-        expl = d.explotions[key]
-        if expl['stepsAgo'] == d.conf['keepExplotionSteps']:
-            del d.explotions[key]
+    for key in list(d.explosions.keys()):
+        expl = d.explosions[key]
+        if expl['stepsAgo'] == d.conf['keepExplosionSteps']:
+            del d.explosions[key]
         else:
             expl['stepsAgo'] += 1
 

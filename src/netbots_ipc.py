@@ -52,7 +52,7 @@ MsgDef = {
     'addViewerReply'     : {'conf': 'dict'},
 
     #The msg types below do not have, nor expect, a matching reply
-    'viewData'           : {'state': 'dict', 'bots': 'dict', 'shells': 'dict', 'explotions': 'dict'},
+    'viewData'           : {'state': 'dict', 'bots': 'dict', 'shells': 'dict', 'explosions': 'dict'},
     'viewKeepAlive'      : {},
     'Error'              : {'result': 'str'}
 }
@@ -220,7 +220,13 @@ class NetBotSocket:
         self.destinationIP = destinationIP
         self.destinationPort = destinationPort
 
-    def sendMessage(self, msg, destinationIP=None, destinationPort=None):
+    def serialize(self, msg):
+        return umsgpack.packb(msg)
+
+    def deserialize(self, b):
+        return umsgpack.unpackb(b)
+
+    def sendMessage(self, msg, destinationIP=None, destinationPort=None, packedAndChecked=False):
         """
         Sends msg to destinationIP:destinationPort and then returns immediately. 
         sendMessage is considered asynchronous because it does not wait for a 
@@ -231,7 +237,10 @@ class NetBotSocket:
         NetBotSocketException exception if the msg does not have a valid format.
 
         If destinationIP or destinationPort is not provided then the default will
-        be used (see setDestinationAddress()).  
+        be used (see setDestinationAddress()).
+
+        If packedAndChecked is True then msg is assumed to already be serialized
+        and no other checks will be done.
 
         """ 
 
@@ -241,23 +250,32 @@ class NetBotSocket:
         if destinationPort is None:
             destinationPort = self.destinationPort
 
-        if not isValidMsg(msg):
-            raise NetBotSocketException("Could not send because msg is not valid format.")
-        if not isValidIP(destinationIP):
-            raise NetBotSocketException("Could not send because destinationIP is not valid format.")
-        if not isValidPort(destinationPort):
-            raise NetBotSocketException("Could not send because destinationPort is not valid format.")
+        if not packedAndChecked:
+            if not isValidMsg(msg):
+                raise NetBotSocketException("Could not send because msg is not valid format.")
+            if not isValidIP(destinationIP):
+                raise NetBotSocketException("Could not send because destinationIP is not valid format.")
+            if not isValidPort(destinationPort):
+                raise NetBotSocketException("Could not send because destinationPort is not valid format.")
 
-        #Convert data from python objects to network binary format
-        networkbytes = umsgpack.packb(msg)
+            #Convert data from python objects to network binary format
+            networkbytes = self.serialize(msg)
+        else:
+            networkbytes = msg
 
         log("Sending msg to " + destinationIP + ":" + str(destinationPort) + " len="  + str(len(networkbytes)) + " bytes " + str(msg), "DEBUG")
         self.s.sendto(networkbytes, (destinationIP, destinationPort))
         self.sent = self.sent + 1
-        if msg['type'] in self.sendTypes:
-            self.sendTypes[msg['type']] += 1
+
+        if not packedAndChecked:
+            msgtype = msg['type']
         else:
-            self.sendTypes[msg['type']] = 1
+            msgtype = "Serialized"
+
+        if msgtype in self.sendTypes:
+            self.sendTypes[msgtype] += 1
+        else:
+            self.sendTypes[msgtype] = 1
         
     def recvMessage(self):
         """
@@ -286,7 +304,7 @@ class NetBotSocket:
         try:
             bytesAddressPair = self.s.recvfrom(self.bufferSize)
             #Convert data from network binary format to python objects
-            msg = umsgpack.unpackb(bytesAddressPair[0])
+            msg = self.deserialize(bytesAddressPair[0])
             ip = bytesAddressPair[1][0]
             port = bytesAddressPair[1][1]
             log("Recived msg from " + ip + ":" + str(port) + " len="  + str(len(bytesAddressPair[0])) + " bytes " + str(msg), "DEBUG")

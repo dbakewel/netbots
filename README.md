@@ -323,7 +323,7 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
         'jamZones': [], #Jam Zones of form [{x:float,y:float,radius:float},...]
 
         #Misc
-        'keepExplotionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
+        'keepExplosionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
     }
 }
 ```
