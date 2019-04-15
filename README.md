@@ -199,7 +199,7 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 The arena a square grid. By default the grid is 1000 units on each side with (x=0, y=0) in the bottom left corner. Angles are always in radians with 0 radians in the positive x direction and increasing counter-clockwise. All coordinators and angles are of type float.
 
-![Arena Coordinates and Angles](images/arena.png "Arena Coordinates and Angles")
+<img src="images/arena.png" width="60%">
 
 
 ## Robot / Server Communication
@@ -236,11 +236,19 @@ See server configuration for rates of change.
 
 ## Scanning and Firing
 
-Each robot has a scanner which can detect enemy robots but only in a very limited way. The scanner will detect the distance to the nearest enemy robot within a given range of angles. For example, if a **[scanRequest](#scan)** is sent with startRadians of 0 and endRadians of 1/2pi then the scanner will return the distance to the nearest enemy robot that is above (positive y direction) and to the right (positive x direction) of the robot (see [angles](#coordinates-and-angles)). Scanning from 0 to 2pi will return the nearest enemy robot but does not give any information about the direction the enemy is in. If the scanner returns a distance of 0 then the scan did not detect any enemy robots between the startRadians and endRadians.
+Each robot has a scanner which can detect enemy robots but only in a very limited way. The scanner will detect the distance to the nearest enemy robot within a given slice (range of angles). If the scanner returns a distance of 0 then the scan did not detect any enemy robots in the slice.
 
-Scanning smaller slices is useful for firing shells from the robots canon. Scanning a small slice is a good indication of the direction to the enemy. Since a scan returns the distance to the enemy, the robot then knows both the direction and distance. Direction and distance is all that is needed for a **[fireCanonRequest](#fireCanon)** message. Shells fired from the canon will travel in the specific direction until they reach the specified distance and then they will explode.
+For example, if a **[scanRequest](#scan)** is sent with startRadians = pi and endRadians = 1.25pi then the scanner will return the distance to the nearest enemy in that slice.
 
-Only one shell from a robot can be in progress at a time. If a shell is already in progress then firing a new shell will replace the old shell and the old shell with not explode. 
+<img src="images/scan.png" width="60%">
+
+The smaller the scan slice the greater the confidence about the direction of the enemy. Scanning from 0 to 2pi will return the nearest enemy robot but does not give any information about the direction to the enemy.
+
+Scanning smaller slices is useful for firing shells accurately. Scanning a small slice is a good indication of the direction to the enemy. Since a scan returns the distance to the enemy, the robot then knows both the estimated direction and exact distance of the enemy.
+
+Direction and distance is all that is needed for a **[fireCanonRequest](#fireCanon)** message. Shells fired from the canon will travel in the specific direction until they reach the specified distance and then they will explode. Only one shell from a robot can be in progress at a time. 
+
+If a shell is already in progress then firing a new shell will replace the old shell and the old shell with not explode. 
 
 
 ## Obstacles and Jam Zones
