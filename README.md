@@ -333,9 +333,9 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
 
 # Module Reference
 
-[netbots_log](#netbots_log-debug-output) | [netbots_math](#netbots_math) | [netbots_ipc](#netbots_ipc-interprocess-communication) | [Messages](#messages)
+[netbots_log](#netbots_log-debug-output) | [netbots_math](#netbots_math) | [netbots_ipc](#netbots_ipc-interprocess-communication)
 
-## netbots_log (debug output)
+# netbots_log (debug output)
 
 The netbots_log module prints output to the console. Best practice is to use the log() rather than print(). log() will include the time and function name which can help with debugging. 
 
@@ -351,9 +351,9 @@ from netbots_log import setLogLevel
 This allows you to call log() and setLogLevel() without the module prefix.
 
 
-### Functions
+## Functions
 
-**log(msg, level='INFO')**
+### log(msg, level='INFO')
 
 Print msg to standard output in the format: ```<level> <time> <function>: <msg>```
 
@@ -367,26 +367,26 @@ level is of type str and should be one of DEBUG, VERBOSE, INFO, WARNING, ERROR, 
 *   FAILURE: program will need to quit or reinitialize.
 
 
-**setLogLevel(debug=False, verbose=False)**
+### setLogLevel(debug=False, verbose=False)
 
 Turn DEBUG and VERBOSE printing on or off. Both are off by default. Note, debug = True will set verbose = True.
 
 
-## netbots_math
+# netbots_math
 
 netbots_math is a convenience module with geometry/trigonometry functions. Note, all angles are in radians.
 
 > See python [math](https://docs.python.org/3/library/math.html) module for other useful math functions, such as math.degrees() and math.radians(), and constants, such as the value of pi (math.pi).
 
 
-### Functions
+## Functions
 
-**angle(x1, y1, x2, y2)**
+### angle(x1, y1, x2, y2)
 
 Return angle from (x1,y1) to (x2,y2). i.e.
 
 
-**contains(x1, y1, startRad, endRad, x2, y2)**
+### contains(x1, y1, startRad, endRad, x2, y2)
 
 Return distance between points only if point falls inside a specific range of angles, otherwise return 0. startRad and endRad should be in the range 0 to 2pi.
 
@@ -401,17 +401,17 @@ else
 ```
 
 
-**distance(x1, y1, x2, y2)**
+### distance(x1, y1, x2, y2)
 
 Return distance between (x1,y1) and (x2,y2)
 
 
-**intersectLineCircle(x1,y1,x2,y2,cx,cy,cradius)**
+### intersectLineCircle(x1,y1,x2,y2,cx,cy,cradius)
 
 Return True if line segment between (x1,y1) and (x2,y2) intersects circle centered at (cx,cy) with radius cradius, or if line segment is entirely inside circle. 
 
 
-**normalizeAngle(a)**
+### normalizeAngle(a)
 
 Return a in range 0 <= a < 2pi.
 
@@ -421,14 +421,14 @@ Return a in range 0 <= a < 2pi.
 Return point (x',y') where angle from (x,y) to (x',y') is rad and distance from (x,y) to (x',y') is dis.
 
 
-## netbots_ipc (Interprocess Communication)
+# netbots_ipc (Interprocess Communication)
 
 NetBots communicates using UDP/IP datagrams and messages are serialized with MessagePack, however robot programmers do not need to understand these details. The netbots_ipc module abstracts these details with the NetBotSock class. netbots_ipc also defines the message format (protocol) for communication between robot and server. A few useful validation functions are also provided.
 
 
-### NetBotSock Class Methods
+## NetBotSock Class Methods
 
-**__init__(sourceIP, sourcePort, destinationIP='127.0.0.1', destinationPort=20000)**
+### __init__(sourceIP, sourcePort, destinationIP='127.0.0.1', destinationPort=20000)
 
 Create UDP socket and bind it to listen on sourceIP and sourcePort.
 
@@ -441,12 +441,12 @@ Returns NetBotSocket object.
 Raises socket related exceptions.
 
 
-**getStats()**
+### getStats()
 
 Return str of NetBotSocket statistics.
 
 
-**recvMessage()**
+### recvMessage()
 
 Checks the socket receive buffer and returns message, ip, and port only if a valid message is immediately ready to receive. recvMessage is considered **asynchronous** because it will not wait for a message to arrive before raising an exception.
 
@@ -465,7 +465,7 @@ Immediately raises NetBotSocketException if the receive buffer is empty.
 Note, the text above assumes the socket timeout is set to 0 (non-blocking), which is the default in NetBotSocket.
 
 
-**sendMessage(msg, destinationIP=None, destinationPort=None)**
+### sendMessage(msg, destinationIP=None, destinationPort=None)
 
 Sends msg to destinationIP:destinationPort and then returns immediately. sendMessage is considered **asynchronous** because it does not wait for a reply message and returns no value. Therefore there is no indication if msg will be received by the destination.
 
@@ -474,7 +474,7 @@ Raises NetBotSocketException exception if the msg is not a valid format. (see [M
 If destinationIP or destinationPort is not provided then the default will be used (see setDestinationAddress()).
 
 
-**sendRecvMessage(msg, destinationIP=None, destinationPort=None, retries=10, delay=None, delayMultiplier=1.2)**
+### sendRecvMessage(msg, destinationIP=None, destinationPort=None, retries=10, delay=None, delayMultiplier=1.2)
 
 Sends msg to destinationIP:destinationPort and then waits and returns the reply. sendRecvMessage is considered **synchronous** because it will not return until a reply is received. Programmers can think of this much like a normal function call.
 
@@ -489,7 +489,7 @@ If no reply is received then the message will be sent again (retried) in case it
 Note, sendRecvMessage (synchronous) should not be mixed with sendMessage and recvMessage (asynchronous) without careful consideration. When sendRecvMessage is called it will discard all messages that are waiting to be received by the robot that do not match the reply it is looking for.
 
 
-**setDestinationAddress(destinationIP, destinationPort)**
+### setDestinationAddress(destinationIP, destinationPort)
 
 Set default destination used by NetBotSocket methods when destination is not provided in method calls.
 
@@ -499,24 +499,24 @@ Raises NetBotSocketException exception if destinationIP or destinationPort are n
 
 
 
-### Functions
+## Functions
 
-**formatIpPort(ip, port)**
+### formatIpPort(ip, port)
 
 Formats ip and port into a single string. eg. 127.168.32.11:20012
 
 
-**isValidIP(ip)**
+### isValidIP(ip)
 
 Returns True if ip is valid IP address, otherwise returns False.
 
 
-**isValidMsg(msg)**
+### isValidMsg(msg)
 
 Returns True if msg is a valid message, otherwise returns False.
 
 
-**isValidPort(p)**
+### isValidPort(p)
 
 Returns True if p is valid port number, otherwise returns False.
 
