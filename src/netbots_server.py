@@ -582,7 +582,7 @@ def logStats(d):
           "\n            Messages Dropped: " + str(d.state['dropCount']) +\
           "\n       Time Processing Steps: " + '%.3f'%(d.state['stepTime']) + " secs." +\
           "\n               Time Sleeping: " + '%.3f'%(float(d.state['sleepTime'])) + " secs." +\
-          "\n          Average Sleep Time: " + '%.3f'%(float(d.state['sleepTime'])/max(1,d.state['sleepCount'])) + " secs." +\
+          "\n          Average Sleep Time: " + '%.6f'%(float(d.state['sleepTime'])/max(1,d.state['sleepCount'])) + " secs." +\
           "\n   Steps Slower Than stepSec: " + str(d.state['longStepCount']) +\
         "\n\n")
 
