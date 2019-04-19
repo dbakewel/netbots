@@ -39,11 +39,11 @@ See [Proposed Learning Goals](#proposed-learning-goals) below.
 ## Prerequisites
 
 
-### Python 3
+### Python 3.6 or higher
 
-NetBots uses Python 3 (tested on python 3.7.3) which can be installed from [https://www.python.org/downloads/](https://www.python.org/downloads/). Only the standard python 3 libraries are required. 
+NetBots uses Python 3.6 or higher (tested on python 3.7.3) which can be installed from [https://www.python.org/downloads/](https://www.python.org/downloads/). Only the standard python 3 libraries are required. 
 
-> If multiple versions of python are installed, ensure you are running python 3, not python 2. The examples in this README use the "python" command assuming python 3 is the default. The command "python3" (Linux) or "py -3" (Windows) may be required to force python 3.
+> If multiple versions of python are installed, ensure you are running python 3.6+, not python 3.5 or python 2. The examples in this README use the "python" command assuming python 3.6+ is the default. The command "python3" (Linux) or "py -3" (Windows) may be required to force the correct version.
 
 
 ### NetBots Code

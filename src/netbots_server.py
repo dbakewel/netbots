@@ -595,10 +595,22 @@ def logScoreBoard(d):
                    "\n             Average Game Time: " + '%.3f'%((now - d.state['tourStartTime'])/d.state['gameNumber']) + " secs." +\
                    "\n                         Steps: " + str(d.state['serverSteps']) +\
                    "\n          Average Steps / Game: " + '%.3f'%(d.state['serverSteps']/d.state['gameNumber']) +\
-                 "\n\n                      Points   Name"
+                 "\n\n" +\
+                 f"  {'Points':>10}" +\
+                 f"  {'Name':<30}" +\
+                 f"  {'IP:Port':<24}" +\
+                 f"  {'Canon (damage / fired = avg)':<20}"
 
         for src, bot in d.bots.items():
-            output += "\n                    " + '{0:8}'.format(bot['points']) + "   " + bot['name'] + " (" + src +")"
+            if bot['firedCount'] > 0:
+                canon = f"{float(bot['shellDamage']):0.1f} / {bot['firedCount']:1} = {float(bot['shellDamage']) / bot['firedCount']:0.3f}"
+            else:
+                canon = ""
+            output += "\n" +\
+                f"  {bot['points']:>10}" +\
+                f"  {bot['name']:<30}" +\
+                f"  {src:<24}" +\
+                f"  {canon:<20}"
 
         output += "\n\n"
 
