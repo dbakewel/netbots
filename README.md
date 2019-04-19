@@ -144,12 +144,12 @@ optional arguments:
   -botmaxspeed int     Robot distance traveled per step at 100% speed
                        (default: 5)
   -botaccrate float    % robot can accelerate (or decelerate) per step
-                       (default: 1.0)
+                       (default: 2.0)
   -shellspeed int      Distance traveled by shell per step. (default: 40)
   -hitdamage int       Damage a robot takes from hitting wall or another bot.
-                       (default: 2)
+                       (default: 1)
   -expldamage int      Damage bot takes from direct hit from shell. (default:
-                       20)
+                       10)
   -obstacles int       How many obstacles does the arena have. (default: 0)
   -obstacleradius int  Radius of obstacles as % of arenaSize. (default: 5)
   -jamzones int        How many jam zones does the arena have. (default: 0)
@@ -314,21 +314,21 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
 
         #Speeds and Rates of Change
         'botMaxSpeed': 5, #bots distance traveled per step at 100% speed
-        'botAccRate': 1.0, #Amount in % bot can accelerate (or decelerate) per step
+        'botAccRate': 2.0, #Amount in % bot can accelerate (or decelerate) per step
         'shellSpeed': 40, #distance traveled by shell per step
         'botMinTurnRate': math.pi/6000, #Amount bot can rotate per turn in radians at 100% speed
         'botMaxTurnRate': math.pi/50, #Amount bot can rotate per turn in radians at 0% speed
         
         #Damage
-        'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
-        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
+        'hitDamage': 1, #Damage a bot takes from hitting wall or another bot
+        'explDamage': 10, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
 
         #Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
-        'obstacles': [], #Obstacles of form [{x:float,y:float,radius:float},...]
+        'obstacles': [], #Obstacles of form [{'x':float,'y':float,'radius':float},...]
         'obstacleRadius': 5, #Radius of obstacles as % of arenaSize
 
         #Jam Zones (robots fully inside jam zone are not detected by scan)
-        'jamZones': [], #Jam Zones of form [{x:float,y:float,radius:float},...]
+        'jamZones': [], #Jam Zones of form [{'x':float,'y':float,'radius':float},...]
 
         #Misc
         'keepExplosionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).

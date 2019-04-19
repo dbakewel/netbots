@@ -40,21 +40,21 @@ class SrvData():
 
         #Speeds and Rates of Change
         'botMaxSpeed': 5, #bots distance traveled per step at 100% speed
-        'botAccRate': 1.0, #Amount in % bot can accelerate (or decelerate) per step
+        'botAccRate': 2.0, #Amount in % bot can accelerate (or decelerate) per step
         'shellSpeed': 40, #distance traveled by shell per step
         'botMinTurnRate': math.pi/6000, #Amount bot can rotate per turn in radians at 100% speed
         'botMaxTurnRate': math.pi/50, #Amount bot can rotate per turn in radians at 0% speed
         
         #Damage
-        'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
-        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
+        'hitDamage': 1, #Damage a bot takes from hitting wall or another bot
+        'explDamage': 10, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
 
         #Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
-        'obstacles': [], #Obstacles of form [{x:float,y:float,radius:float},...]
+        'obstacles': [], #Obstacles of form [{'x':float,'y':float,'radius':float},...]
         'obstacleRadius': 5, #Radius of obstacles as % of arenaSize
 
         #Jam Zones (robots fully inside jam zone are not detected by scan)
-        'jamZones': [], #Jam Zones of form [{x:float,y:float,radius:float},...]
+        'jamZones': [], #Jam Zones of form [{'x':float,'y':float,'radius':float},...]
 
         #Misc
         'keepExplosionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
@@ -650,10 +650,10 @@ def main():
     parser.add_argument('-botradius', metavar='int', dest='botRadius', type=int, default=25, help='Radius of robots.')
     parser.add_argument('-explradius', metavar='int', dest='explRadius', type=int, default=75, help='Radius of explosions.')
     parser.add_argument('-botmaxspeed', metavar='int', dest='botMaxSpeed', type=int, default=5, help="Robot distance traveled per step at 100%% speed")
-    parser.add_argument('-botaccrate', metavar='float', dest='botAccRate', type=float, default=1.0, help='%% robot can accelerate (or decelerate) per step')
+    parser.add_argument('-botaccrate', metavar='float', dest='botAccRate', type=float, default=2.0, help='%% robot can accelerate (or decelerate) per step')
     parser.add_argument('-shellspeed', metavar='int', dest='shellSpeed', type=int, default=40, help='Distance traveled by shell per step.')
-    parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int, default=2, help='Damage a robot takes from hitting wall or another bot.')
-    parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int, default=20, help='Damage bot takes from direct hit from shell.')
+    parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int, default=1, help='Damage a robot takes from hitting wall or another bot.')
+    parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int, default=10, help='Damage bot takes from direct hit from shell.')
     parser.add_argument('-obstacles', metavar='int', dest='obstacles', type=int, default=0, help='How many obstacles does the arena have.')
     parser.add_argument('-obstacleradius', metavar='int', dest='obstacleRadius', type=int, default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int, default=0, help='How many jam zones does the arena have.')
