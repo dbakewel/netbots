@@ -163,7 +163,7 @@ def checkForUpdates(d):
     #server needs 1 every 10 seconds to keep us alive. Send every 2 secs to be sure.
     if time.time() > d.nextKeepAlive:
         d.viewerSocket.sendMessage({'type': 'viewKeepAlive'}, d.srvIP, d.srvPort)
-        d.nextKeepAlive += 2
+        d.nextKeepAlive += 1
 
     #Wait two steps before updating screen.
     d.window.after(int(d.conf['stepSec']*1000), checkForUpdates, d)
