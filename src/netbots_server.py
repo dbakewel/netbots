@@ -89,7 +89,9 @@ class SrvData():
         'requestedDirection': 0,
         'points': 0,
         'firedCount': 0,
-        'shellDamage': 0
+        'shellDamage': 0,
+        'winHealth' : 0,
+        'winCount' : 0
     }
 
     shells = {}
@@ -558,6 +560,8 @@ def step(d):
     #If only one bot is left then end game.
     if len(aliveBots) == 1:
         src = list(aliveBots.keys())[0]
+        d.bots[src]['winHealth'] += d.bots[src]['health'];
+        d.bots[src]['winCount'] += 1;
         d.bots[src]['health'] = 0
         d.bots[src]['points'] += 10 #last robot (winner)
         del aliveBots[src]
@@ -574,8 +578,8 @@ def step(d):
 ########################################################
 
 def logStats(d):
-    log("\n\n                  ======= Stats ======="+\
-        "\n\n                    Run Time: " + '%.3f'%(time.time() - d.state['startTime']) + " secs." +\
+    log("\n\n                  ------- Stats -------"+\
+          "\n                    Run Time: " + '%.3f'%(time.time() - d.state['startTime']) + " secs." +\
           "\n    Time Processing Messages: " + '%.3f'%(d.state['msgTime']) + " secs." +\
           "\n                 Messages In: " + str(d.srvSocket.recv) +\
           "\n                Messages Out: " + str(d.srvSocket.sent) +\
@@ -589,30 +593,41 @@ def logStats(d):
 def logScoreBoard(d):
     if d.state['tourStartTime'] and d.state['gameNumber']:
         now = time.time()
-        output = "\n\n                ====== Score Board ======" +\
+        output = "\n\n                ------ Score Board ------" +\
                    "\n               Tournament Time: " + '%.3f'%(now - d.state['tourStartTime']) + " secs." +\
                    "\n                         Games: " + str(d.state['gameNumber']) +\
                    "\n             Average Game Time: " + '%.3f'%((now - d.state['tourStartTime'])/d.state['gameNumber']) + " secs." +\
                    "\n                         Steps: " + str(d.state['serverSteps']) +\
                    "\n          Average Steps / Game: " + '%.3f'%(d.state['serverSteps']/d.state['gameNumber']) +\
                  "\n\n" +\
+                 f"  {' ':>24}" +\
+                 f"  {' ':>10}" +\
+                 f"  {'------ Wins ------':>19}" +\
+                 f"  {'--- CanonFired ---':>19}" +\
+                 f"  {' ':<24}" +\
+                 "\n" +\
+                 f"  {'Name':>24}" +\
                  f"  {'Points':>10}" +\
-                 f"  {'Name':<30}" +\
+                 f"  {'Count':>7}" +\
+                 f"  {'AvgHealth':>10}" +\
+                 f"  {'Count':>7}" +\
+                 f"  {'AvgDamage':>10}" +\
                  f"  {'IP:Port':<24}" +\
-                 f"  {'Canon (damage / fired = avg)':<20}"
+                 "\n -------------------------------------------------------------------------------------------------"
 
-        for src, bot in d.bots.items():
-            if bot['firedCount'] > 0:
-                canon = f"{float(bot['shellDamage']):0.1f} / {bot['firedCount']:1} = {float(bot['shellDamage']) / bot['firedCount']:0.3f}"
-            else:
-                canon = ""
+        botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'],reverse=True)
+        for src in botSort:
+            bot = d.bots[src]
             output += "\n" +\
+                f"  {bot['name']:>24}" +\
                 f"  {bot['points']:>10}" +\
-                f"  {bot['name']:<30}" +\
-                f"  {src:<24}" +\
-                f"  {canon:<20}"
-
-        output += "\n\n"
+                f"  {bot['winCount']:>7}" +\
+                f"  {float(bot['winHealth']) / max(1,bot['winCount']):>10.2f}" +\
+                f"  {bot['firedCount']:>7}" +\
+                f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" +\
+                f"  {src:<24}"
+            
+        output += "\n -------------------------------------------------------------------------------------------------\n\n"
 
         log(output)
 
