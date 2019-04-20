@@ -21,6 +21,7 @@ class SrvData():
     conf = {
         #Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
+        'serverVersion': "1.0.0",
 
         #Game and Tournament
         'botsInGame': 4, #Number of bots required to join before game can start.
@@ -40,21 +41,21 @@ class SrvData():
 
         #Speeds and Rates of Change
         'botMaxSpeed': 5, #bots distance traveled per step at 100% speed
-        'botAccRate': 1.0, #Amount in % bot can accelerate (or decelerate) per step
+        'botAccRate': 2.0, #Amount in % bot can accelerate (or decelerate) per step
         'shellSpeed': 40, #distance traveled by shell per step
         'botMinTurnRate': math.pi/6000, #Amount bot can rotate per turn in radians at 100% speed
         'botMaxTurnRate': math.pi/50, #Amount bot can rotate per turn in radians at 0% speed
         
         #Damage
-        'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
-        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
+        'hitDamage': 1, #Damage a bot takes from hitting wall or another bot
+        'explDamage': 10, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
 
         #Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
-        'obstacles': [], #Obstacles of form [{x:float,y:float,radius:float},...]
+        'obstacles': [], #Obstacles of form [{'x':float,'y':float,'radius':float},...]
         'obstacleRadius': 5, #Radius of obstacles as % of arenaSize
 
         #Jam Zones (robots fully inside jam zone are not detected by scan)
-        'jamZones': [], #Jam Zones of form [{x:float,y:float,radius:float},...]
+        'jamZones': [], #Jam Zones of form [{'x':float,'y':float,'radius':float},...]
 
         #Misc
         'keepExplosionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
@@ -89,7 +90,9 @@ class SrvData():
         'requestedDirection': 0,
         'points': 0,
         'firedCount': 0,
-        'shellDamage': 0
+        'shellDamage': 0,
+        'winHealth' : 0,
+        'winCount' : 0
     }
 
     shells = {}
@@ -558,6 +561,8 @@ def step(d):
     #If only one bot is left then end game.
     if len(aliveBots) == 1:
         src = list(aliveBots.keys())[0]
+        d.bots[src]['winHealth'] += d.bots[src]['health'];
+        d.bots[src]['winCount'] += 1;
         d.bots[src]['health'] = 0
         d.bots[src]['points'] += 10 #last robot (winner)
         del aliveBots[src]
@@ -574,8 +579,8 @@ def step(d):
 ########################################################
 
 def logStats(d):
-    log("\n\n                  ======= Stats ======="+\
-        "\n\n                    Run Time: " + '%.3f'%(time.time() - d.state['startTime']) + " secs." +\
+    log("\n\n                  ------- Stats -------"+\
+          "\n                    Run Time: " + '%.3f'%(time.time() - d.state['startTime']) + " secs." +\
           "\n    Time Processing Messages: " + '%.3f'%(d.state['msgTime']) + " secs." +\
           "\n                 Messages In: " + str(d.srvSocket.recv) +\
           "\n                Messages Out: " + str(d.srvSocket.sent) +\
@@ -589,18 +594,41 @@ def logStats(d):
 def logScoreBoard(d):
     if d.state['tourStartTime'] and d.state['gameNumber']:
         now = time.time()
-        output = "\n\n                ====== Score Board ======" +\
+        output = "\n\n                ------ Score Board ------" +\
                    "\n               Tournament Time: " + '%.3f'%(now - d.state['tourStartTime']) + " secs." +\
                    "\n                         Games: " + str(d.state['gameNumber']) +\
                    "\n             Average Game Time: " + '%.3f'%((now - d.state['tourStartTime'])/d.state['gameNumber']) + " secs." +\
                    "\n                         Steps: " + str(d.state['serverSteps']) +\
                    "\n          Average Steps / Game: " + '%.3f'%(d.state['serverSteps']/d.state['gameNumber']) +\
-                 "\n\n                      Points   Name"
+                 "\n\n" +\
+                 f"  {' ':>24}" +\
+                 f"  {' ':>10}" +\
+                 f"  {'------ Wins ------':>19}" +\
+                 f"  {'--- CanonFired ---':>19}" +\
+                 f"  {' ':<24}" +\
+                 "\n" +\
+                 f"  {'Name':>24}" +\
+                 f"  {'Points':>10}" +\
+                 f"  {'Count':>7}" +\
+                 f"  {'AvgHealth':>10}" +\
+                 f"  {'Count':>7}" +\
+                 f"  {'AvgDamage':>10}" +\
+                 f"  {'IP:Port':<24}" +\
+                 "\n -------------------------------------------------------------------------------------------------"
 
-        for src, bot in d.bots.items():
-            output += "\n                    " + '{0:8}'.format(bot['points']) + "   " + bot['name'] + " (" + src +")"
-
-        output += "\n\n"
+        botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'],reverse=True)
+        for src in botSort:
+            bot = d.bots[src]
+            output += "\n" +\
+                f"  {bot['name']:>24}" +\
+                f"  {bot['points']:>10}" +\
+                f"  {bot['winCount']:>7}" +\
+                f"  {float(bot['winHealth']) / max(1,bot['winCount']):>10.2f}" +\
+                f"  {bot['firedCount']:>7}" +\
+                f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" +\
+                f"  {src:<24}"
+            
+        output += "\n -------------------------------------------------------------------------------------------------\n\n"
 
         log(output)
 
@@ -638,10 +666,10 @@ def main():
     parser.add_argument('-botradius', metavar='int', dest='botRadius', type=int, default=25, help='Radius of robots.')
     parser.add_argument('-explradius', metavar='int', dest='explRadius', type=int, default=75, help='Radius of explosions.')
     parser.add_argument('-botmaxspeed', metavar='int', dest='botMaxSpeed', type=int, default=5, help="Robot distance traveled per step at 100%% speed")
-    parser.add_argument('-botaccrate', metavar='float', dest='botAccRate', type=float, default=1.0, help='%% robot can accelerate (or decelerate) per step')
+    parser.add_argument('-botaccrate', metavar='float', dest='botAccRate', type=float, default=2.0, help='%% robot can accelerate (or decelerate) per step')
     parser.add_argument('-shellspeed', metavar='int', dest='shellSpeed', type=int, default=40, help='Distance traveled by shell per step.')
-    parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int, default=2, help='Damage a robot takes from hitting wall or another bot.')
-    parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int, default=20, help='Damage bot takes from direct hit from shell.')
+    parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int, default=1, help='Damage a robot takes from hitting wall or another bot.')
+    parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int, default=10, help='Damage bot takes from direct hit from shell.')
     parser.add_argument('-obstacles', metavar='int', dest='obstacles', type=int, default=0, help='How many obstacles does the arena have.')
     parser.add_argument('-obstacleradius', metavar='int', dest='obstacleRadius', type=int, default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int, default=0, help='How many jam zones does the arena have.')
@@ -671,6 +699,8 @@ def main():
     d.conf['obstacles'] = mkObstacles(d,args.obstacles)
     d.conf['jamZones'] = mkJamZones(d,args.jamZones)
     
+    log("Server Name: " + d.conf['serverName'])
+    log("Server Version: " + d.conf['serverVersion'])
     
     log("Server Configuration: " + str(d.conf),"VERBOSE")
 

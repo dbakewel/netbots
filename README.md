@@ -39,11 +39,11 @@ See [Proposed Learning Goals](#proposed-learning-goals) below.
 ## Prerequisites
 
 
-### Python 3
+### Python 3.6 or higher
 
-NetBots uses Python 3 (tested on python 3.7.3) which can be installed from [https://www.python.org/downloads/](https://www.python.org/downloads/). Only the standard python 3 libraries are required. 
+NetBots uses Python 3.6 or higher (tested on python 3.7.3) which can be installed from [https://www.python.org/downloads/](https://www.python.org/downloads/). Only the standard python 3 libraries are required. 
 
-> If multiple versions of python are installed, ensure you are running python 3, not python 2. The examples in this README use the "python" command assuming python 3 is the default. The command "python3" (Linux) or "py -3" (Windows) may be required to force python 3.
+> If multiple versions of python are installed, ensure you are running python 3.6+, not python 3.5 or python 2. The examples in this README use the "python" command assuming python 3.6+ is the default. The command "python3" (Linux) or "py -3" (Windows) may be required to force the correct version.
 
 
 ### NetBots Code
@@ -57,7 +57,9 @@ On windows, **double click "rundemo.bat"** in the root of the NetBots directory.
 
 > If this does not work, open a command window (cmd), cd into the directory containing rundemo.bat and type "rundemo.bat".
 
-The rundemo script will start 6 processes on the local computer: 1 server, 1 viewer, and 4 robots. A default tournament (10 games) will run and then the server will quit. Each process will send its output to it's own cmd window. The title of the window indicates what is running it in. Each process can be quit by clicking in the window and pressing "Ctrl-C" (cmd window stays open) or clicking the close box (cmd window closes). Use "Close all windows" in the task bar to quickly quit all processes. 
+The rundemo script will start 6 processes on the local computer: 1 server, 1 viewer, and 4 robots. A default tournament (10 games) will run and then the server will quit. Each process will send its output to it's own cmd window. The title of the window indicates what is running it in. Each process can be quit by clicking in the window and pressing "Ctrl-C" (cmd window stays open) or clicking the close box (cmd window closes). Use "Close all windows" in the task bar to quickly quit all processes.
+
+*The demo robots are fairly boring. Robots you write can be much faster and more exiting!*
 
 
 ## Running a Tournament
@@ -144,12 +146,12 @@ optional arguments:
   -botmaxspeed int     Robot distance traveled per step at 100% speed
                        (default: 5)
   -botaccrate float    % robot can accelerate (or decelerate) per step
-                       (default: 1.0)
+                       (default: 2.0)
   -shellspeed int      Distance traveled by shell per step. (default: 40)
   -hitdamage int       Damage a robot takes from hitting wall or another bot.
-                       (default: 2)
+                       (default: 1)
   -expldamage int      Damage bot takes from direct hit from shell. (default:
-                       20)
+                       10)
   -obstacles int       How many obstacles does the arena have. (default: 0)
   -obstacleradius int  Radius of obstacles as % of arenaSize. (default: 5)
   -jamzones int        How many jam zones does the arena have. (default: 0)
@@ -314,21 +316,21 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
 
         #Speeds and Rates of Change
         'botMaxSpeed': 5, #bots distance traveled per step at 100% speed
-        'botAccRate': 1.0, #Amount in % bot can accelerate (or decelerate) per step
+        'botAccRate': 2.0, #Amount in % bot can accelerate (or decelerate) per step
         'shellSpeed': 40, #distance traveled by shell per step
         'botMinTurnRate': math.pi/6000, #Amount bot can rotate per turn in radians at 100% speed
         'botMaxTurnRate': math.pi/50, #Amount bot can rotate per turn in radians at 0% speed
         
         #Damage
-        'hitDamage': 2, #Damage a bot takes from hitting wall or another bot
-        'explDamage': 20, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
+        'hitDamage': 1, #Damage a bot takes from hitting wall or another bot
+        'explDamage': 10, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
 
         #Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
-        'obstacles': [], #Obstacles of form [{x:float,y:float,radius:float},...]
+        'obstacles': [], #Obstacles of form [{'x':float,'y':float,'radius':float},...]
         'obstacleRadius': 5, #Radius of obstacles as % of arenaSize
 
         #Jam Zones (robots fully inside jam zone are not detected by scan)
-        'jamZones': [], #Jam Zones of form [{x:float,y:float,radius:float},...]
+        'jamZones': [], #Jam Zones of form [{'x':float,'y':float,'radius':float},...]
 
         #Misc
         'keepExplosionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
