@@ -21,6 +21,7 @@ class SrvData():
     conf = {
         #Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
+        'serverVersion': "0.0.0 (develop)",
 
         #Game and Tournament
         'botsInGame': 4, #Number of bots required to join before game can start.
@@ -698,6 +699,8 @@ def main():
     d.conf['obstacles'] = mkObstacles(d,args.obstacles)
     d.conf['jamZones'] = mkJamZones(d,args.jamZones)
     
+    log("Server Name: " + d.conf['serverName'])
+    log("Server Version: " + d.conf['serverVersion'])
     
     log("Server Configuration: " + str(d.conf),"VERBOSE")
 
