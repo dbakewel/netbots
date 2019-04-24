@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2019-04-24
+### Changed
+- Fixed bug that was only allowing one less than botMsgsPerStep messages to be processed per robot per step. This was impacting any robots trying to send botMsgsPerStep messages in a single step as one of their messages was being incorrectly dropped.
+
 ## [1.0.0] - 2019-04-19
 ### Added
 - More stats have been added to server score board.
@@ -20,5 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Beta release.
 
 [Unreleased]: https://github.com/dbakewel/netbots/compare/1.0.0...HEAD
+[1.0.1]: https://github.com/dbakewel/netbots/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/dbakewel/netbots/compare/0.9.0...1.0.0
 [0.9.0]: https://github.com/dbakewel/netbots/releases/tag/0.9.0
