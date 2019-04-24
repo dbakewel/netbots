@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0] - 2019-04-16
 - Beta release.
 
-[Unreleased]: https://github.com/dbakewel/netbots/compare/1.0.0...HEAD
+[Unreleased]: https://github.com/dbakewel/netbots/compare/1.0.1...HEAD
 [1.0.1]: https://github.com/dbakewel/netbots/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/dbakewel/netbots/compare/0.9.0...1.0.0
 [0.9.0]: https://github.com/dbakewel/netbots/releases/tag/0.9.0
