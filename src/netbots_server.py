@@ -21,7 +21,7 @@ class SrvData():
     conf = {
         #Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
-        'serverVersion': "1.0.0",
+        'serverVersion': "1.0.1",
 
         #Game and Tournament
         'botsInGame': 4, #Number of bots required to join before game can start.
@@ -184,7 +184,7 @@ def recvReplyMsgs(d):
             botMsgCount[src] += 1
         else:
             botMsgCount[src] = 1
-        if botMsgCount[src] >= d.conf['botMsgsPerStep']:
+        if botMsgCount[src] > d.conf['botMsgsPerStep']:
             continue
 
         reply = processMsg(d, msg, src)
