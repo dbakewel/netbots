@@ -184,7 +184,7 @@ def recvReplyMsgs(d):
             botMsgCount[src] += 1
         else:
             botMsgCount[src] = 1
-        if botMsgCount[src] >= d.conf['botMsgsPerStep']:
+        if botMsgCount[src] > d.conf['botMsgsPerStep']:
             continue
 
         reply = processMsg(d, msg, src)
