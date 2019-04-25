@@ -57,13 +57,6 @@ def play(botSocket, srvConf):
             log(str(e),"WARNING")
             continue
 
-def playGame(botSocket, srvConf):
-    """Called when a new game is started. Should return when game ends (health==0 or health increases)."""
-
-    while not detectGameEnded(botSocket):
-        #"pass" does nothing, just like this bot.
-        pass
-
 ##################################################################
 ### Standard stuff below.
 ##################################################################
