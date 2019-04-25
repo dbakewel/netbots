@@ -122,7 +122,7 @@ def checkForUpdates(d):
                 centerY+2
             )
 
-        #remove explosion widgets veiwer has but are not on server.
+        #remove explosion widgets viewer has but are not on server.
         for k in list(d.explWidgets.keys()):
             if not k in msg['explosions']:
                 d.canvas.delete(d.explWidgets[k])
