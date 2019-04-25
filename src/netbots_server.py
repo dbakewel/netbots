@@ -230,10 +230,12 @@ def findOverlapingBots(d):
 
     for i in range(0,len(keys)-1):
         boti = d.bots[keys[i]]
-        for j in range(i+1,len(keys)):
-            botj = d.bots[keys[j]]
-            if nbmath.distance(boti['x'],boti['y'],botj['x'],botj['y']) <= d.conf['botRadius']*2:
-                return [keys[i],keys[j]]
+        if boti['health'] is not 0:
+            for j in range(i+1,len(keys)):
+                botj = d.bots[keys[j]]
+                if botj['health'] is not 0:
+                    if nbmath.distance(boti['x'],boti['y'],botj['x'],botj['y']) <= d.conf['botRadius']*2:
+                        return [keys[i],keys[j]]
 
     return False
 
@@ -241,9 +243,10 @@ def findOverlapingBotsAndObstacles(d):
     """Return any pair (src,i) of (src,obstacle) that overlap, else return False"""
     for src in d.bots:
         bot = d.bots[src]
-        for obstacle in d.conf['obstacles']:
-            if nbmath.distance(bot['x'],bot['y'],obstacle['x'],obstacle['y']) <= d.conf['botRadius']+obstacle['radius']:
-                return [src,obstacle]
+        if bot['health'] is not 0:
+            for obstacle in d.conf['obstacles']:
+                if nbmath.distance(bot['x'],bot['y'],obstacle['x'],obstacle['y']) <= d.conf['botRadius']+obstacle['radius']:
+                    return [src,obstacle]
 
     return False
 
