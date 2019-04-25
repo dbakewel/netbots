@@ -48,6 +48,7 @@ def play(botSocket, srvConf):
             ############################################################################
             ### This is where game playing code would go if we were not a "Sitting Duck".
             ############################################################################
+            pass
 
         except nbipc.NetBotSocketException as e:
             #Consider this a warning here. It may simply be that a request returned 
