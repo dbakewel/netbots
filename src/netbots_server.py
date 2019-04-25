@@ -604,17 +604,18 @@ def logScoreBoard(d):
                  f"  {' ':>24}" +\
                  f"  {' ':>10}" +\
                  f"  {'------ Wins ------':>19}" +\
-                 f"  {'--- CanonFired ---':>19}" +\
-                 f"  {' ':<24}" +\
+                 f"  {'--------- CanonFired ----------':>31}" +\
+                 f"  {' ':<21}" +\
                  "\n" +\
                  f"  {'Name':>24}" +\
                  f"  {'Points':>10}" +\
                  f"  {'Count':>7}" +\
                  f"  {'AvgHealth':>10}" +\
                  f"  {'Count':>7}" +\
-                 f"  {'AvgDamage':>10}" +\
-                 f"  {'IP:Port':<24}" +\
-                 "\n -------------------------------------------------------------------------------------------------"
+                 f"  {'AvgDamage':>10}" + \
+                 f"  {'TotDamage':>10}" + \
+                 f"  {'IP:Port':<21}" +\
+                 "\n ------------------------------------------------------------------------------------------------------------------"
 
         botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'],reverse=True)
         for src in botSort:
@@ -625,10 +626,11 @@ def logScoreBoard(d):
                 f"  {bot['winCount']:>7}" +\
                 f"  {float(bot['winHealth']) / max(1,bot['winCount']):>10.2f}" +\
                 f"  {bot['firedCount']:>7}" +\
-                f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" +\
-                f"  {src:<24}"
+                f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" + \
+                f"  {float(bot['shellDamage']):>10.2f}" + \
+                f"  {src:<21}"
             
-        output += "\n -------------------------------------------------------------------------------------------------\n\n"
+        output += "\n ------------------------------------------------------------------------------------------------------------------\n\n"
 
         log(output)
 
