@@ -604,7 +604,7 @@ def logScoreBoard(d):
                  f"  {' ':>24}" +\
                  f"  {' ':>10}" +\
                  f"  {'------ Wins ------':>19}" +\
-                 f"  {'---------- CanonFired ----------':>32}" +\
+                 f"  {'---------- CanonFired ---------':>31}" +\
                  f"  {' ':<24}" +\
                  "\n" +\
                  f"  {'Name':>24}" +\
@@ -614,7 +614,7 @@ def logScoreBoard(d):
                  f"  {'Count':>7}" +\
                  f"  {'AvgDamage':>10}" + \
                  f"  {'TotDamage':>10}" + \
-                 f"  {'IP:Port':<18}" +\
+                 f"  {'IP:Port':<21}" +\
                  "\n ----------------------------------------------------------------------------------------------------------------"
 
         botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'],reverse=True)
