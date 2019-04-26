@@ -83,7 +83,7 @@ def isValidMsg(msg):
                     if msg[fld] < fldspec[1] or msg[fld] > fldspec[2]:
                         msg[fld] = nbmath.normalizeAngle(msg[fld])
                             if msg[fld] < fldspec[1] or msg[fld] > fldspec[2]:
-                                log("Ms1 '" + fld + "' key has a value "+str(msg[fld])+" which is out of range ["+str(fldspec[1])+","+str(fldspec[2])+"] : " + str(msg), "ERROR")
+                                log("Msg '" + fld + "' key has a value "+str(msg[fld])+" which is out of range ["+str(fldspec[1])+","+str(fldspec[2])+"] : " + str(msg), "ERROR")
                                 return False
                 else:
                     if not isinstance(msg[fld],eval(fldspec)):
