@@ -7,7 +7,6 @@ import math
 import argparse
 
 from netbots_log import log
-import netbots_math as nbmath
 
 #Every msg is a python dict type with at least the type attribute and a string value.
 #For example: { 'type': 'joinRequest'}
@@ -83,9 +82,6 @@ def isValidMsg(msg):
                     
                     if msg[fld] < fldspec[1] or msg[fld] > fldspec[2]:
                         if fldspec[2] == math.pi*2 and fldspec[1] == 0:
-                            msg[fld] = nbmath.normalizeAngle(msg[fld])
-                        
-                        else:
                             log("Msg '" + fld + "' key has a value "+str(msg[fld])+" which is out of range ["+str(fldspec[1])+","+str(fldspec[2])+"] : " + str(msg), "ERROR")
                             return False
                 else:
