@@ -79,7 +79,6 @@ def isValidMsg(msg):
                     if not isinstance(msg[fld],eval(fldspec[0])):
                         log("Msg '" + fld + "' key has value of type "+str(type(msg[fld]))+" but expected "+fldspec[0]+": " + str(msg), "ERROR")
                         return False
-                    
                     if msg[fld] < fldspec[1] or msg[fld] > fldspec[2]:
                         log("Msg '" + fld + "' key has a value "+str(msg[fld])+" which is out of range ["+str(fldspec[1])+","+str(fldspec[2])+"] : " + str(msg), "ERROR")
                         return False
