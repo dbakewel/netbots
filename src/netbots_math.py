@@ -31,7 +31,7 @@ def angle(x1,y1,x2,y2):
 
 def distance(x1,y1,x2,y2):
     """ Return distance between (x1,y1) and (x2,y2) """
-    return math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
+    return math.sqrt((x2-x1)**2 + (y2-y1)**2)
 
 def contains(x1,y1,startRad,endRad,x2,y2):
     """
@@ -84,8 +84,8 @@ def intersectLineCircle(x1,y1,x2,y2,cx,cy,cradius):
     y2 -= cy
 
     #easy way first. Just see if one of the points is inside the circle
-    d1 = math.sqrt(x1*x1 + y1*y1)
-    d2 = math.sqrt(x2*x2 + y2*y2)
+    d1 = math.sqrt(x1**2 + y1**2)
+    d2 = math.sqrt(x2**2 + y2**2)
     if d1 <= cradius or d2 <= cradius:
         return True
     
@@ -93,17 +93,17 @@ def intersectLineCircle(x1,y1,x2,y2,cx,cy,cradius):
     #From http://mathworld.wolfram.com/Circle-LineIntersection.html
     dx = x2 - x1
     dy = y2 - y1
-    dr = math.sqrt(dx*dx+dy*dy)
+    dr = math.sqrt(dx**2 + dy**2)
     D = x1*y2 - x2*y1
-    delta = (cradius*cradius) * (dr*dr) - (D*D)
+    delta = (cradius*cradius) * dr**2 - D**2
     if delta < 0:
         return False
     
     #now we know that the line to infinity intersects the circle.
     #but we need to figure out if the line segment touches or not.
     #really only need to test x or y, if one is true so will the other be.
-    ix = (D*dy+sgn(dy)*dx*math.sqrt(delta)) / (dr*dr)
-    iy = (-1*D*dx+abs(dy)*math.sqrt(delta)) / (dr*dr)
+    ix = (D*dy+sgn(dy)*dx*math.sqrt(delta)) / dr**2
+    iy = (-1*D*dx+abs(dy)*math.sqrt(delta)) / dr**2
     if (x1 < ix and ix < x2) or (x1 > ix and ix > x2) or \
        (y1 < ix and ix < y2) or (y1 > ix and ix > y2):
         return True
