@@ -1,5 +1,4 @@
 import argparse
-import time
 import signal
 import time
 import random

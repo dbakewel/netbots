@@ -307,7 +307,7 @@ class NetBotSocket:
             msg = self.deserialize(bytesAddressPair[0])
             ip = bytesAddressPair[1][0]
             port = bytesAddressPair[1][1]
-            log("Recived msg from " + ip + ":" + str(port) + " len="  + str(len(bytesAddressPair[0])) + " bytes " + str(msg), "DEBUG")
+            log("Received msg from " + ip + ":" + str(port) + " len="  + str(len(bytesAddressPair[0])) + " bytes " + str(msg), "DEBUG")
         
             self.recv = self.recv + 1
             if msg['type'] in self.recvTypes:
@@ -315,7 +315,7 @@ class NetBotSocket:
             else:
                 self.recvTypes[msg['type']] = 1
         except (BlockingIOError, socket.timeout):
-            #There was no data in the recive buffer.
+            #There was no data in the receive buffer.
             raise NetBotSocketException("Receive buffer empty.")
         except (ConnectionResetError):
             #Windows raises this when it gets back an ICMP destination unreachable packet
@@ -397,10 +397,10 @@ class NetBotSocket:
                         'msgID' in replyMsg and replyMsg['msgID'] == msg['msgID']:
                     gotReply = True
                 else:
-                    #we got a message but it was not the one were were looking for. Try to recive again before sending
+                    #we got a message but it was not the one were were looking for. Try to receive again before sending
                     sendMessage = False
             else:
-                #there is noting in the recive buffer after the timeout so try sending message again.
+                #there is noting in the receive buffer after the timeout so try sending message again.
                 sendMessage = True
                 self.sendRecvMessageResends += 1
 
