@@ -10,7 +10,7 @@ Why has it been changed?
 
 Include links to related issues and pull requests.
 
-**Completness**
+**Completeness**
 
 Does this completely address the issue(s)?
 Is this only part of a solution? If so, what follow up is needed? Provide links to follow up issus.
