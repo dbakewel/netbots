@@ -624,14 +624,15 @@ def logScoreBoard(d):
             "\n                         Steps: " + str(d.state['serverSteps']) +\
             "\n          Average Steps / Game: " + '%.3f' % (d.state['serverSteps'] / d.state['gameNumber']) +\
             "\n\n" +\
-            f"  {' ':>24}" +\
-            f"  {' ':>10}" +\
-            f"  {'------ Wins ------':>19}" +\
+            f"  {' ':>16}" +\
+            f"  {'---- Score -----':>16}" +\
+            f"  {'------ Wins -------':>19}" +\
             f"  {'--------- CanonFired ----------':>31}" +\
             f"  {' ':<21}" +\
             "\n" +\
-            f"  {'Name':>24}" +\
+            f"  {'Name':>16}" +\
             f"  {'Points':>10}" +\
+            f"  {'%':>4}" +\
             f"  {'Count':>7}" +\
             f"  {'AvgHealth':>10}" +\
             f"  {'Count':>7}" +\
@@ -641,11 +642,19 @@ def logScoreBoard(d):
             "\n ------------------------------------------------------------------------------------------------------------------"
 
         botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'], reverse=True)
+
+        totalPoints = 0.0
+        for src in botSort:
+            totalPoints += d.bots[src]['points']
+        if totalPoints == 0:
+            totalPoints = 1.0
+
         for src in botSort:
             bot = d.bots[src]
             output += "\n" +\
-                f"  {bot['name']:>24}" +\
+                f"  {bot['name']:>16}" +\
                 f"  {bot['points']:>10}" +\
+                f"  {float(bot['points'])/totalPoints*100.0:>4.1f}" +\
                 f"  {bot['winCount']:>7}" +\
                 f"  {float(bot['winHealth']) / max(1,bot['winCount']):>10.2f}" +\
                 f"  {bot['firedCount']:>7}" +\
