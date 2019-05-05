@@ -31,7 +31,7 @@ class SrvData():
         'stepSec': 0.05,
 
         # Messaging
-        'dropRate': 10,  # Drop a messages every N messages
+        'dropRate': 11,  # Drop a messages every N messages. Best to use primes.
         # Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
         'botMsgsPerStep': 4,
         'allowRejoin': True,  # Allows crashed bots to rejoin game in progress.
@@ -695,7 +695,7 @@ def main():
     parser.add_argument('-stepmax', metavar='int', dest='stepMax', type=int,
                         default=1000, help='Max steps in one game.')
     parser.add_argument('-droprate', metavar='int', dest='dropRate', type=int,
-                        default=10, help='Drop over nth message. 0 == no drop.')
+                        default=11, help='Drop over nth message, best to use primes. 0 == no drop.')
     parser.add_argument('-msgperstep', metavar='int', dest='botMsgsPerStep', type=int,
                         default=4, help='Number of msgs from a bot that server will respond to each step.')
     parser.add_argument('-arenasize', metavar='int', dest='arenaSize', type=int,
