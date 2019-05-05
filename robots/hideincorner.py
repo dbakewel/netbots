@@ -69,6 +69,26 @@ def play(botSocket, srvConf):
                 # log some useful information.
                 degrees = str(int(round(math.degrees(radians))))
                 log("Requested to go " + degrees + " degress at max speed.", "INFO")
+                
+                #fixes bug where bot stops if it collides with anouther bot
+                # ensures hide in corner bot arrives at its corner
+                if cornerX == 0 and cornerY == 0:
+                    while getLocationReply['x'] > 100 or getLocationReply['y'] > 100:
+                        botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 100})
+                        getLocationReply = botSocket.sendRecvMessage({'type': 'getLocationRequest'})
+                if cornerX > 0 and cornerY > 0:
+                    while getLocationReply['x'] < srvConf['arenaSize'] - 100 \
+                            or getLocationReply['y'] < srvConf['arenaSize'] - 100:
+                        botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 100})
+                        getLocationReply = botSocket.sendRecvMessage({'type': 'getLocationRequest'})
+                if cornerX > 0 and cornerY == 0:
+                    while getLocationReply['x'] < srvConf['arenaSize'] - 100  or getLocationReply['y'] > 100:
+                        botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 100})
+                        getLocationReply = botSocket.sendRecvMessage({'type': 'getLocationRequest'})
+                if cornerX == 0 and cornerY > 0:
+                    while getLocationReply['x'] > 100 or getLocationReply['y'] < srvConf['arenaSize'] - 100:
+                        botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 100})
+                        getLocationReply = botSocket.sendRecvMessage({'type': 'getLocationRequest'})
 
             except nbipc.NetBotSocketException as e:
                 # Consider this a warning here. It may simply be that a request returned
@@ -77,8 +97,8 @@ def play(botSocket, srvConf):
                 log(str(e), "WARNING")
             continue
 
-        # Now we do nothing until a new game starts. If we hit another bot we will stop but
-        # besides that we should end up hidden in the corner.
+        # Now we do nothing until a new game starts. 
+        # we should end up hidden in the corner.
 
 ##################################################################
 # Standard stuff below.
