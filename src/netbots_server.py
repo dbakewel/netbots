@@ -607,7 +607,9 @@ def logStats(d):
         "\n                 Messages In: " + str(d.srvSocket.recv) +
         "\n                Messages Out: " + str(d.srvSocket.sent) +
         "\n            Messages Dropped: " + str(d.state['dropCount']) +
+        "\n             Messages/Second: " + '%.3f' % ((d.srvSocket.recv+d.srvSocket.recv)/float(time.time() - d.state['startTime'])) +
         "\n       Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +
+        "\n                Steps/Second: " + '%.3f' % (d.state['serverSteps']/float(time.time() - d.state['startTime'])) +
         "\n               Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +
         "\n          Average Sleep Time: " + '%.6f' % (float(d.state['sleepTime']) / max(1, d.state['sleepCount'])) + " secs." +
         "\n   Steps Slower Than stepSec: " + str(d.state['longStepCount']) +
