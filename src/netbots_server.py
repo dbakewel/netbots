@@ -242,7 +242,7 @@ def sendToViwers(d):
 ########################################################
 
 
-def findOverlapingBots(bots):
+def findOverlapingBots(d, bots):
     """
     bots is a dict/list of bot locations: {key:{'x': x,'y': y}, ...}
     bots can also contain health: {key:{'x': x,'y': y, 'health': h}, ...}
@@ -265,7 +265,7 @@ def findOverlapingBots(bots):
     return False
 
 
-def findOverlapingBotsAndObstacles(bots):
+def findOverlapingBotsAndObstacles(d, bots):
     """
     bots is a dict/list of bot locations: {key:{'x': x,'y': y}, ...}
     bots can also contain health: {key:{'x': x,'y': y, 'health': h}, ...}
@@ -352,8 +352,8 @@ def mkStartLocations(d):
                 loc['y'] = random.random() * (d.conf['arenaSize'] * 0.8) + (d.conf['arenaSize'] * 0.1)
                 startLocs.append(loc)
 
-            botsOverlap = findOverlapingBots(startLocs)
-            botsObsOverlap = findOverlapingBotsAndObstacles(startLocs)
+            botsOverlap = findOverlapingBots(d, startLocs)
+            botsObsOverlap = findOverlapingBotsAndObstacles(d, startLocs)
             if botsOverlap:
                 log("Bots overlapped during random layout, trying again.", "VERBOSE")
             elif botsObsOverlap:
@@ -496,7 +496,7 @@ def step(d):
                 foundOverlap = True
 
         # detect if bots hit obstacles, if the did move them so they are just barely not touching,
-        overlap = findOverlapingBotsAndObstacles(d.bots)
+        overlap = findOverlapingBotsAndObstacles(d, d.bots)
         while overlap:
             foundOverlap = True
             b = d.bots[overlap[0]]
@@ -509,10 +509,10 @@ def step(d):
             b['x'], b['y'] = nbmath.project(b['x'], b['y'], a, distance)
             # record damage and check for more bots overlapping
             b['hitDamage'] = True
-            overlap = findOverlapingBotsAndObstacles(d.bots)
+            overlap = findOverlapingBotsAndObstacles(d, d.bots)
 
         # detect if bots hit other bots, if the did move them so they are just barely not touching,
-        overlap = findOverlapingBots(d.bots)
+        overlap = findOverlapingBots(d, d.bots)
         while overlap:
             foundOverlap = True
             b1 = d.bots[overlap[0]]
@@ -528,7 +528,7 @@ def step(d):
             # record damage and check for more bots overlapping
             b1['hitDamage'] = True
             b2['hitDamage'] = True
-            overlap = findOverlapingBots(d.bots)
+            overlap = findOverlapingBots(d, d.bots)
 
     # give damage (only once this step) to bots that hit things. Also stop them.
     for src, bot in d.bots.items():
@@ -712,8 +712,6 @@ def quit(signal=None, frame=None):
 
 
 def main():
-    global d  # give quit access to d
-
     d = SrvData()
 
     random.seed()
