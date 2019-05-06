@@ -304,7 +304,7 @@ def mkObstacles(d, n):
                 'x': random.random() * (d.conf['arenaSize'] - rad * 8.1) + rad * 4.1,
                 'y': random.random() * (d.conf['arenaSize'] - rad * 8.1) + rad * 4.1,
                 'radius': rad
-            }
+                }
             overlaps = False
             for o in obstacles:
                 if nbmath.distance(o['x'], o['y'], new['x'], new['y']) < o['radius'] + \
@@ -334,7 +334,7 @@ def mkJamZones(d, n):
             'x': random.random() * d.conf['arenaSize'],
             'y': random.random() * d.conf['arenaSize'],
             'radius': rad
-        })
+            })
 
     return jamZones
 
