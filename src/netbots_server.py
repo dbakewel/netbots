@@ -632,10 +632,6 @@ def step(d):
         d.bots[src]['points'] += 10  # last robot (winner)
         del aliveBots[src]
 
-    if len(aliveBots) == 0:
-        # Game ended.
-        logScoreBoard(d)
-
     d.state['stepTime'] += time.perf_counter() - startTime
 
 
@@ -711,10 +707,6 @@ def logScoreBoard(d):
 
 
 def quit(signal=None, frame=None):
-    global d
-
-    logScoreBoard(d)
-
     log("Quiting", "INFO")
     exit()
 
@@ -814,11 +806,18 @@ def main():
             if bot['health'] != 0:
                 aliveBots += 1
 
+        # only count slow steps if we actually process a step this time around.
+        countSlowStep = False
+
         if aliveBots > 0:  # if there is an ongoing game
+            countSlowStep = True
             step(d)
         elif len(d.bots) == d.conf['botsInGame']:  # if we have enough bots to start playing
             if not d.state['tourStartTime']:
                 d.state['tourStartTime'] = time.time()
+
+            logScoreBoard(d)
+
             if d.conf['gamesToPlay'] != d.state['gameNumber']:
                 initGame(d)
             else:
@@ -835,10 +834,9 @@ def main():
             d.state['sleepTime'] += nextStepAt - ptime
             while ptime < nextStepAt:
                 ptime = time.perf_counter()
-        else:
+        elif countSlowStep:
             d.state['longStepCount'] += 1
             log("Server running slower than " + str(d.conf['stepSec']) + " sec/step.", "VERBOSE")
-            ptime = time.perf_counter()
 
         nextStepAt = ptime + d.conf['stepSec']
 
