@@ -366,12 +366,8 @@ def mkStartLocations(d):
 
         d.startLocs.extend(startLocs)
         startLocsPerms = itertools.permutations(range(len(d.startLocs) - d.conf['botsInGame'], len(d.startLocs)))
-        for startLocs in startLocsPerms:
-            start = []
-            for i in startLocs:
-                start.append(i)
-            d.starts.append(start)
-
+        d.starts.extend(startLocsPerms)
+        
     random.shuffle(d.starts)
 
 
