@@ -66,7 +66,7 @@ The rundemo script will start 6 processes on the local computer: 1 server, 1 vie
 
 There are three options available on the NetBots server that are useful for tournaments. The first changes the number of games (**-games**) in the tournament. If robots have similar skills then playing more games will flesh out which robot is best. 
 
-The second option (**-stepsec**) allows you to speed up the NetBots server. Most modern computers can run NetBots 5 times faster (or more) than the default (0.05 sec/step or 20 steps/sec). The server will produce warnings if it can't keep up with the requested speed. If only a few of these warnings appear then it will not affect the game. If many warnings appear you should stop the server and reduce it's target speed.
+The second option (**-stepsec**) allows you to speed up the NetBots server. Most modern computers can run NetBots 5 times faster (or more) than the default (0.05 sec/step or 20 steps/sec). The server scoreboard will display "Steps Slower Than stepSec", which indicates when it can't keep up with the requested speed. If only a few of steps are slow (<1%) then it will not affect the game. If many steps are slow (>1%) you should stop the server and reduce it's target speed.
 
 The final option (**-stepmax**) changes the maximum steps in a game. If most games are ending because the maximum steps is reached than increasing this will give robots more times to demonstrate their skills.
 

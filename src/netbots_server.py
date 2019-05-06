@@ -666,7 +666,7 @@ def logScoreBoard(d):
             "\n                  Steps/Second: " + '%.3f' % (d.state['serverSteps'] / float(time.time() - d.state['startTime'])) +\
             "\n                 Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +\
             "\n            Average Sleep Time: " + '%.6f' % (float(d.state['sleepTime']) / max(1, d.state['sleepCount'])) + " secs." +\
-            "\n     Steps Slower Than stepSec: " + str(d.state['longStepCount']) + f" ({float(d.state['longStepCount']) / float(d.state['serverSteps']):>4.2f}%)" +\
+            "\n     Steps Slower Than stepSec: " + str(d.state['longStepCount']) + f" ({float(d.state['longStepCount']) / float(d.state['serverSteps']) * 100.0:>4.2f}%)" +\
             "\n\n" +\
             f"  {' ':>16}" +\
             f"  {'---- Score -----':>16}" +\
@@ -812,9 +812,8 @@ def main():
         log(str(e), "FAILURE")
         quit()
 
+    nextStepAt = time.perf_counter() + d.conf['stepSec']
     while True:
-        loopStartTime = time.time()
-
         aliveBots = 0
         for src, bot in d.bots.items():
             if bot['health'] != 0:
@@ -835,15 +834,18 @@ def main():
 
         sendToViwers(d)
 
-        nextStepIn = d.conf['stepSec'] - (time.time() - loopStartTime)
-
-        if nextStepIn > 0:
+        ptime = time.perf_counter()
+        if ptime < nextStepAt:
             d.state['sleepCount'] += 1
-            d.state['sleepTime'] += nextStepIn
-            time.sleep(nextStepIn)
+            d.state['sleepTime'] += nextStepAt - ptime
+            while ptime < nextStepAt:
+                ptime = time.perf_counter()
         else:
             d.state['longStepCount'] += 1
-            log("Server running slower than " + str(d.conf['stepSec']) + " sec/step.", "WARNING")
+            log("Server running slower than " + str(d.conf['stepSec']) + " sec/step.", "VERBOSE")
+            ptime = time.perf_counter()
+
+        nextStepAt = ptime + d.conf['stepSec']
 
 
 if __name__ == "__main__":
