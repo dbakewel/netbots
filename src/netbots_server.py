@@ -3,6 +3,7 @@ import signal
 import time
 import random
 import math
+import itertools
 
 from netbots_log import log
 from netbots_log import setLogLevel
@@ -82,6 +83,10 @@ class SrvData():
         'longStepCount': 0,
         'tourStartTime': False
         }
+
+    starts = []  # [ [locIndex, locIndex, ...], [locIndex, locIndex, ...], ...]
+    startLocs = []  # [{'x': x, 'y' y},{'x': x, 'y' y},...]
+    startBots = []  # [src, src, ...]
 
     bots = {}
     botTemplate = {
@@ -234,27 +239,44 @@ def sendToViwers(d):
 ########################################################
 
 
-def findOverlapingBots(d):
-    """Return any pair (src,src) of bots that overlap, else return False"""
-    keys = list(d.bots.keys())
+def findOverlapingBots(bots):
+    """
+    bots is a dict/list of bot locations: {key:{'x': x,'y': y}, ...}
+    bots can also contain health: {key:{'x': x,'y': y, 'health': h}, ...}
+    Return any pair (key,key) of bots that overlap, else return False
+    """
+    try:
+        keys = list(bots.keys())
+    except AttributeError:
+        keys = range(len(bots))
 
     for i in range(0, len(keys) - 1):
-        boti = d.bots[keys[i]]
-        if boti['health'] is not 0:
+        boti = bots[keys[i]]
+        if 'health' not in boti or boti['health'] is not 0:
             for j in range(i + 1, len(keys)):
-                botj = d.bots[keys[j]]
-                if botj['health'] is not 0:
+                botj = bots[keys[j]]
+                if 'health' not in boti or botj['health'] is not 0:
                     if nbmath.distance(boti['x'], boti['y'], botj['x'], botj['y']) <= d.conf['botRadius'] * 2:
                         return [keys[i], keys[j]]
 
     return False
 
 
-def findOverlapingBotsAndObstacles(d):
-    """Return any pair (src,i) of (src,obstacle) that overlap, else return False"""
-    for src in d.bots:
-        bot = d.bots[src]
-        if bot['health'] is not 0:
+def findOverlapingBotsAndObstacles(bots):
+    """
+    bots is a dict/list of bot locations: {key:{'x': x,'y': y}, ...}
+    bots can also contain health: {key:{'x': x,'y': y, 'health': h}, ...}
+    Return any pair (key,i) of (key,obstacle) that overlap, else return False
+    """
+
+    try:
+        keys = list(bots.keys())
+    except AttributeError:
+        keys = range(len(bots))
+
+    for k in keys:
+        bot = bots[k]
+        if 'health' not in bot or bot['health'] is not 0:
             for obstacle in d.conf['obstacles']:
                 if nbmath.distance(bot['x'], bot['y'], obstacle['x'], obstacle['y']) <= \
                         d.conf['botRadius'] + obstacle['radius']:
@@ -279,7 +301,7 @@ def mkObstacles(d, n):
                 'x': random.random() * (d.conf['arenaSize'] - rad * 8.1) + rad * 4.1,
                 'y': random.random() * (d.conf['arenaSize'] - rad * 8.1) + rad * 4.1,
                 'radius': rad
-                }
+            }
             overlaps = False
             for o in obstacles:
                 if nbmath.distance(o['x'], o['y'], new['x'], new['y']) < o['radius'] + \
@@ -309,9 +331,45 @@ def mkJamZones(d, n):
             'x': random.random() * d.conf['arenaSize'],
             'y': random.random() * d.conf['arenaSize'],
             'radius': rad
-            })
+        })
 
     return jamZones
+
+
+def mkStartLocations(d):
+    while len(d.starts) < d.conf['gamesToPlay']:
+        botsOverlap = True  # loop must run at least once.
+        botsObsOverlap = True
+        attempts = 0
+        while botsOverlap or botsObsOverlap:
+            startLocs = []
+            for i in range(d.conf['botsInGame']):
+                loc = {}
+                loc['x'] = random.random() * (d.conf['arenaSize'] * 0.8) + (d.conf['arenaSize'] * 0.1)
+                loc['y'] = random.random() * (d.conf['arenaSize'] * 0.8) + (d.conf['arenaSize'] * 0.1)
+                startLocs.append(loc)
+
+            botsOverlap = findOverlapingBots(startLocs)
+            botsObsOverlap = findOverlapingBotsAndObstacles(startLocs)
+            if botsOverlap:
+                log("Bots overlapped during random layout, trying again.", "VERBOSE")
+            elif botsObsOverlap:
+                log("Bots overlapped obstacles during random layout, trying again.", "VERBOSE")
+
+            attempts += 1
+            if attempts > 999:
+                log("Could not layout bots without overlapping.", "FAILURE")
+                quit()
+
+        d.startLocs.extend(startLocs)
+        startLocsPerms = itertools.permutations(range(len(d.startLocs) - d.conf['botsInGame'], len(d.startLocs)))
+        for startLocs in startLocsPerms:
+            start = []
+            for i in startLocs:
+                start.append(i)
+            d.starts.append(start)
+
+    random.shuffle(d.starts)
 
 
 def initGame(d):
@@ -325,37 +383,23 @@ def initGame(d):
     """
     for each bot
         reset health 100
-        randomly place bot at least 10% of play area size away from any wall. Ensure no bots overlap.
         reset speed and direction values to 0
     """
-    botsOverlap = True  # loop must run at least once.
-    botsObsOverlap = True
-    attempts = 0
-    while botsOverlap or botsObsOverlap:
-        for src, bot in d.bots.items():
-            bot['health'] = 100
-            bot['x'] = random.random() * (d.conf['arenaSize'] * 0.8) + (d.conf['arenaSize'] * 0.1)
-            bot['y'] = random.random() * (d.conf['arenaSize'] * 0.8) + (d.conf['arenaSize'] * 0.1)
-            bot['currentSpeed'] = 0
-            bot['requestedSpeed'] = 0
-            bot['currentDirection'] = 0
-            bot['requestedDirection'] = 0
+    for src, bot in d.bots.items():
+        bot['health'] = 100
+        bot['currentSpeed'] = 0
+        bot['requestedSpeed'] = 0
+        bot['currentDirection'] = 0
+        bot['requestedDirection'] = 0
 
-        botsOverlap = findOverlapingBots(d)
-        botsObsOverlap = findOverlapingBotsAndObstacles(d)
-        if botsOverlap:
-            log("Bots overlapped during random layout, trying again.", "VERBOSE")
-        elif botsObsOverlap:
-            log("Bots overlapped obstacles during random layout, trying again.", "VERBOSE")
+    # set starting location
+    start = d.starts.pop()
+    for i in range(d.conf['botsInGame']):
+        src = d.startBots[i]
+        d.bots[src]['x'] = d.startLocs[start[i]]['x']
+        d.bots[src]['y'] = d.startLocs[start[i]]['y']
 
-        attempts += 1
-        if attempts > 999:
-            log("Could not layout bots without overlapping.", "FAILURE")
-            quit()
-
-    """
-    delete all shells and explosions.
-    """
+    # delete all shells and explosions.
     d.shells = {}
     d.explosions = {}
 
@@ -453,7 +497,7 @@ def step(d):
                 foundOverlap = True
 
         # detect if bots hit obstacles, if the did move them so they are just barely not touching,
-        overlap = findOverlapingBotsAndObstacles(d)
+        overlap = findOverlapingBotsAndObstacles(d.bots)
         while overlap:
             foundOverlap = True
             b = d.bots[overlap[0]]
@@ -466,10 +510,10 @@ def step(d):
             b['x'], b['y'] = nbmath.project(b['x'], b['y'], a, distance)
             # record damage and check for more bots overlapping
             b['hitDamage'] = True
-            overlap = findOverlapingBotsAndObstacles(d)
+            overlap = findOverlapingBotsAndObstacles(d.bots)
 
         # detect if bots hit other bots, if the did move them so they are just barely not touching,
-        overlap = findOverlapingBots(d)
+        overlap = findOverlapingBots(d.bots)
         while overlap:
             foundOverlap = True
             b1 = d.bots[overlap[0]]
@@ -485,7 +529,7 @@ def step(d):
             # record damage and check for more bots overlapping
             b1['hitDamage'] = True
             b2['hitDamage'] = True
-            overlap = findOverlapingBots(d)
+            overlap = findOverlapingBots(d.bots)
 
     # give damage (only once this step) to bots that hit things. Also stop them.
     for src, bot in d.bots.items():
@@ -607,9 +651,9 @@ def logStats(d):
         "\n                 Messages In: " + str(d.srvSocket.recv) +
         "\n                Messages Out: " + str(d.srvSocket.sent) +
         "\n            Messages Dropped: " + str(d.state['dropCount']) +
-        "\n             Messages/Second: " + '%.3f' % ((d.srvSocket.recv+d.srvSocket.recv)/float(time.time() - d.state['startTime'])) +
+        "\n             Messages/Second: " + '%.3f' % ((d.srvSocket.recv + d.srvSocket.recv) / float(time.time() - d.state['startTime'])) +
         "\n       Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +
-        "\n                Steps/Second: " + '%.3f' % (d.state['serverSteps']/float(time.time() - d.state['startTime'])) +
+        "\n                Steps/Second: " + '%.3f' % (d.state['serverSteps'] / float(time.time() - d.state['startTime'])) +
         "\n               Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +
         "\n          Average Sleep Time: " + '%.6f' % (float(d.state['sleepTime']) / max(1, d.state['sleepCount'])) + " secs." +
         "\n   Steps Slower Than stepSec: " + str(d.state['longStepCount']) +
@@ -759,6 +803,8 @@ def main():
     d.conf['obstacleRadius'] = args.obstacleRadius
     d.conf['obstacles'] = mkObstacles(d, args.obstacles)
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
+
+    mkStartLocations(d)
 
     log("Server Name: " + d.conf['serverName'])
     log("Server Version: " + d.conf['serverVersion'])
