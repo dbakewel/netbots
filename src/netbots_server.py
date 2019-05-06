@@ -644,67 +644,66 @@ def step(d):
 ########################################################
 
 def logScoreBoard(d):
-    if d.state['tourStartTime'] and d.state['gameNumber']:
-        now = time.time()
-        output = "\n\n                ------ Score Board ------" +\
-            "\n               Tournament Time: " + '%.3f' % (now - d.state['tourStartTime']) + " secs." +\
-            "\n                         Games: " + str(d.state['gameNumber']) +\
-            "\n             Average Game Time: " + '%.3f' % ((now - d.state['tourStartTime']) / d.state['gameNumber']) + " secs." +\
-            "\n                         Steps: " + str(d.state['serverSteps']) +\
-            "\n          Average Steps / Game: " + '%.3f' % (d.state['serverSteps'] / d.state['gameNumber']) +\
-            "\n                      Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +\
-            "\n      Time Processing Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
-            "\n                   Messages In: " + str(d.srvSocket.recv) +\
-            "\n                  Messages Out: " + str(d.srvSocket.sent) +\
-            "\n              Messages Dropped: " + str(d.state['dropCount']) +\
-            "\n             Messages / Second: " + '%.3f' % ((d.srvSocket.recv + d.srvSocket.recv) / float(time.time() - d.state['startTime'])) +\
-            "\n         Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +\
-            "\n                Steps / Second: " + '%.3f' % (d.state['serverSteps'] / float(time.time() - d.state['tourStartTime'])) +\
-            "\n                 Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +\
-            "\n            Average Sleep Time: " + '%.6f' % (float(d.state['sleepTime']) / max(1, d.state['sleepCount'])) + " secs." +\
-            "\n     Steps Slower Than stepSec: " + str(d.state['longStepCount']) + f" ({float(d.state['longStepCount']) / float(d.state['serverSteps']) * 100.0:>4.2f}%)" +\
-            "\n\n" +\
-            f"  {' ':>16}" +\
-            f"  {'---- Score -----':>16}" +\
-            f"  {'------ Wins -------':>19}" +\
-            f"  {'--------- CanonFired ----------':>31}" +\
-            f"  {' ':<21}" +\
-            "\n" +\
-            f"  {'Name':>16}" +\
-            f"  {'Points':>10}" +\
-            f"  {'%':>4}" +\
-            f"  {'Count':>7}" +\
-            f"  {'AvgHealth':>10}" +\
-            f"  {'Count':>7}" +\
-            f"  {'AvgDamage':>10}" +\
-            f"  {'TotDamage':>10}" +\
-            f"  {'IP:Port':<21}" +\
-            "\n ------------------------------------------------------------------------------------------------------------------"
+    now = time.time()
+    output = "\n\n                ------ Score Board ------" +\
+        "\n               Tournament Time: " + '%.3f' % (now - d.state['tourStartTime']) + " secs." +\
+        "\n                         Games: " + str(d.state['gameNumber']) +\
+        "\n             Average Game Time: " + '%.3f' % ((now - d.state['tourStartTime']) / max(1,d.state['gameNumber'])) + " secs." +\
+        "\n                         Steps: " + str(d.state['serverSteps']) +\
+        "\n          Average Steps / Game: " + '%.3f' % (d.state['serverSteps'] / max(1,d.state['gameNumber'])) +\
+        "\n                      Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +\
+        "\n      Time Processing Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
+        "\n                   Messages In: " + str(d.srvSocket.recv) +\
+        "\n                  Messages Out: " + str(d.srvSocket.sent) +\
+        "\n              Messages Dropped: " + str(d.state['dropCount']) +\
+        "\n             Messages / Second: " + '%.3f' % ((d.srvSocket.recv + d.srvSocket.recv) / float(time.time() - d.state['startTime'])) +\
+        "\n         Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +\
+        "\n                Steps / Second: " + '%.3f' % (d.state['serverSteps'] / float(max(1,time.time() - d.state['tourStartTime']))) +\
+        "\n                 Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +\
+        "\n            Average Sleep Time: " + '%.6f' % (float(d.state['sleepTime']) / max(1, d.state['sleepCount'])) + " secs." +\
+        "\n     Steps Slower Than stepSec: " + str(d.state['longStepCount']) + f" ({float(d.state['longStepCount']) / float(max(1,d.state['serverSteps'])) * 100.0:>4.2f}%)" +\
+        "\n\n" +\
+        f"  {' ':>16}" +\
+        f"  {'---- Score -----':>16}" +\
+        f"  {'------ Wins -------':>19}" +\
+        f"  {'--------- CanonFired ----------':>31}" +\
+        f"  {' ':<21}" +\
+        "\n" +\
+        f"  {'Name':>16}" +\
+        f"  {'Points':>10}" +\
+        f"  {'%':>4}" +\
+        f"  {'Count':>7}" +\
+        f"  {'AvgHealth':>10}" +\
+        f"  {'Count':>7}" +\
+        f"  {'AvgDamage':>10}" +\
+        f"  {'TotDamage':>10}" +\
+        f"  {'IP:Port':<21}" +\
+        "\n ------------------------------------------------------------------------------------------------------------------"
 
-        botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'], reverse=True)
+    botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'], reverse=True)
 
-        totalPoints = 0.0
-        for src in botSort:
-            totalPoints += d.bots[src]['points']
-        if totalPoints == 0:
-            totalPoints = 1.0
+    totalPoints = 0.0
+    for src in botSort:
+        totalPoints += d.bots[src]['points']
+    if totalPoints == 0:
+        totalPoints = 1.0
 
-        for src in botSort:
-            bot = d.bots[src]
-            output += "\n" +\
-                f"  {bot['name']:>16}" +\
-                f"  {bot['points']:>10}" +\
-                f"  {float(bot['points'])/totalPoints*100.0:>4.1f}" +\
-                f"  {bot['winCount']:>7}" +\
-                f"  {float(bot['winHealth']) / max(1,bot['winCount']):>10.2f}" +\
-                f"  {bot['firedCount']:>7}" +\
-                f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" + \
-                f"  {float(bot['shellDamage']):>10.2f}" + \
-                f"  {src:<21}"
+    for src in botSort:
+        bot = d.bots[src]
+        output += "\n" +\
+            f"  {bot['name']:>16}" +\
+            f"  {bot['points']:>10}" +\
+            f"  {float(bot['points'])/totalPoints*100.0:>4.1f}" +\
+            f"  {bot['winCount']:>7}" +\
+            f"  {float(bot['winHealth']) / max(1,bot['winCount']):>10.2f}" +\
+            f"  {bot['firedCount']:>7}" +\
+            f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" + \
+            f"  {float(bot['shellDamage']):>10.2f}" + \
+            f"  {src:<21}"
 
-        output += "\n ------------------------------------------------------------------------------------------------------------------\n\n"
+    output += "\n ------------------------------------------------------------------------------------------------------------------\n\n"
 
-        log(output)
+    log(output)
 
 ########################################################
 # Main Loop
