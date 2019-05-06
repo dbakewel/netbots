@@ -367,7 +367,7 @@ def mkStartLocations(d):
         d.startLocs.extend(startLocs)
         startLocsPerms = itertools.permutations(range(len(d.startLocs) - d.conf['botsInGame'], len(d.startLocs)))
         d.starts.extend(startLocsPerms)
-        
+
     random.shuffle(d.starts)
 
 
@@ -644,9 +644,9 @@ def logScoreBoard(d):
     output = "\n\n                ------ Score Board ------" +\
         "\n               Tournament Time: " + '%.3f' % (now - d.state['tourStartTime']) + " secs." +\
         "\n                         Games: " + str(d.state['gameNumber']) +\
-        "\n             Average Game Time: " + '%.3f' % ((now - d.state['tourStartTime']) / max(1,d.state['gameNumber'])) + " secs." +\
+        "\n             Average Game Time: " + '%.3f' % ((now - d.state['tourStartTime']) / max(1, d.state['gameNumber'])) + " secs." +\
         "\n                         Steps: " + str(d.state['serverSteps']) +\
-        "\n          Average Steps / Game: " + '%.3f' % (d.state['serverSteps'] / max(1,d.state['gameNumber'])) +\
+        "\n          Average Steps / Game: " + '%.3f' % (d.state['serverSteps'] / max(1, d.state['gameNumber'])) +\
         "\n                      Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +\
         "\n      Time Processing Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
         "\n                   Messages In: " + str(d.srvSocket.recv) +\
@@ -654,7 +654,7 @@ def logScoreBoard(d):
         "\n              Messages Dropped: " + str(d.state['dropCount']) +\
         "\n             Messages / Second: " + '%.3f' % ((d.srvSocket.recv + d.srvSocket.recv) / float(time.time() - d.state['startTime'])) +\
         "\n         Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +\
-        "\n                Steps / Second: " + '%.3f' % (d.state['serverSteps'] / float(max(1,time.time() - d.state['tourStartTime']))) +\
+        "\n                Steps / Second: " + '%.3f' % (d.state['serverSteps'] / float(max(1, time.time() - d.state['tourStartTime']))) +\
         "\n                 Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +\
         "\n            Average Sleep Time: " + '%.6f' % (float(d.state['sleepTime']) / max(1, d.state['sleepCount'])) + " secs." +\
         "\n     Steps Slower Than stepSec: " + str(d.state['longStepCount']) + f" ({float(d.state['longStepCount']) / float(max(1,d.state['serverSteps'])) * 100.0:>4.2f}%)" +\
