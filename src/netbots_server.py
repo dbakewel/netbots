@@ -214,6 +214,9 @@ def recvReplyMsgs(d):
 
 
 def sendToViwers(d):
+    if len(d.viewers) == 0:
+        return
+
     now = time.time()
     bmsg = d.srvSocket.serialize({
         'type': 'viewData',
