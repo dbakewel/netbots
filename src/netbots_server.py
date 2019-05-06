@@ -283,7 +283,7 @@ def findOverlapingBotsAndObstacles(bots):
             for obstacle in d.conf['obstacles']:
                 if nbmath.distance(bot['x'], bot['y'], obstacle['x'], obstacle['y']) <= \
                         d.conf['botRadius'] + obstacle['radius']:
-                    return [src, obstacle]
+                    return [k, obstacle]
 
     return False
 
