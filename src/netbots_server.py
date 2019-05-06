@@ -647,22 +647,6 @@ def step(d):
 # Stats and Points Logging
 ########################################################
 
-def logStats(d):
-    log("\n\n                  ------- Stats -------" +
-        "\n                    Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +
-        "\n    Time Processing Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +
-        "\n                 Messages In: " + str(d.srvSocket.recv) +
-        "\n                Messages Out: " + str(d.srvSocket.sent) +
-        "\n            Messages Dropped: " + str(d.state['dropCount']) +
-        "\n             Messages/Second: " + '%.3f' % ((d.srvSocket.recv + d.srvSocket.recv) / float(time.time() - d.state['startTime'])) +
-        "\n       Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +
-        "\n                Steps/Second: " + '%.3f' % (d.state['serverSteps'] / float(time.time() - d.state['startTime'])) +
-        "\n               Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +
-        "\n          Average Sleep Time: " + '%.6f' % (float(d.state['sleepTime']) / max(1, d.state['sleepCount'])) + " secs." +
-        "\n   Steps Slower Than stepSec: " + str(d.state['longStepCount']) +
-        "\n\n")
-
-
 def logScoreBoard(d):
     if d.state['tourStartTime'] and d.state['gameNumber']:
         now = time.time()
@@ -672,6 +656,17 @@ def logScoreBoard(d):
             "\n             Average Game Time: " + '%.3f' % ((now - d.state['tourStartTime']) / d.state['gameNumber']) + " secs." +\
             "\n                         Steps: " + str(d.state['serverSteps']) +\
             "\n          Average Steps / Game: " + '%.3f' % (d.state['serverSteps'] / d.state['gameNumber']) +\
+            "\n                      Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +\
+            "\n      Time Processing Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
+            "\n                   Messages In: " + str(d.srvSocket.recv) +\
+            "\n                  Messages Out: " + str(d.srvSocket.sent) +\
+            "\n              Messages Dropped: " + str(d.state['dropCount']) +\
+            "\n               Messages/Second: " + '%.3f' % ((d.srvSocket.recv + d.srvSocket.recv) / float(time.time() - d.state['startTime'])) +\
+            "\n         Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +\
+            "\n                  Steps/Second: " + '%.3f' % (d.state['serverSteps'] / float(time.time() - d.state['startTime'])) +\
+            "\n                 Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +\
+            "\n            Average Sleep Time: " + '%.6f' % (float(d.state['sleepTime']) / max(1, d.state['sleepCount'])) + " secs." +\
+            "\n     Steps Slower Than stepSec: " + str(d.state['longStepCount']) + f" ({float(d.state['longStepCount']) / float(d.state['serverSteps']):>4.2f}%)" +\
             "\n\n" +\
             f"  {' ':>16}" +\
             f"  {'---- Score -----':>16}" +\
@@ -685,8 +680,8 @@ def logScoreBoard(d):
             f"  {'Count':>7}" +\
             f"  {'AvgHealth':>10}" +\
             f"  {'Count':>7}" +\
-            f"  {'AvgDamage':>10}" + \
-            f"  {'TotDamage':>10}" + \
+            f"  {'AvgDamage':>10}" +\
+            f"  {'TotDamage':>10}" +\
             f"  {'IP:Port':<21}" +\
             "\n ------------------------------------------------------------------------------------------------------------------"
 
@@ -723,7 +718,6 @@ def logScoreBoard(d):
 def quit(signal=None, frame=None):
     global d
 
-    logStats(d)
     logScoreBoard(d)
 
     log("Quiting", "INFO")
@@ -778,8 +772,6 @@ def main():
                         default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int,
                         default=0, help='How many jam zones does the arena have.')
-    parser.add_argument('-stats', metavar='sec', dest='statsSec', type=int,
-                        default=60, help='How many seconds between printing server stats.')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -820,7 +812,6 @@ def main():
         log(str(e), "FAILURE")
         quit()
 
-    nextStatsTime = time.time() + args.statsSec
     while True:
         loopStartTime = time.time()
 
@@ -843,10 +834,6 @@ def main():
         recvReplyMsgs(d)
 
         sendToViwers(d)
-
-        if nextStatsTime < time.time():
-            logStats(d)
-            nextStatsTime = time.time() + args.statsSec
 
         nextStepIn = d.conf['stepSec'] - (time.time() - loopStartTime)
 
