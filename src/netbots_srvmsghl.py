@@ -23,6 +23,7 @@ def joinRequest(d, msg, src):
     else:
         d.bots[src] = copy.deepcopy(d.botTemplate)
         d.bots[src]['name'] = msg['name']
+        d.startBots.append(src)
         result = "OK"
         log("Bot joined game: " + d.bots[src]['name'] + " (" + src + ")")
 

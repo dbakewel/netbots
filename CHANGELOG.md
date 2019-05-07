@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2019-05-06
+### Added
+- Ability to use all permutations of each start set of start locations. Enable with -startperms command line option. When enabled, each set of start locations will be used multiple times with each permutation of robots to positions. 
+- Percent of total points each robot has is now displayed on the scoreboard. Other stats have also been added.
+
+### Changed
+- Default -droprate to 11 (a prime number). This may be more fair.
+- Stats have now been combined with scoreboard.
+- Server now busy waits, rather than calling time.sleep(), which is much more accurate for timing steps.
+- Other minor performance improvements.
+
 ## [1.1.1] - 2019-05-02
 ### Added
 - NetBots contribution guidelines added.
@@ -39,7 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0] - 2019-04-16
 - Beta release.
 
-[Unreleased]: https://github.com/dbakewel/netbots/compare/1.1.1...HEAD
+[Unreleased]: https://github.com/dbakewel/netbots/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/dbakewel/netbots/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/dbakewel/netbots/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/dbakewel/netbots/compare/1.0.1...1.1.0
 [1.0.1]: https://github.com/dbakewel/netbots/compare/1.0.0...1.0.1

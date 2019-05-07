@@ -16,7 +16,7 @@ from netbots_log import setLogLevel
 import netbots_ipc as nbipc
 import netbots_math as nbmath
 
-robotName = "Demo: Lighthouse v1"
+robotName = "Lighthouse v1"
 
 
 def play(botSocket, srvConf):
