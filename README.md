@@ -123,8 +123,8 @@ usage: netbots_server.py [-h] [-ip Server_IP] [-p Server_Port]
                          [-explradius int] [-botmaxspeed int]
                          [-botaccrate float] [-shellspeed int]
                          [-hitdamage int] [-expldamage int] [-obstacles int]
-                         [-obstacleradius int] [-jamzones int] [-debug]
-                         [-verbose]
+                         [-obstacleradius int] [-jamzones int] [-startperms]
+                         [-debug] [-verbose]
 
 optional arguments:
   -h, --help           show this help message and exit
@@ -156,6 +156,8 @@ optional arguments:
   -obstacles int       How many obstacles does the arena have. (default: 0)
   -obstacleradius int  Radius of obstacles as % of arenaSize. (default: 5)
   -jamzones int        How many jam zones does the arena have. (default: 0)
+  -startperms          Use all permutations of each set of random start
+                       locations. (default: False)
   -debug               Print DEBUG level log messages. (default: False)
   -verbose             Print VERBOSE level log messages. Note, -debug includes
                        -verbose. (default: False)
@@ -304,6 +306,7 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
         'stepMax': 1000,  # After this many steps in a game all bots will be killed
         # Amount of time server targets for each step. Server will sleep if game is running faster than this.
         'stepSec': 0.05,
+        'startPermutations':  False,  # Use all permutations of each set of random start locations.
 
         # Messaging
         'dropRate': 11,  # Drop a messages every N messages. Best to use primes.
