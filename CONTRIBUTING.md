@@ -44,7 +44,7 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 Start reading the NetBots code and you'll get the hang of it. We are far from perfect and we don't expect you to be.
 
   * Indent using four spaces (soft tabs)
-  * Long lines are OK for dense code blocks, such as argparse, but be reasonable.
+  * Line length must not exceed 120 characters.
   * Consider the people who will read your code, and make it look nice for them.
   * Beyond that we suggest following [PEP-0008](https://www.python.org/dev/peps/pep-0008/).
   
