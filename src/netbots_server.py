@@ -30,6 +30,7 @@ class SrvData():
         'stepMax': 1000,  # After this many steps in a game all bots will be killed
         # Amount of time server targets for each step. Server will sleep if game is running faster than this.
         'stepSec': 0.05,
+        'startPermutations':  False,  # Use all permutations of each set of random start locations.
 
         # Messaging
         'dropRate': 11,  # Drop a messages every N messages. Best to use primes.
@@ -365,8 +366,12 @@ def mkStartLocations(d):
                 quit()
 
         d.startLocs.extend(startLocs)
-        startLocsPerms = itertools.permutations(range(len(d.startLocs) - d.conf['botsInGame'], len(d.startLocs)))
-        d.starts.extend(startLocsPerms)
+        locIndexes = range(len(d.startLocs) - d.conf['botsInGame'], len(d.startLocs))
+        if d.conf['startPermutations']:
+            startLocsPerms = itertools.permutations(locIndexes)
+            d.starts.extend(startLocsPerms)
+        else:
+            d.starts.append(list(locIndexes))
 
     random.shuffle(d.starts)
 
@@ -757,6 +762,8 @@ def main():
                         default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int,
                         default=0, help='How many jam zones does the arena have.')
+    parser.add_argument('-startperms', dest='startPermutations', action='store_true',
+                        default=False, help='Use all permutations of each set of random start locations.')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -783,7 +790,8 @@ def main():
     d.conf['obstacleRadius'] = args.obstacleRadius
     d.conf['obstacles'] = mkObstacles(d, args.obstacles)
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
-
+    d.conf['startPermutations'] = args.startPermutations
+    
     mkStartLocations(d)
 
     log("Server Name: " + d.conf['serverName'])
