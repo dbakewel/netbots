@@ -765,9 +765,9 @@ Determines the distance to the closet enemy robot that is between startRadians a
 
 Robot Sends: 
 
-Format: `{ 'type': 'scanRequest', 'startRadians': float (min 0, max 2pi,) 'endRadians': float (min 0, max 2pi) }`
+Format: `{ 'type': 'scanRequest', 'startRadians': float (min 0, max 2pi), 'endRadians': float (min 0, max 2pi) }`
 
-Example: `{ 'type': 'scanRequest', 'startRadians': 0 'endRadians': 1.57 }`
+Example: `{ 'type': 'scanRequest', 'startRadians': 0, 'endRadians': 1.57 }`
 
 
 Server Returns: 
