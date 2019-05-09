@@ -50,7 +50,7 @@ def contains(x1, y1, startRad, endRad, x2, y2):
     dist = 0
 
     a = angle(x1, y1, x2, y2)
-    if(startRad > endRad):  # if we are scanning clockwise over 0 radians.
+    if(startRad >= endRad):  # if we are scanning clockwise over 0 radians.
         if startRad <= a or a <= endRad:
             dist = distance(x1, y1, x2, y2)
     elif startRad <= a and a <= endRad:
