@@ -21,7 +21,7 @@ class ViewerData():
     shellWidgets = {}
     explWidgets = {}
     bigMsg = None
-    colors = ['red', 'green', 'blue', 'purple', 'orange', 'cyan', 'DarkKhaki', 'magenta']
+    colors = ['#ACACAC','#87FFCD','#9471FF','#FF9DB6','#2ED2EB','#FA8737','#29B548','#FFBC16','#308AFF','#FF3837']
     lastViewData = time.time()
     scale = 1
 
