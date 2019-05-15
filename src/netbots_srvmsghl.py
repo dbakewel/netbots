@@ -10,7 +10,6 @@ def joinRequest(d, msg, src):
     if src in d.bots:
         if d.conf['allowRejoin']:
             d.bots[src]['name'] = msg['name']
-            print(d.bots[src]['name'])
             result = "OK"
         else:
             result = "Bot at " + src + " is already in game. Can't join twice."
