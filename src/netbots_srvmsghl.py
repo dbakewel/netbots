@@ -7,30 +7,26 @@ import netbots_math as nbmath
 
 
 def joinRequest(d, msg, src):
-    if len(msg['name']) > 16:
-        result = "Robot name too long"
-        log("Robot, " + msg['name'] + ", has a name that too long. Name must be shorter than 16 characters")
-    else:
-        if src in d.bots:
-            if d.conf['allowRejoin']:
-                d.bots[src]['name'] = msg['name']
-                print(d.bots[src]['name'])
-                result = "OK"
-            else:
-                result = "Bot at " + src + " is already in game. Can't join twice."
-                log("Bot at " + src + " tried to join twice.")
-        elif src in d.viewers:
-            result = "Viewers are not allowed to be bots."
-            log("Viewer from " + src + " tried to join as bot.")
-        elif len(d.bots) >= d.conf['botsInGame']:
-            result = "Game is full. No more bots can join."
-            log("Bot from " + src + " tried to join full game.")
-        else:
-            d.bots[src] = copy.deepcopy(d.botTemplate)
+    if src in d.bots:
+        if d.conf['allowRejoin']:
             d.bots[src]['name'] = msg['name']
-            d.startBots.append(src)
+            print(d.bots[src]['name'])
             result = "OK"
-            log("Bot joined game: " + d.bots[src]['name'] + " (" + src + ")")
+        else:
+            result = "Bot at " + src + " is already in game. Can't join twice."
+            log("Bot at " + src + " tried to join twice.")
+    elif src in d.viewers:
+        result = "Viewers are not allowed to be bots."
+        log("Viewer from " + src + " tried to join as bot.")
+    elif len(d.bots) >= d.conf['botsInGame']:
+        result = "Game is full. No more bots can join."
+        log("Bot from " + src + " tried to join full game.")
+    else:
+        d.bots[src] = copy.deepcopy(d.botTemplate)
+        d.bots[src]['name'] = msg['name']
+        d.startBots.append(src)
+        result = "OK"
+        log("Bot joined game: " + d.bots[src]['name'] + " (" + src + ")")
 
     log("Bots in Game: " + str(d.bots), "VERBOSE")
 
