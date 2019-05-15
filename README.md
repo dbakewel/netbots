@@ -269,7 +269,7 @@ Obstacles and Jam Zones are placed randomly and do not move during a tournament.
 
 Damage from hitting walls, obstacles, or other robots is the same regardless of speed. If two robots collide then both robots will be damaged.
 
-Shell explosions are of radius of 75 by default. All robots inside an explosions radius will take damage. Robots in the center of the explosion will be damaged by 20% (health reduced by 20) by default. The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear.
+Shell explosions are of radius of 75 by default. All robots inside an explosions radius will take damage. Robots in the center of the explosion will be damaged by 10% (health reduced by 10) by default. The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear.
 
 ## Points
 
@@ -765,9 +765,9 @@ Determines the distance to the closet enemy robot that is between startRadians a
 
 Robot Sends: 
 
-Format: `{ 'type': 'scanRequest', 'startRadians': float (min 0, max 2pi,) 'endRadians': float (min 0, max 2pi) }`
+Format: `{ 'type': 'scanRequest', 'startRadians': float (min 0, max 2pi), 'endRadians': float (min 0, max 2pi) }`
 
-Example: `{ 'type': 'scanRequest', 'startRadians': 0 'endRadians': 1.57 }`
+Example: `{ 'type': 'scanRequest', 'startRadians': 0, 'endRadians': 1.57 }`
 
 
 Server Returns: 
