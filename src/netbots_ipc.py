@@ -82,7 +82,7 @@ def isValidMsg(msg):
                             log("Robot, " + msg['name'] + ", has a name longer than 16 characters. Must be less than 16 characters","ERROR")
                             return False
                         elif len(msg['name']) < 1:
-                            log("Robot, " + msg['name'] + ", has a name shorter than 1 character. Must be greater than 1 character","ERROR")
+                            log("Robot, " + msg['name'] + ", has no name. Name length must be at least 1 character","ERROR")
                             return False
                     else:
                         if not isinstance(msg[fld], eval(fldspec[0])):
