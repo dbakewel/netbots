@@ -66,7 +66,7 @@ The rundemo script will start 6 processes on the local computer: 1 server, 1 vie
 
 There are three options available on the NetBots server that are useful for tournaments. The first changes the number of games (**-games**) in the tournament. If robots have similar skills then playing more games will flesh out which robot is best. 
 
-The second option (**-stepsec**) allows you to speed up the NetBots server. Most modern computers can run NetBots 5 times faster (or more) than the default (0.05 sec/step or 20 steps/sec). The server will produce warnings if it can't keep up with the requested speed. If only a few of these warnings appear then it will not affect the game. If many warnings appear you should stop the server and reduce it's target speed.
+The second option (**-stepsec**) allows you to speed up the NetBots server. Most modern computers can run NetBots 5 times faster (or more) than the default (0.05 sec/step or 20 steps/sec). The server scoreboard will display "Steps Slower Than stepSec", which indicates when it can't keep up with the requested speed. If only a few of steps are slow (<1%) then it will not affect the game. If many steps are slow (>1%) you should stop the server and reduce it's target speed.
 
 The final option (**-stepmax**) changes the maximum steps in a game. If most games are ending because the maximum steps is reached than increasing this will give robots more times to demonstrate their skills.
 
@@ -123,7 +123,7 @@ usage: netbots_server.py [-h] [-ip Server_IP] [-p Server_Port]
                          [-explradius int] [-botmaxspeed int]
                          [-botaccrate float] [-shellspeed int]
                          [-hitdamage int] [-expldamage int] [-obstacles int]
-                         [-obstacleradius int] [-jamzones int] [-stats sec]
+                         [-obstacleradius int] [-jamzones int] [-startperms]
                          [-debug] [-verbose]
 
 optional arguments:
@@ -137,7 +137,8 @@ optional arguments:
                        (default: 4)
   -stepsec sec         How many seconds between server steps. (default: 0.05)
   -stepmax int         Max steps in one game. (default: 1000)
-  -droprate int        Drop over nth message. 0 == no drop. (default: 10)
+  -droprate int        Drop over nth message, best to use primes. 0 == no
+                       drop. (default: 11)
   -msgperstep int      Number of msgs from a bot that server will respond to
                        each step. (default: 4)
   -arenasize int       Size of arena. (default: 1000)
@@ -155,8 +156,8 @@ optional arguments:
   -obstacles int       How many obstacles does the arena have. (default: 0)
   -obstacleradius int  Radius of obstacles as % of arenaSize. (default: 5)
   -jamzones int        How many jam zones does the arena have. (default: 0)
-  -stats sec           How many seconds between printing server stats.
-                       (default: 60)
+  -startperms          Use all permutations of each set of random start
+                       locations. (default: False)
   -debug               Print DEBUG level log messages. (default: False)
   -verbose             Print VERBOSE level log messages. Note, -debug includes
                        -verbose. (default: False)
@@ -268,7 +269,7 @@ Obstacles and Jam Zones are placed randomly and do not move during a tournament.
 
 Damage from hitting walls, obstacles, or other robots is the same regardless of speed. If two robots collide then both robots will be damaged.
 
-Shell explosions are of radius of 75 by default. All robots inside an explosions radius will take damage. Robots in the center of the explosion will be damaged by 20% (health reduced by 20) by default. The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear.
+Shell explosions are of radius of 75 by default. All robots inside an explosions radius will take damage. Robots in the center of the explosion will be damaged by 10% (health reduced by 10) by default. The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear.
 
 ## Points
 
@@ -295,45 +296,52 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
 { 
     'type': 'joinReply', 
     'conf': {
-        #Static vars (some are settable at start up by server command line switches and then do not change after that.)
+        # Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
+        'serverVersion': "1.1.1",
 
-        #Game and Tournament
-        'botsInGame': 4, #Number of bots required to join before game can start.
-        'gamesToPlay': 10, #Number of games to play before server quits.
-        'stepMax' : 1000, #After this many steps in a game all bots will be killed
-        'stepSec': 0.05, #Amount of time server targets for each step. Server will sleep if game is running faster than this.
+        # Game and Tournament
+        'botsInGame': 4,  # Number of bots required to join before game can start.
+        'gamesToPlay': 10,  # Number of games to play before server quits.
+        'stepMax': 1000,  # After this many steps in a game all bots will be killed
+        # Amount of time server targets for each step. Server will sleep if game is running faster than this.
+        'stepSec': 0.05,
+        'startPermutations':  False,  # Use all permutations of each set of random start locations.
 
-        #Messaging
-        'dropRate': 10, #Drop a messages every N messages
-        'botMsgsPerStep': 4, #Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
-        'allowRejoin' : True, #Allows crashed bots to rejoin game in progress.
+        # Messaging
+        'dropRate': 11,  # Drop a messages every N messages. Best to use primes.
+        # Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
+        'botMsgsPerStep': 4,
+        'allowRejoin': True,  # Allows crashed bots to rejoin game in progress.
 
-        #Sizes
-        'arenaSize' : 1000, #Area is a square with each side = arenaSize units (0,0 is bottom left, positive x is to right and positive y is up.)
-        'botRadius': 25, #bots are circles with radius botRadius
-        'explRadius': 75, #Radius of shell explosion. Beyond this radius bots will not take any damage.
+        # Sizes
+        # Area is a square with each side = arenaSize units (0,0 is bottom left,
+        # positive x is to right and positive y is up.)
+        'arenaSize': 1000,
+        'botRadius': 25,  # bots are circles with radius botRadius
+        'explRadius': 75,  # Radius of shell explosion. Beyond this radius bots will not take any damage.
 
-        #Speeds and Rates of Change
-        'botMaxSpeed': 5, #bots distance traveled per step at 100% speed
-        'botAccRate': 2.0, #Amount in % bot can accelerate (or decelerate) per step
-        'shellSpeed': 40, #distance traveled by shell per step
-        'botMinTurnRate': math.pi/6000, #Amount bot can rotate per turn in radians at 100% speed
-        'botMaxTurnRate': math.pi/50, #Amount bot can rotate per turn in radians at 0% speed
-        
-        #Damage
-        'hitDamage': 1, #Damage a bot takes from hitting wall or another bot
-        'explDamage': 10, #Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
+        # Speeds and Rates of Change
+        'botMaxSpeed': 5,  # bots distance traveled per step at 100% speed
+        'botAccRate': 2.0,  # Amount in % bot can accelerate (or decelerate) per step
+        'shellSpeed': 40,  # distance traveled by shell per step
+        'botMinTurnRate': math.pi / 6000,  # Amount bot can rotate per turn in radians at 100% speed
+        'botMaxTurnRate': math.pi / 50,  # Amount bot can rotate per turn in radians at 0% speed
 
-        #Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
-        'obstacles': [], #Obstacles of form [{'x':float,'y':float,'radius':float},...]
-        'obstacleRadius': 5, #Radius of obstacles as % of arenaSize
+        # Damage
+        'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot
+        # Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
+        'explDamage': 10,
 
-        #Jam Zones (robots fully inside jam zone are not detected by scan)
-        'jamZones': [], #Jam Zones of form [{'x':float,'y':float,'radius':float},...]
+        # Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
+        'obstacles': [],  # Obstacles of form [{'x':float,'y':float,'radius':float},...]
+        'obstacleRadius': 5,  # Radius of obstacles as % of arenaSize
 
-        #Misc
-        'keepExplosionSteps': 10, #Number of steps to keep old explosions in explosion dict (only useful to viewers).
+        # Jam Zones (robots fully inside jam zone are not detected by scan)
+        'jamZones': [],  # Jam Zones of form [{'x':float,'y':float,'radius':float},...]
+
+        # Misc
+        'keepExplosionSteps': 10,  # Number of steps to keep old explosions in explosion dict (only useful to viewers).
     }
 }
 ```
@@ -757,9 +765,9 @@ Determines the distance to the closet enemy robot that is between startRadians a
 
 Robot Sends: 
 
-Format: `{ 'type': 'scanRequest', 'startRadians': float (min 0, max 2pi,) 'endRadians': float (min 0, max 2pi) }`
+Format: `{ 'type': 'scanRequest', 'startRadians': float (min 0, max 2pi), 'endRadians': float (min 0, max 2pi) }`
 
-Example: `{ 'type': 'scanRequest', 'startRadians': 0 'endRadians': 1.57 }`
+Example: `{ 'type': 'scanRequest', 'startRadians': 0, 'endRadians': 1.57 }`
 
 
 Server Returns: 
