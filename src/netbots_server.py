@@ -768,6 +768,8 @@ def main():
                         default=False, help='Use all permutations of each set of random start locations.')
     parser.add_argument('-noviewers', dest='noViewers', action='store_true',
                         default=False, help='Do not allow viewers.')
+    parser.add_argument('-randcolours', dest='randomColours', action='store_true',
+                        default=False, help='Randomizes bot colours in viewer')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -796,6 +798,7 @@ def main():
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
     d.conf['startPermutations'] = args.startPermutations
     d.conf['noViewers'] = args.noViewers
+    d.conf['randomColours'] = args.randomColours
     
     mkStartLocations(d)
 
