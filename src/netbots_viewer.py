@@ -2,6 +2,7 @@ import argparse
 import time
 import signal
 import tkinter as t
+import random
 
 from netbots_log import log
 from netbots_log import setLogLevel
@@ -66,6 +67,9 @@ def checkForUpdates(d):
             # ensure all bots on server have widgets
             if not src in d.botStatusWidgets:
                 # pick color for this bot
+                if d.conf['randomColours']:
+                    random.shuffle(d.colors)
+                    
                 c = d.colors.pop()
 
                 # create bot status widget
