@@ -37,6 +37,7 @@ class SrvData():
         # Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
         'botMsgsPerStep': 4,
         'allowRejoin': True,  # Allows crashed bots to rejoin game in progress.
+        'noViewers': False,  # if True addViewerRequest messages will be rejected. 
 
         # Sizes
         # Area is a square with each side = arenaSize units (0,0 is bottom left,
@@ -764,6 +765,8 @@ def main():
                         default=0, help='How many jam zones does the arena have.')
     parser.add_argument('-startperms', dest='startPermutations', action='store_true',
                         default=False, help='Use all permutations of each set of random start locations.')
+    parser.add_argument('-noviewers', dest='noViewers', action='store_true',
+                        default=False, help='Do not allow viewers.')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -791,6 +794,7 @@ def main():
     d.conf['obstacles'] = mkObstacles(d, args.obstacles)
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
     d.conf['startPermutations'] = args.startPermutations
+    d.conf['noViewers'] = args.noViewers
     
     mkStartLocations(d)
 
