@@ -581,11 +581,11 @@ A robot must send a joinRequest before any other message type. The server will r
 
 Robot Sends: 
 
-Format: `{ 'type': 'joinRequest', 'name': str }`
+Format: `{ 'type': 'joinRequest', 'name': ['str',1,16] }`
 
 Example: `{ 'type': 'joinRequest', 'name': 'Super Robot V3' }`
 
-'name' will be displayed by the server and viewer in game results.
+'name' will be displayed by the server and viewer in game results. 'name' length must be between 1 and 16 characters long.
 
 
 Server Returns: 
