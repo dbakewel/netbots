@@ -1,4 +1,5 @@
 import argparse
+import sys
 import signal
 import time
 import random
@@ -800,7 +801,7 @@ def main():
 
     log("Server Name: " + d.conf['serverName'])
     log("Server Version: " + d.conf['serverVersion'])
-
+    log("Argument List:" + str(sys.argv))
     log("Server Configuration: " + str(d.conf), "VERBOSE")
 
     try:
