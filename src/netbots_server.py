@@ -79,6 +79,7 @@ class SrvData():
         'serverSteps': 0,  # Number of steps server has processed.
         'stepTime': 0,  # Total time spent process steps
         'msgTime': 0,  # Total time spent processing messages
+        'viewerMsgTime': 0, # Total time spend sending information to the viewer
         'startTime': time.time(),
         'explIndex': 0,
         'sleepTime': 0,
@@ -220,6 +221,8 @@ def sendToViwers(d):
     if len(d.viewers) == 0:
         return
 
+    startTime = time.perf_counter()
+
     now = time.time()
     bmsg = d.srvSocket.serialize({
         'type': 'viewData',
@@ -239,6 +242,8 @@ def sendToViwers(d):
                 d.srvSocket.sendMessage(bmsg, v['ip'], v['port'], packedAndChecked=True)
             except Exception as e:
                 log(str(e), "ERROR")
+                
+    d.state['viewerMsgTime'] += time.perf_counter() - startTime
 
 ########################################################
 # Game Logic
@@ -655,7 +660,8 @@ def logScoreBoard(d):
         "\n                         Steps: " + str(d.state['serverSteps']) +\
         "\n          Average Steps / Game: " + '%.3f' % (d.state['serverSteps'] / max(1, d.state['gameNumber'])) +\
         "\n                      Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +\
-        "\n      Time Processing Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
+        "\nTime Processing Robot Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
+        "\n  Time Sending Viewer Messages: " + '%.3f' % (d.state['viewerMsgTime']) + " secs." +\
         "\n                   Messages In: " + str(d.srvSocket.recv) +\
         "\n                  Messages Out: " + str(d.srvSocket.sent) +\
         "\n              Messages Dropped: " + str(d.state['dropCount']) +\
