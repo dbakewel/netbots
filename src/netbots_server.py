@@ -216,10 +216,10 @@ def recvReplyMsgs(d):
 
 
 def sendToViwers(d):
-    startTime = time.perf_counter()
-    
     if len(d.viewers) == 0:
         return
+
+    startTime = time.perf_counter()
 
     now = time.time()
     bmsg = d.srvSocket.serialize({
