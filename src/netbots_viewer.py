@@ -264,7 +264,7 @@ def main():
 
     try:
         d.viewerSocket = nbipc.NetBotSocket(args.myIP, args.myPort, d.srvIP, d.srvPort)
-        reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'})
+        reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'}, retries=60, delay=1, delayMultiplier=1)
         d.conf = reply['conf']
         log("Server Configuration: " + str(d.conf), "VERBOSE")
     except Exception as e:
