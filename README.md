@@ -581,7 +581,7 @@ A robot must send a joinRequest before any other message type. The server will r
 
 Robot Sends: 
 
-Format: `{ 'type': 'joinRequest', 'name': ['str',1,16] }`
+Format: `{ 'type': 'joinRequest', 'name': str (length min 1, max 16) }`
 
 Example: `{ 'type': 'joinRequest', 'name': 'Super Robot V3' }`
 
