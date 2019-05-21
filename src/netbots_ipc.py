@@ -77,33 +77,30 @@ def isValidMsg(msg):
                     log("Msg does not contain required '" + fld + "' key: " + str(msg), "ERROR")
                     return False
                 if isinstance(fldspec, list):
-                    if fldspec[0] is "str":
-                        if len(msg['name']) > 16:
-                            log("Robot, " + msg['name'] + ", has a name longer than 16 characters. Must be less than 16 characters","ERROR")
-                            return False
-                        elif len(msg['name']) < 1:
-                            log("Robot, " + msg['name'] + ", has a name shorter than 1 character. Must be greater than 1 character","ERROR")
-                            return False
-                    else:
-                        if not isinstance(msg[fld], eval(fldspec[0])):
-                            log("Msg '" + fld + "' key has value of type " + str(type(msg[fld])) +
-                                " but expected " + fldspec[0] + ": " + str(msg), "ERROR")
-                            return False
-                        if msg[fld] < fldspec[1] or msg[fld] > fldspec[2]:
-                            log("Msg '" + fld + "' key has a value " + str(msg[fld]) +
-                                " which is out of range [" + str(fldspec[1]) + "," +
+                    if not isinstance(msg[fld], eval(fldspec[0])):
+                        log("Msg '" + fld + "' key has value of type " + str(type(msg[fld])) +
+                            " but expected " + fldspec[0] + ": " + str(msg), "ERROR")
+                        return False
+                    if fldspec[0] is 'str':
+                        if len(msg[fld]) < fldspec[1] or len(msg[fld]) > fldspec[2]:
+                            log("Msg '" + fld + "' key has a string value " + str(msg[fld]) +
+                                " with length out of range [" + str(fldspec[1]) + "," +
                                 str(fldspec[2]) + "] : " + str(msg), "ERROR")
                             return False
+                    elif msg[fld] < fldspec[1] or msg[fld] > fldspec[2]:
+                        log("Msg '" + fld + "' key has a value " + str(msg[fld]) +
+                            " which is out of range [" + str(fldspec[1]) + "," +
+                            str(fldspec[2]) + "] : " + str(msg), "ERROR")
+                        return False
                 else:
                     if not isinstance(msg[fld], eval(fldspec)):
                         log("Msg '" + fld + "' key has value of type " + str(type(msg[fld])) +
                             " but expected " + fldspec + ": " + str(msg), "ERROR")
                         return False
             return True
-        
+
     log("Msg 'type' key has value '" + str(msg['type']) + "' which is not known: " + str(msg), "ERROR")
     return False
-
 
 def isValidIP(ip):
     """ Returns True if ip is valid IP address, otherwise returns false. """
