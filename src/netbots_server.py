@@ -1,5 +1,4 @@
 import argparse
-import sys
 import signal
 import time
 import random
@@ -23,7 +22,7 @@ class SrvData():
     conf = {
         # Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
-        'serverVersion': "1.3.0",
+        'serverVersion': "1.2.0",
 
         # Game and Tournament
         'botsInGame': 4,  # Number of bots required to join before game can start.
@@ -38,7 +37,6 @@ class SrvData():
         # Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
         'botMsgsPerStep': 4,
         'allowRejoin': True,  # Allows crashed bots to rejoin game in progress.
-        'noViewers': False,  # if True addViewerRequest messages will be rejected. 
 
         # Sizes
         # Area is a square with each side = arenaSize units (0,0 is bottom left,
@@ -68,7 +66,38 @@ class SrvData():
 
         # Misc
         'keepExplosionSteps': 10,  # Number of steps to keep old explosions in explosion dict (only useful to viewers).
+        
+        'allowClasses': False,
+        'classes': {
+            'default': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 5,  # bots distance traveled per step at 100% speed
+                'botAccRate': 2.0,  # Amount in % bot can accelerate (or decelerate) per step
+                'botMinTurnRate': math.pi / 6000,  # Amount bot can rotate per turn in radians at 100% speed
+                'botMaxTurnRate': math.pi / 50,  # Amount bot can rotate per turn in radians at 0% speed
+                'dmgTaken': 1.0,
+            },
+                
+            'heavy': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 3.5,  # bots distance traveled per step at 100% speed
+                'botAccRate': 1.1,  # Amount in % bot can accelerate (or decelerate) per step
+                'botMinTurnRate': math.pi / 6500,  # Amount bot can rotate per turn in radians at 100% speed
+                'botMaxTurnRate': math.pi / 150,  # Amount bot can rotate per turn in radians at 0% speed
+                'dmgTaken': 0.77,
+            },
+            
+            'light': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 7,  # bots distance traveled per step at 100% speed
+                'botAccRate': 2.5,  # Amount in % bot can accelerate (or decelerate) per step
+                'botMinTurnRate': math.pi / 500,  # Amount bot can rotate per turn in radians at 100% speed
+                'botMaxTurnRate': math.pi / 30,  # Amount bot can rotate per turn in radians at 0% speed
+                'dmgTaken': 1.3,
+            }
         }
+        
+    }
 
     state = {
         # Dynamic vars
@@ -79,7 +108,6 @@ class SrvData():
         'serverSteps': 0,  # Number of steps server has processed.
         'stepTime': 0,  # Total time spent process steps
         'msgTime': 0,  # Total time spent processing messages
-        'viewerMsgTime': 0, # Total time spend sending information to the viewer
         'startTime': time.time(),
         'explIndex': 0,
         'sleepTime': 0,
@@ -95,6 +123,7 @@ class SrvData():
     bots = {}
     botTemplate = {
         'name': "template",
+        'class': "default",
         'health': 0,
         'x': 500,
         'y': 500,
@@ -221,8 +250,6 @@ def sendToViwers(d):
     if len(d.viewers) == 0:
         return
 
-    startTime = time.perf_counter()
-
     now = time.time()
     bmsg = d.srvSocket.serialize({
         'type': 'viewData',
@@ -242,8 +269,6 @@ def sendToViwers(d):
                 d.srvSocket.sendMessage(bmsg, v['ip'], v['port'], packedAndChecked=True)
             except Exception as e:
                 log(str(e), "ERROR")
-                
-    d.state['viewerMsgTime'] += time.perf_counter() - startTime
 
 ########################################################
 # Game Logic
@@ -429,14 +454,18 @@ def step(d):
 
     # for all bots that are alive
     for src, bot in d.bots.items():
+        if d.conf['allowClasses'] == True:
+            botClass = d.conf['classes'][bot['class']]
+        else:
+            botClass = d.conf['classes']['default']
         if src in aliveBots:
             # change speed if needed
             if bot['currentSpeed'] > bot['requestedSpeed']:
-                bot['currentSpeed'] -= d.conf['botAccRate']
+                bot['currentSpeed'] -= botClass['botAccRate']
                 if bot['currentSpeed'] < bot['requestedSpeed']:
                     bot['currentSpeed'] = bot['requestedSpeed']
             elif bot['currentSpeed'] < bot['requestedSpeed']:
-                bot['currentSpeed'] += d.conf['botAccRate']
+                bot['currentSpeed'] += botClass['botAccRate']
                 if bot['currentSpeed'] > bot['requestedSpeed']:
                     bot['currentSpeed'] = bot['requestedSpeed']
 
@@ -447,8 +476,8 @@ def step(d):
                     bot['currentDirection'] = bot['requestedDirection']
                 else:
                     # how much can we turn at the speed we are going?
-                    turnRate = d.conf['botMinTurnRate'] + \
-                        (d.conf['botMaxTurnRate'] - d.conf['botMinTurnRate']) * (1 - bot['currentSpeed'] / 100)
+                    turnRate = botClass['botMinTurnRate'] + \
+                        (botClass['botMaxTurnRate'] - botClass['botMinTurnRate']) * (1 - bot['currentSpeed'] / 100)
 
                     # if turn is negative and does not pass over 0 radians
                     if bot['currentDirection'] > bot['requestedDirection'] and \
@@ -481,7 +510,7 @@ def step(d):
             if bot['currentSpeed'] != 0:
                 bot['x'], bot['y'] = nbmath.project(bot['x'], bot['y'],
                                                     bot['currentDirection'],
-                                                    bot['currentSpeed'] / 100.0 * d.conf['botMaxSpeed'])
+                                                    bot['currentSpeed'] / 100.0 * botClass['botMaxSpeed'])
 
     # do until we get one clean pass where no bot hitting wall, obstacle or other bot.
     foundOverlap = True
@@ -578,11 +607,15 @@ def step(d):
             if shell['distanceRemaining'] <= 0:
                 # apply damage to bots.
                 for k, bot in d.bots.items():
+                    if d.conf['allowClasses'] == True:
+                        botClass = d.conf['classes'][bot['class']]
+                    else:
+                        botClass = d.conf['classes']['default']
                     if bot['health'] > 0:
                         distance = nbmath.distance(bot['x'], bot['y'], shell['x'], shell['y'])
                         if distance < d.conf['explRadius']:
                             damage = d.conf['explDamage'] * (1 - distance / d.conf['explRadius'])
-                            bot['health'] = max(0, bot['health'] - damage)
+                            bot['health'] = max(0, bot['health'] - (damage * botClass['dmgTaken']))
                             # allow recording of inflicting damage that is greater than health of hit robot.
                             # also record damage to oneself.
                             d.bots[src]['shellDamage'] += damage
@@ -660,8 +693,7 @@ def logScoreBoard(d):
         "\n                         Steps: " + str(d.state['serverSteps']) +\
         "\n          Average Steps / Game: " + '%.3f' % (d.state['serverSteps'] / max(1, d.state['gameNumber'])) +\
         "\n                      Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +\
-        "\nTime Processing Robot Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
-        "\n  Time Sending Viewer Messages: " + '%.3f' % (d.state['viewerMsgTime']) + " secs." +\
+        "\n      Time Processing Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
         "\n                   Messages In: " + str(d.srvSocket.recv) +\
         "\n                  Messages Out: " + str(d.srvSocket.sent) +\
         "\n              Messages Dropped: " + str(d.state['dropCount']) +\
@@ -772,12 +804,12 @@ def main():
                         default=0, help='How many jam zones does the arena have.')
     parser.add_argument('-startperms', dest='startPermutations', action='store_true',
                         default=False, help='Use all permutations of each set of random start locations.')
-    parser.add_argument('-noviewers', dest='noViewers', action='store_true',
-                        default=False, help='Do not allow viewers.')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
                         default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
+    parser.add_argument('-allowClasses', dest='allowClasses', action='store_true',
+                        default=False, help='Allow classes system or not')
     args = parser.parse_args()
 
     setLogLevel(args.debug, args.verbose)
@@ -801,13 +833,13 @@ def main():
     d.conf['obstacles'] = mkObstacles(d, args.obstacles)
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
     d.conf['startPermutations'] = args.startPermutations
-    d.conf['noViewers'] = args.noViewers
+    d.conf['allowClasses'] = args.allowClasses
     
     mkStartLocations(d)
 
     log("Server Name: " + d.conf['serverName'])
     log("Server Version: " + d.conf['serverVersion'])
-    log("Argument List:" + str(sys.argv))
+
     log("Server Configuration: " + str(d.conf), "VERBOSE")
 
     try:
