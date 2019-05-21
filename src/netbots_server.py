@@ -86,7 +86,7 @@ class SrvData():
                 'botAccRate': 1.1,  # Amount in % bot can accelerate (or decelerate) per step
                 'botMinTurnRate': math.pi / 6500,  # Amount bot can rotate per turn in radians at 100% speed
                 'botMaxTurnRate': math.pi / 150,  # Amount bot can rotate per turn in radians at 0% speed
-                'dmgTaken': 0.77,
+                'dmgTaken': 0.75,
             },
             
             'light': {
@@ -95,7 +95,7 @@ class SrvData():
                 'botAccRate': 2.5,  # Amount in % bot can accelerate (or decelerate) per step
                 'botMinTurnRate': math.pi / 500,  # Amount bot can rotate per turn in radians at 100% speed
                 'botMaxTurnRate': math.pi / 30,  # Amount bot can rotate per turn in radians at 0% speed
-                'dmgTaken': 1.3,
+                'dmgTaken': 1.35,
             }
         }
         
@@ -460,7 +460,7 @@ def step(d):
 
     # for all bots that are alive
     for src, bot in d.bots.items():
-        if d.conf['allowClasses'] == True:
+        if d.conf['allowClasses'] == True and bot['class'] in d.conf['classes']:
             botClass = d.conf['classes'][bot['class']]
         else:
             botClass = d.conf['classes']['default']
@@ -613,7 +613,7 @@ def step(d):
             if shell['distanceRemaining'] <= 0:
                 # apply damage to bots.
                 for k, bot in d.bots.items():
-                    if d.conf['allowClasses'] == True:
+                    if d.conf['allowClasses'] == True and bot['class'] in d.conf['classes']:
                         botClass = d.conf['classes'][bot['class']]
                     else:
                         botClass = d.conf['classes']['default']
