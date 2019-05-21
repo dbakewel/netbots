@@ -21,7 +21,7 @@ class ViewerData():
     shellWidgets = {}
     explWidgets = {}
     bigMsg = None
-    colors = ['red', 'green', 'blue', 'purple', 'orange', 'cyan', 'DarkKhaki', 'magenta']
+    colors = ['#ACACAC','#87FFCD','#9471FF','#FF9DB6','#2ED2EB','#FA8737','#29B548','#FFBC16','#308AFF','#FF3837']
     lastViewData = time.time()
     scale = 1
 
@@ -264,7 +264,7 @@ def main():
 
     try:
         d.viewerSocket = nbipc.NetBotSocket(args.myIP, args.myPort, d.srvIP, d.srvPort)
-        reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'})
+        reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'}, retries=60, delay=1, delayMultiplier=1)
         d.conf = reply['conf']
         log("Server Configuration: " + str(d.conf), "VERBOSE")
     except Exception as e:

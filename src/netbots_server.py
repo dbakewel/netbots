@@ -1,8 +1,10 @@
 import argparse
+import sys
 import signal
 import time
 import random
 import math
+import itertools
 
 from netbots_log import log
 from netbots_log import setLogLevel
@@ -21,7 +23,7 @@ class SrvData():
     conf = {
         # Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
-        'serverVersion': "1.1.1",
+        'serverVersion': "1.3.0",
 
         # Game and Tournament
         'botsInGame': 4,  # Number of bots required to join before game can start.
@@ -29,12 +31,14 @@ class SrvData():
         'stepMax': 1000,  # After this many steps in a game all bots will be killed
         # Amount of time server targets for each step. Server will sleep if game is running faster than this.
         'stepSec': 0.05,
+        'startPermutations':  False,  # Use all permutations of each set of random start locations.
 
         # Messaging
-        'dropRate': 10,  # Drop a messages every N messages
+        'dropRate': 11,  # Drop a messages every N messages. Best to use primes.
         # Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
         'botMsgsPerStep': 4,
         'allowRejoin': True,  # Allows crashed bots to rejoin game in progress.
+        'noViewers': False,  # if True addViewerRequest messages will be rejected. 
 
         # Sizes
         # Area is a square with each side = arenaSize units (0,0 is bottom left,
@@ -75,6 +79,7 @@ class SrvData():
         'serverSteps': 0,  # Number of steps server has processed.
         'stepTime': 0,  # Total time spent process steps
         'msgTime': 0,  # Total time spent processing messages
+        'viewerMsgTime': 0, # Total time spend sending information to the viewer
         'startTime': time.time(),
         'explIndex': 0,
         'sleepTime': 0,
@@ -82,6 +87,10 @@ class SrvData():
         'longStepCount': 0,
         'tourStartTime': False
         }
+
+    starts = []  # [ [locIndex, locIndex, ...], [locIndex, locIndex, ...], ...]
+    startLocs = []  # [{'x': x, 'y' y},{'x': x, 'y' y},...]
+    startBots = []  # [src, src, ...]
 
     bots = {}
     botTemplate = {
@@ -209,6 +218,11 @@ def recvReplyMsgs(d):
 
 
 def sendToViwers(d):
+    if len(d.viewers) == 0:
+        return
+
+    startTime = time.perf_counter()
+
     now = time.time()
     bmsg = d.srvSocket.serialize({
         'type': 'viewData',
@@ -228,37 +242,56 @@ def sendToViwers(d):
                 d.srvSocket.sendMessage(bmsg, v['ip'], v['port'], packedAndChecked=True)
             except Exception as e:
                 log(str(e), "ERROR")
+                
+    d.state['viewerMsgTime'] += time.perf_counter() - startTime
 
 ########################################################
 # Game Logic
 ########################################################
 
 
-def findOverlapingBots(d):
-    """Return any pair (src,src) of bots that overlap, else return False"""
-    keys = list(d.bots.keys())
+def findOverlapingBots(d, bots):
+    """
+    bots is a dict/list of bot locations: {key:{'x': x,'y': y}, ...}
+    bots can also contain health: {key:{'x': x,'y': y, 'health': h}, ...}
+    Return any pair (key,key) of bots that overlap, else return False
+    """
+    try:
+        keys = list(bots.keys())
+    except AttributeError:
+        keys = range(len(bots))
 
     for i in range(0, len(keys) - 1):
-        boti = d.bots[keys[i]]
-        if boti['health'] is not 0:
+        boti = bots[keys[i]]
+        if 'health' not in boti or boti['health'] is not 0:
             for j in range(i + 1, len(keys)):
-                botj = d.bots[keys[j]]
-                if botj['health'] is not 0:
+                botj = bots[keys[j]]
+                if 'health' not in boti or botj['health'] is not 0:
                     if nbmath.distance(boti['x'], boti['y'], botj['x'], botj['y']) <= d.conf['botRadius'] * 2:
                         return [keys[i], keys[j]]
 
     return False
 
 
-def findOverlapingBotsAndObstacles(d):
-    """Return any pair (src,i) of (src,obstacle) that overlap, else return False"""
-    for src in d.bots:
-        bot = d.bots[src]
-        if bot['health'] is not 0:
+def findOverlapingBotsAndObstacles(d, bots):
+    """
+    bots is a dict/list of bot locations: {key:{'x': x,'y': y}, ...}
+    bots can also contain health: {key:{'x': x,'y': y, 'health': h}, ...}
+    Return any pair (key,i) of (key,obstacle) that overlap, else return False
+    """
+
+    try:
+        keys = list(bots.keys())
+    except AttributeError:
+        keys = range(len(bots))
+
+    for k in keys:
+        bot = bots[k]
+        if 'health' not in bot or bot['health'] is not 0:
             for obstacle in d.conf['obstacles']:
                 if nbmath.distance(bot['x'], bot['y'], obstacle['x'], obstacle['y']) <= \
                         d.conf['botRadius'] + obstacle['radius']:
-                    return [src, obstacle]
+                    return [k, obstacle]
 
     return False
 
@@ -314,6 +347,42 @@ def mkJamZones(d, n):
     return jamZones
 
 
+def mkStartLocations(d):
+    while len(d.starts) < d.conf['gamesToPlay']:
+        botsOverlap = True  # loop must run at least once.
+        botsObsOverlap = True
+        attempts = 0
+        while botsOverlap or botsObsOverlap:
+            startLocs = []
+            for i in range(d.conf['botsInGame']):
+                loc = {}
+                loc['x'] = random.random() * (d.conf['arenaSize'] * 0.8) + (d.conf['arenaSize'] * 0.1)
+                loc['y'] = random.random() * (d.conf['arenaSize'] * 0.8) + (d.conf['arenaSize'] * 0.1)
+                startLocs.append(loc)
+
+            botsOverlap = findOverlapingBots(d, startLocs)
+            botsObsOverlap = findOverlapingBotsAndObstacles(d, startLocs)
+            if botsOverlap:
+                log("Bots overlapped during random layout, trying again.", "VERBOSE")
+            elif botsObsOverlap:
+                log("Bots overlapped obstacles during random layout, trying again.", "VERBOSE")
+
+            attempts += 1
+            if attempts > 999:
+                log("Could not layout bots without overlapping.", "FAILURE")
+                quit()
+
+        d.startLocs.extend(startLocs)
+        locIndexes = range(len(d.startLocs) - d.conf['botsInGame'], len(d.startLocs))
+        if d.conf['startPermutations']:
+            startLocsPerms = itertools.permutations(locIndexes)
+            d.starts.extend(startLocsPerms)
+        else:
+            d.starts.append(list(locIndexes))
+
+    random.shuffle(d.starts)
+
+
 def initGame(d):
     log("Starting New Game")
     """
@@ -325,37 +394,23 @@ def initGame(d):
     """
     for each bot
         reset health 100
-        randomly place bot at least 10% of play area size away from any wall. Ensure no bots overlap.
         reset speed and direction values to 0
     """
-    botsOverlap = True  # loop must run at least once.
-    botsObsOverlap = True
-    attempts = 0
-    while botsOverlap or botsObsOverlap:
-        for src, bot in d.bots.items():
-            bot['health'] = 100
-            bot['x'] = random.random() * (d.conf['arenaSize'] * 0.8) + (d.conf['arenaSize'] * 0.1)
-            bot['y'] = random.random() * (d.conf['arenaSize'] * 0.8) + (d.conf['arenaSize'] * 0.1)
-            bot['currentSpeed'] = 0
-            bot['requestedSpeed'] = 0
-            bot['currentDirection'] = 0
-            bot['requestedDirection'] = 0
+    for src, bot in d.bots.items():
+        bot['health'] = 100
+        bot['currentSpeed'] = 0
+        bot['requestedSpeed'] = 0
+        bot['currentDirection'] = 0
+        bot['requestedDirection'] = 0
 
-        botsOverlap = findOverlapingBots(d)
-        botsObsOverlap = findOverlapingBotsAndObstacles(d)
-        if botsOverlap:
-            log("Bots overlapped during random layout, trying again.", "VERBOSE")
-        elif botsObsOverlap:
-            log("Bots overlapped obstacles during random layout, trying again.", "VERBOSE")
+    # set starting location
+    start = d.starts.pop()
+    for i in range(d.conf['botsInGame']):
+        src = d.startBots[i]
+        d.bots[src]['x'] = d.startLocs[start[i]]['x']
+        d.bots[src]['y'] = d.startLocs[start[i]]['y']
 
-        attempts += 1
-        if attempts > 999:
-            log("Could not layout bots without overlapping.", "FAILURE")
-            quit()
-
-    """
-    delete all shells and explosions.
-    """
+    # delete all shells and explosions.
     d.shells = {}
     d.explosions = {}
 
@@ -453,7 +508,7 @@ def step(d):
                 foundOverlap = True
 
         # detect if bots hit obstacles, if the did move them so they are just barely not touching,
-        overlap = findOverlapingBotsAndObstacles(d)
+        overlap = findOverlapingBotsAndObstacles(d, d.bots)
         while overlap:
             foundOverlap = True
             b = d.bots[overlap[0]]
@@ -466,10 +521,10 @@ def step(d):
             b['x'], b['y'] = nbmath.project(b['x'], b['y'], a, distance)
             # record damage and check for more bots overlapping
             b['hitDamage'] = True
-            overlap = findOverlapingBotsAndObstacles(d)
+            overlap = findOverlapingBotsAndObstacles(d, d.bots)
 
         # detect if bots hit other bots, if the did move them so they are just barely not touching,
-        overlap = findOverlapingBots(d)
+        overlap = findOverlapingBots(d, d.bots)
         while overlap:
             foundOverlap = True
             b1 = d.bots[overlap[0]]
@@ -485,7 +540,7 @@ def step(d):
             # record damage and check for more bots overlapping
             b1['hitDamage'] = True
             b2['hitDamage'] = True
-            overlap = findOverlapingBots(d)
+            overlap = findOverlapingBots(d, d.bots)
 
     # give damage (only once this step) to bots that hit things. Also stop them.
     for src, bot in d.bots.items():
@@ -589,10 +644,6 @@ def step(d):
         d.bots[src]['points'] += 10  # last robot (winner)
         del aliveBots[src]
 
-    if len(aliveBots) == 0:
-        # Game ended.
-        logScoreBoard(d)
-
     d.state['stepTime'] += time.perf_counter() - startTime
 
 
@@ -600,62 +651,68 @@ def step(d):
 # Stats and Points Logging
 ########################################################
 
-def logStats(d):
-    log("\n\n                  ------- Stats -------" +
-        "\n                    Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +
-        "\n    Time Processing Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +
-        "\n                 Messages In: " + str(d.srvSocket.recv) +
-        "\n                Messages Out: " + str(d.srvSocket.sent) +
-        "\n            Messages Dropped: " + str(d.state['dropCount']) +
-        "\n       Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +
-        "\n               Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +
-        "\n          Average Sleep Time: " + '%.6f' % (float(d.state['sleepTime']) / max(1, d.state['sleepCount'])) + " secs." +
-        "\n   Steps Slower Than stepSec: " + str(d.state['longStepCount']) +
-        "\n\n")
-
-
 def logScoreBoard(d):
-    if d.state['tourStartTime'] and d.state['gameNumber']:
-        now = time.time()
-        output = "\n\n                ------ Score Board ------" +\
-            "\n               Tournament Time: " + '%.3f' % (now - d.state['tourStartTime']) + " secs." +\
-            "\n                         Games: " + str(d.state['gameNumber']) +\
-            "\n             Average Game Time: " + '%.3f' % ((now - d.state['tourStartTime']) / d.state['gameNumber']) + " secs." +\
-            "\n                         Steps: " + str(d.state['serverSteps']) +\
-            "\n          Average Steps / Game: " + '%.3f' % (d.state['serverSteps'] / d.state['gameNumber']) +\
-            "\n\n" +\
-            f"  {' ':>24}" +\
-            f"  {' ':>10}" +\
-            f"  {'------ Wins ------':>19}" +\
-            f"  {'--------- CanonFired ----------':>31}" +\
-            f"  {' ':<21}" +\
-            "\n" +\
-            f"  {'Name':>24}" +\
-            f"  {'Points':>10}" +\
-            f"  {'Count':>7}" +\
-            f"  {'AvgHealth':>10}" +\
-            f"  {'Count':>7}" +\
-            f"  {'AvgDamage':>10}" + \
-            f"  {'TotDamage':>10}" + \
-            f"  {'IP:Port':<21}" +\
-            "\n ------------------------------------------------------------------------------------------------------------------"
+    now = time.time()
+    output = "\n\n                ------ Score Board ------" +\
+        "\n               Tournament Time: " + '%.3f' % (now - d.state['tourStartTime']) + " secs." +\
+        "\n                         Games: " + str(d.state['gameNumber']) +\
+        "\n             Average Game Time: " + '%.3f' % ((now - d.state['tourStartTime']) / max(1, d.state['gameNumber'])) + " secs." +\
+        "\n                         Steps: " + str(d.state['serverSteps']) +\
+        "\n          Average Steps / Game: " + '%.3f' % (d.state['serverSteps'] / max(1, d.state['gameNumber'])) +\
+        "\n                      Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +\
+        "\nTime Processing Robot Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
+        "\n  Time Sending Viewer Messages: " + '%.3f' % (d.state['viewerMsgTime']) + " secs." +\
+        "\n                   Messages In: " + str(d.srvSocket.recv) +\
+        "\n                  Messages Out: " + str(d.srvSocket.sent) +\
+        "\n              Messages Dropped: " + str(d.state['dropCount']) +\
+        "\n             Messages / Second: " + '%.3f' % ((d.srvSocket.recv + d.srvSocket.recv) / float(time.time() - d.state['startTime'])) +\
+        "\n         Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +\
+        "\n                Steps / Second: " + '%.3f' % (d.state['serverSteps'] / float(max(1, time.time() - d.state['tourStartTime']))) +\
+        "\n                 Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +\
+        "\n            Average Sleep Time: " + '%.6f' % (float(d.state['sleepTime']) / max(1, d.state['sleepCount'])) + " secs." +\
+        "\n     Steps Slower Than stepSec: " + str(d.state['longStepCount']) + f" ({float(d.state['longStepCount']) / float(max(1,d.state['serverSteps'])) * 100.0:>4.2f}%)" +\
+        "\n\n" +\
+        f"  {' ':>16}" +\
+        f"  {'---- Score -----':>16}" +\
+        f"  {'------ Wins -------':>19}" +\
+        f"  {'--------- CanonFired ----------':>31}" +\
+        f"  {' ':<21}" +\
+        "\n" +\
+        f"  {'Name':>16}" +\
+        f"  {'Points':>10}" +\
+        f"  {'%':>4}" +\
+        f"  {'Count':>7}" +\
+        f"  {'AvgHealth':>10}" +\
+        f"  {'Count':>7}" +\
+        f"  {'AvgDamage':>10}" +\
+        f"  {'TotDamage':>10}" +\
+        f"  {'IP:Port':<21}" +\
+        "\n ------------------------------------------------------------------------------------------------------------------"
 
-        botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'], reverse=True)
-        for src in botSort:
-            bot = d.bots[src]
-            output += "\n" +\
-                f"  {bot['name']:>24}" +\
-                f"  {bot['points']:>10}" +\
-                f"  {bot['winCount']:>7}" +\
-                f"  {float(bot['winHealth']) / max(1,bot['winCount']):>10.2f}" +\
-                f"  {bot['firedCount']:>7}" +\
-                f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" + \
-                f"  {float(bot['shellDamage']):>10.2f}" + \
-                f"  {src:<21}"
+    botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'], reverse=True)
 
-        output += "\n ------------------------------------------------------------------------------------------------------------------\n\n"
+    totalPoints = 0.0
+    for src in botSort:
+        totalPoints += d.bots[src]['points']
+    if totalPoints == 0:
+        totalPoints = 1.0
 
-        log(output)
+    for src in botSort:
+        bot = d.bots[src]
+        output += "\n" +\
+            f"  {bot['name']:>16}" +\
+            f"  {bot['points']:>10}" +\
+            f"  {float(bot['points'])/totalPoints*100.0:>4.1f}" +\
+            f"  {bot['winCount']:>7}" +\
+            f"  {float(bot['winHealth']) / max(1,bot['winCount']):>10.2f}" +\
+            f"  {bot['firedCount']:>7}" +\
+            f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" + \
+            f"  {float(bot['shellDamage']):>10.2f}" + \
+            f"  {src:<21}"
+
+    output += "\n ------------------------------------------------------------------------------------------------------------------\n\n"
+
+    log(output)
 
 ########################################################
 # Main Loop
@@ -663,18 +720,11 @@ def logScoreBoard(d):
 
 
 def quit(signal=None, frame=None):
-    global d
-
-    logStats(d)
-    logScoreBoard(d)
-
     log("Quiting", "INFO")
     exit()
 
 
 def main():
-    global d  # give quit access to d
-
     d = SrvData()
 
     random.seed()
@@ -695,7 +745,7 @@ def main():
     parser.add_argument('-stepmax', metavar='int', dest='stepMax', type=int,
                         default=1000, help='Max steps in one game.')
     parser.add_argument('-droprate', metavar='int', dest='dropRate', type=int,
-                        default=10, help='Drop over nth message. 0 == no drop.')
+                        default=11, help='Drop over nth message, best to use primes. 0 == no drop.')
     parser.add_argument('-msgperstep', metavar='int', dest='botMsgsPerStep', type=int,
                         default=4, help='Number of msgs from a bot that server will respond to each step.')
     parser.add_argument('-arenasize', metavar='int', dest='arenaSize', type=int,
@@ -720,8 +770,10 @@ def main():
                         default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int,
                         default=0, help='How many jam zones does the arena have.')
-    parser.add_argument('-stats', metavar='sec', dest='statsSec', type=int,
-                        default=60, help='How many seconds between printing server stats.')
+    parser.add_argument('-startperms', dest='startPermutations', action='store_true',
+                        default=False, help='Use all permutations of each set of random start locations.')
+    parser.add_argument('-noviewers', dest='noViewers', action='store_true',
+                        default=False, help='Do not allow viewers.')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -748,10 +800,14 @@ def main():
     d.conf['obstacleRadius'] = args.obstacleRadius
     d.conf['obstacles'] = mkObstacles(d, args.obstacles)
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
+    d.conf['startPermutations'] = args.startPermutations
+    d.conf['noViewers'] = args.noViewers
+    
+    mkStartLocations(d)
 
     log("Server Name: " + d.conf['serverName'])
     log("Server Version: " + d.conf['serverVersion'])
-
+    log("Argument List:" + str(sys.argv))
     log("Server Configuration: " + str(d.conf), "VERBOSE")
 
     try:
@@ -760,20 +816,25 @@ def main():
         log(str(e), "FAILURE")
         quit()
 
-    nextStatsTime = time.time() + args.statsSec
+    nextStepAt = time.perf_counter() + d.conf['stepSec']
     while True:
-        loopStartTime = time.time()
-
         aliveBots = 0
         for src, bot in d.bots.items():
             if bot['health'] != 0:
                 aliveBots += 1
 
+        # only count slow steps if we actually process a step this time around.
+        countSlowStep = False
+
         if aliveBots > 0:  # if there is an ongoing game
+            countSlowStep = True
             step(d)
         elif len(d.bots) == d.conf['botsInGame']:  # if we have enough bots to start playing
             if not d.state['tourStartTime']:
                 d.state['tourStartTime'] = time.time()
+
+            logScoreBoard(d)
+
             if d.conf['gamesToPlay'] != d.state['gameNumber']:
                 initGame(d)
             else:
@@ -784,19 +845,17 @@ def main():
 
         sendToViwers(d)
 
-        if nextStatsTime < time.time():
-            logStats(d)
-            nextStatsTime = time.time() + args.statsSec
-
-        nextStepIn = d.conf['stepSec'] - (time.time() - loopStartTime)
-
-        if nextStepIn > 0:
+        ptime = time.perf_counter()
+        if ptime < nextStepAt:
             d.state['sleepCount'] += 1
-            d.state['sleepTime'] += nextStepIn
-            time.sleep(nextStepIn)
-        else:
+            d.state['sleepTime'] += nextStepAt - ptime
+            while ptime < nextStepAt:
+                ptime = time.perf_counter()
+        elif countSlowStep:
             d.state['longStepCount'] += 1
-            log("Server running slower than " + str(d.conf['stepSec']) + " sec/step.", "WARNING")
+            log("Server running slower than " + str(d.conf['stepSec']) + " sec/step.", "VERBOSE")
+
+        nextStepAt = ptime + d.conf['stepSec']
 
 
 if __name__ == "__main__":
