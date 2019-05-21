@@ -18,7 +18,7 @@ from netbots_log import log
 # server and the server returns the reply message or an Error message.
 MsgDef = {
     # msg type              other required msg fields
-    'joinRequest': {'name': 'str'},
+    'joinRequest': {'name': ['str',1,16]},
     'joinReply': {'conf': 'dict'},
 
     'getInfoRequest': {},
@@ -71,26 +71,41 @@ def isValidMsg(msg):
         return False
 
     for msgtype, msgspec in MsgDef.items():
-        if msgtype == msg['type']:
+        if msgtype == msg['type'] and msg['type'] != 'joinRequest':
             for fld, fldspec in msgspec.items():
                 if fld not in msg:
                     log("Msg does not contain required '" + fld + "' key: " + str(msg), "ERROR")
                     return False
                 if isinstance(fldspec, list):
-                    if not isinstance(msg[fld], eval(fldspec[0])):
-                        log("Msg '" + fld + "' key has value of type " + str(type(msg[fld])) +
-                            " but expected " + fldspec[0] + ": " + str(msg), "ERROR")
-                        return False
-                    if msg[fld] < fldspec[1] or msg[fld] > fldspec[2]:
-                        log("Msg '" + fld + "' key has a value " + str(msg[fld]) +
-                            " which is out of range [" + str(fldspec[1]) + "," +
-                            str(fldspec[2]) + "] : " + str(msg), "ERROR")
-                        return False
+                    if fldspec[0] is "str":
+                        if len(msg['name']) > 16:
+                            log("Robot, " + msg['name'] + ", has a name longer than 16 characters. Must be less than 16 characters","ERROR")
+                            return False
+                        elif len(msg['name']) < 1:
+                            log("Robot, " + msg['name'] + ", has a name shorter than 1 character. Must be greater than 1 character","ERROR")
+                            return False
+                    else:
+                        if not isinstance(msg[fld], eval(fldspec[0])):
+                            log("Msg '" + fld + "' key has value of type " + str(type(msg[fld])) +
+                                " but expected " + fldspec[0] + ": " + str(msg), "ERROR")
+                            return False
+                        if msg[fld] < fldspec[1] or msg[fld] > fldspec[2]:
+                            log("Msg '" + fld + "' key has a value " + str(msg[fld]) +
+                                " which is out of range [" + str(fldspec[1]) + "," +
+                                str(fldspec[2]) + "] : " + str(msg), "ERROR")
+                            return False
                 else:
                     if not isinstance(msg[fld], eval(fldspec)):
                         log("Msg '" + fld + "' key has value of type " + str(type(msg[fld])) +
                             " but expected " + fldspec + ": " + str(msg), "ERROR")
                         return False
+            return True
+        elif msg['type'] == 'joinRequest':
+            if 'name' not in msg:
+                log("Msg does not contain required 'name' key: " + str(msg), "ERROR")
+            
+            #if 'class' in msg:
+                #if                 
             return True
     log("Msg 'type' key has value '" + str(msg['type']) + "' which is not known: " + str(msg), "ERROR")
     return False
