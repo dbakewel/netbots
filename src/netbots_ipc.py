@@ -71,7 +71,7 @@ def isValidMsg(msg):
         return False
 
     for msgtype, msgspec in MsgDef.items():
-        if msgtype == msg['type'] and msg['type'] != 'joinRequest':
+        if msgtype == msg['type']:
             for fld, fldspec in msgspec.items():
                 if fld not in msg:
                     log("Msg does not contain required '" + fld + "' key: " + str(msg), "ERROR")
@@ -100,13 +100,7 @@ def isValidMsg(msg):
                             " but expected " + fldspec + ": " + str(msg), "ERROR")
                         return False
             return True
-        elif msg['type'] == 'joinRequest':
-            if 'name' not in msg:
-                log("Msg does not contain required 'name' key: " + str(msg), "ERROR")
-            
-            #if 'class' in msg:
-                #if                 
-            return True
+        
     log("Msg 'type' key has value '" + str(msg['type']) + "' which is not known: " + str(msg), "ERROR")
     return False
 
