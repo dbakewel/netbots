@@ -275,7 +275,7 @@ def main():
 
     log("Server registration successful. Opening Window.")
     
-    if 'randomColours':
+    if args.randomColours:
         random.shuffle(d.colors)
         
     openWindow(d)
