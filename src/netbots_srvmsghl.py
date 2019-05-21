@@ -23,6 +23,8 @@ def joinRequest(d, msg, src):
     else:
         d.bots[src] = copy.deepcopy(d.botTemplate)
         d.bots[src]['name'] = msg['name']
+        if 'class' in msg:
+            d.bots[src]['class'] = msg['class']
         d.startBots.append(src)
         result = "OK"
         log("Bot joined game: " + d.bots[src]['name'] + " (" + src + ")")
@@ -33,8 +35,7 @@ def joinRequest(d, msg, src):
         return {'type': "joinReply", 'conf': d.conf}
     else:
         return {'type': 'Error', 'result': result}
-
-
+       
 def getInfoRequest(d, msg, src):
     return {
         'type': "getInfoReply",
@@ -159,10 +160,7 @@ def scanRequest(d, msg, src):
 
 
 def addViewerRequest(d, msg, src):
-    if d.conf['noViewers']:
-        return {'type': 'Error', 'result': "Viewers are not allowed to join."}
-        log(src + " tried to join as viewer but viewers are not allowed to join.")
-    elif src in d.bots:
+    if src in d.bots:
         return {'type': 'Error', 'result': "Bots are not allowed to be viewers."}
         log("Bot from " + src + " tried to join as viewer.")
     elif src in d.viewers:
