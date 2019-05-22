@@ -2,6 +2,7 @@ import argparse
 import time
 import signal
 import tkinter as t
+import random
 
 from netbots_log import log
 from netbots_log import setLogLevel
