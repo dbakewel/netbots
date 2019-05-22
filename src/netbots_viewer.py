@@ -252,8 +252,8 @@ def main():
                         default='127.0.0.1', help='Server IP Address')
     parser.add_argument('-sp', metavar='Server Port', dest='serverPort', type=int, nargs='?',
                         default=20000, help='Server port number')
-    parser.add_argument('-randcolours', dest='randomColours', action='store_true',
-                        default=False, help='Randomizes bot colours in viewer')
+    parser.add_argument('-randcolors', dest='randomColors', action='store_true',
+                        default=False, help='Randomizes bot colors in viewer')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -276,7 +276,7 @@ def main():
 
     log("Server registration successful. Opening Window.")
     
-    if args.randomColours:
+    if args.randomColors:
         random.shuffle(d.colors)
         
     openWindow(d)
