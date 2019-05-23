@@ -490,22 +490,38 @@ def step(d):
 
         # detect if bots hit walls. if they, did move them so they are just barely not touching,
         for src, bot in d.bots.items():
+            hit_spot = ""
+    
             if bot['x'] - d.conf['botRadius'] < 0:
                 bot['x'] = d.conf['botRadius'] + 1
-                bot['hitDamage'] = True
+                hit_spot = "left"
                 foundOverlap = True
             if bot['x'] + d.conf['botRadius'] > d.conf['arenaSize']:
                 bot['x'] = d.conf['arenaSize'] - d.conf['botRadius'] - 1
-                bot['hitDamage'] = True
+                hit_spot = "right"
                 foundOverlap = True
             if bot['y'] - d.conf['botRadius'] < 0:
                 bot['y'] = d.conf['botRadius'] + 1
-                bot['hitDamage'] = True
+                hit_spot = "bottom"
                 foundOverlap = True
             if bot['y'] + d.conf['botRadius'] > d.conf['arenaSize']:
                 bot['y'] = d.conf['arenaSize'] - d.conf['botRadius'] - 1
-                bot['hitDamage'] = True
+                hit_spot = "top"
                 foundOverlap = True
+    
+            if not hit_spot == "":
+                
+                if hit_spot == "left":
+                    collision_to_speed_a = abs(bot['currentDirection'] - math.pi)
+                elif hit_spot == "right":
+                    collision_to_speed_a = bot['currentDirection']
+                elif hit_spot == "top":
+                    collision_to_speed_a = abs(bot['currentDirection'] - math.pi / 2)
+                elif hit_spot == "bottom":
+                    collision_to_speed_a = abs(bot['currentDirection'] - math.pi * 3 / 2)
+        
+                hit_dmg = bot['currentSpeed'] * math.cos(collision_to_speed_a) / 20
+                bot['hitDamage'] = hit_dmg
 
         # detect if bots hit obstacles, if the did move them so they are just barely not touching,
         overlap = findOverlapingBotsAndObstacles(d, d.bots)
@@ -522,6 +538,20 @@ def step(d):
             # record damage and check for more bots overlapping
             b['hitDamage'] = True
             overlap = findOverlapingBotsAndObstacles(d, d.bots)
+            
+            if not overlap:
+                collision_to_speed_a = abs(b['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
+                hit_dmg = b['currentSpeed'] * math.cos(collision_to_speed_a) / 20
+                b['hitDamage'] = hit_dmg
+                
+            if not overlap:
+                # find the angle between the direction vector and the vector towards the point of collision
+                collision_to_speed_a1 = abs(b1['currentDirection'] - a)
+                collision_to_speed_a2 = abs(b2['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
+                hit_dmg = b1['currentSpeed'] * math.cos(collision_to_speed_a1) / 20 +\
+                          b2['currentSpeed'] * math.cos(collision_to_speed_a2) / 20
+                b1['hitDamage'] = hit_dmg
+                b2['hitDamage'] = hit_dmg
 
         # detect if bots hit other bots, if the did move them so they are just barely not touching,
         overlap = findOverlapingBots(d, d.bots)
