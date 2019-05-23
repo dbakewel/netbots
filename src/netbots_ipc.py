@@ -98,10 +98,8 @@ def isValidMsg(msg):
                             " but expected " + fldspec + ": " + str(msg), "ERROR")
                         return False
             return True
-            
     log("Msg 'type' key has value '" + str(msg['type']) + "' which is not known: " + str(msg), "ERROR")
     return False
-
 
 
 def isValidIP(ip):
