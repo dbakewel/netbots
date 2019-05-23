@@ -107,7 +107,7 @@ def main():
 
     try:
         botSocket = nbipc.NetBotSocket(args.myIP, args.myPort, args.serverIP, args.serverPort)
-        joinReply = botSocket.sendRecvMessage({'type': 'joinRequest', 'name': robotName})
+        joinReply = botSocket.sendRecvMessage({'type': 'joinRequest', 'name': robotName}, retries=300, delay=1, delayMultiplier=1)
     except nbipc.NetBotSocketException as e:
         log("Is netbot server running at" + args.serverIP + ":" + str(args.serverPort) + "?")
         log(str(e), "FAILURE")

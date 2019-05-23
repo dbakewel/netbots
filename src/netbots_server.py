@@ -255,6 +255,8 @@ def sendToViwers(d):
         
     startTime = time.perf_counter()
 
+    startTime = time.perf_counter()
+
     now = time.time()
     bmsg = d.srvSocket.serialize({
         'type': 'viewData',
@@ -274,6 +276,7 @@ def sendToViwers(d):
                 d.srvSocket.sendMessage(bmsg, v['ip'], v['port'], packedAndChecked=True)
             except Exception as e:
                 log(str(e), "ERROR")
+                
     d.state['viewerMsgTime'] += time.perf_counter() - startTime
 
 ########################################################
@@ -297,7 +300,7 @@ def findOverlapingBots(d, bots):
         if 'health' not in boti or boti['health'] is not 0:
             for j in range(i + 1, len(keys)):
                 botj = bots[keys[j]]
-                if 'health' not in boti or botj['health'] is not 0:
+                if 'health' not in botj or botj['health'] is not 0:
                     if nbmath.distance(boti['x'], boti['y'], botj['x'], botj['y']) <= d.conf['botRadius'] * 2:
                         return [keys[i], keys[j]]
 
@@ -701,7 +704,6 @@ def logScoreBoard(d):
         "\n                      Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +\
         "\nTime Processing Robot Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
         "\n  Time Sending Viewer Messages: " + '%.3f' % (d.state['viewerMsgTime']) + " secs." +\
-        "\n      Time Processing Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
         "\n                   Messages In: " + str(d.srvSocket.recv) +\
         "\n                  Messages Out: " + str(d.srvSocket.sent) +\
         "\n              Messages Dropped: " + str(d.state['dropCount']) +\

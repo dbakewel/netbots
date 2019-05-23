@@ -18,7 +18,7 @@ from netbots_log import log
 # server and the server returns the reply message or an Error message.
 MsgDef = {
     # msg type              other required msg fields
-    'joinRequest': {'name': ['str',1,16]},
+    'joinRequest': {'name': ['str', 1, 16]},
     'joinReply': {'conf': 'dict'},
 
     'getInfoRequest': {},
