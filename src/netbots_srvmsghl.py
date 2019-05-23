@@ -20,9 +20,14 @@ def joinRequest(d, msg, src):
     elif len(d.bots) >= d.conf['botsInGame']:
         result = "Game is full. No more bots can join."
         log("Bot from " + src + " tried to join full game.")
+    elif 'class' in msg and msg['class'] not in d.conf['classes']:
+        result = "Can't find the class."
+        log("Do not have this class.")
     else:
         d.bots[src] = copy.deepcopy(d.botTemplate)
         d.bots[src]['name'] = msg['name']
+        if 'class' in msg and msg['class'] in d.conf['classes']:
+            d.bots[src]['class'] = msg['class']
         d.startBots.append(src)
         result = "OK"
         log("Bot joined game: " + d.bots[src]['name'] + " (" + src + ")")
@@ -33,8 +38,7 @@ def joinRequest(d, msg, src):
         return {'type': "joinReply", 'conf': d.conf}
     else:
         return {'type': 'Error', 'result': result}
-
-
+       
 def getInfoRequest(d, msg, src):
     return {
         'type': "getInfoReply",
