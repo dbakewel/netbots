@@ -38,7 +38,7 @@ class SrvData():
         # Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
         'botMsgsPerStep': 4,
         'allowRejoin': True,  # Allows crashed bots to rejoin game in progress.
-        'noViewers': False,  # if True addViewerRequest messages will be rejected.
+        'noViewers': False,  # if True addViewerRequest messages will be rejected. 
 
         # Sizes
         # Area is a square with each side = arenaSize units (0,0 is bottom left,
@@ -78,7 +78,7 @@ class SrvData():
                 'botMinTurnRate': math.pi / 6000,  # Amount bot can rotate per turn in radians at 100% speed
                 'botMaxTurnRate': math.pi / 50,  # Amount bot can rotate per turn in radians at 0% speed
                 'dmgTaken': 1.0,
-            },
+                },
                 
             'heavy': {
                 # Speeds and Rates of Change
@@ -87,7 +87,7 @@ class SrvData():
                 'botMinTurnRate': math.pi / 6500,  # Amount bot can rotate per turn in radians at 100% speed
                 'botMaxTurnRate': math.pi / 150,  # Amount bot can rotate per turn in radians at 0% speed
                 'dmgTaken': 0.77,
-            },
+                },
             
             'light': {
                 # Speeds and Rates of Change
@@ -96,10 +96,9 @@ class SrvData():
                 'botMinTurnRate': math.pi / 500,  # Amount bot can rotate per turn in radians at 100% speed
                 'botMaxTurnRate': math.pi / 30,  # Amount bot can rotate per turn in radians at 0% speed
                 'dmgTaken': 1.33,
+                }
             }
         }
-        
-    }
 
     state = {
         # Dynamic vars
@@ -252,8 +251,6 @@ def recvReplyMsgs(d):
 def sendToViwers(d):
     if len(d.viewers) == 0:
         return
-        
-    startTime = time.perf_counter()
 
     startTime = time.perf_counter()
 

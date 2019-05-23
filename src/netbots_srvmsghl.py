@@ -38,7 +38,8 @@ def joinRequest(d, msg, src):
         return {'type': "joinReply", 'conf': d.conf}
     else:
         return {'type': 'Error', 'result': result}
-       
+
+
 def getInfoRequest(d, msg, src):
     return {
         'type': "getInfoReply",
