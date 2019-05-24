@@ -125,12 +125,12 @@ def checkForUpdates(d):
             shellDir = msg['shells'][src]['direction']
             shell_item_1 = d.shellWidgets[src][0]
             d.canvas.coords(shell_item_1, centerX, centerY,
-                            1 * math.cos(-shellDir) + centerX,
-                            1 * math.sin(-shellDir) + centerY)
+                            d.scale * 1 * math.cos(-shellDir) + centerX,
+                            d.scale * 1 * math.sin(-shellDir) + centerY)
             shell_item_2 = d.shellWidgets[src][1]
             d.canvas.coords(shell_item_2, centerX, centerY,
-                            10 * math.cos(-shellDir) + centerX,
-                            10 * math.sin(-shellDir) + centerY)
+                            d.scale * 10 * math.cos(-shellDir) + centerX,
+                            d.scale * 10 * math.sin(-shellDir) + centerY)
 
         # remove explosion widgets viewer has but are not on server.
         for k in list(d.explWidgets.keys()):
