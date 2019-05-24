@@ -100,6 +100,32 @@ class SrvData():
             }
         }
 
+
+    def getConfValue(self, fld, c="default"):
+        """
+        Use this function to get values from SrvData.conf. 
+        It ensures that the correct default or class value is used.
+
+        This function only works if self.conf['classes']['default'] == {}.
+        If the default class is empty then this function will return values from
+        self.conf[fld] for robots in the default class.
+
+        Example Use: 
+            value = d.getConfValue('botMaxSpeed',bot['class'])
+        
+        Pseudocode:
+            if class specific value exists then
+                return class specific value (override the default value)
+            else
+                return the default value
+        """
+
+        value = self.conf[fld]  # default value
+        if 'classes' in self.conf and c in self.conf['classes'] and fld in self.conf['classes'][c]:
+            value = self.conf['classes'][c][fld]  # class specific value
+        return value
+
+
     state = {
         # Dynamic vars
         'gameNumber': 0,
