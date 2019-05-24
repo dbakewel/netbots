@@ -546,23 +546,13 @@ def step(d):
             overlap = findOverlapingBotsAndObstacles(d, d.bots)
             
             if not overlap:
-                collision_to_speed_a = abs(b['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
-                hit_dmg = b['currentSpeed'] * math.cos(collision_to_speed_a) / 20
-                b['hitDamage'] = hit_dmg
-                
-            if not overlap:
-    
                 if d.conf['advancedCollisions']:
-                    # find the angle between the direction vector and the vector towards the point of collision
-                    collision_to_speed_a1 = abs(b1['currentDirection'] - a)
-                    collision_to_speed_a2 = abs(b2['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
-                    hit_dmg = b1['currentSpeed'] * math.cos(collision_to_speed_a1) / 20 +\
-                              b2['currentSpeed'] * math.cos(collision_to_speed_a2) / 20
-                    b1['hitDamage'] = hit_dmg
-                    b2['hitDamage'] = hit_dmg
+                    collision_to_speed_a = abs(b['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
+                    hit_dmg = b['currentSpeed'] * math.cos(collision_to_speed_a) / 20
+                    b['hitDamage'] = hit_dmg
+                 
                 else:
-                    b1['hitDamage'] = 1
-                    b2['hitDamage'] = 1
+                    b['hitDamage'] = 1
                     
         # detect if bots hit other bots, if the did move them so they are just barely not touching,
         overlap = findOverlapingBots(d, d.bots)
@@ -831,7 +821,7 @@ def main():
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
                         default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
-    parser.add_argument('-advancedcollision', dest='advancedCollision', action='store_true',
+    parser.add_argument('-advancedcollisions', dest='advancedCollisions', action='store_true',
                         default=False, help='Uses the advanced collision system, affected by -hitdamage')
     args = parser.parse_args()
 
@@ -857,7 +847,7 @@ def main():
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
     d.conf['startPermutations'] = args.startPermutations
     d.conf['noViewers'] = args.noViewers
-    d.conf['advancedCollision'] = args.advancedCollision
+    d.conf['advancedCollisions'] = args.advancedCollisions
     
     mkStartLocations(d)
 
