@@ -2,6 +2,7 @@ import argparse
 import time
 import signal
 import tkinter as t
+import random
 
 from netbots_log import log
 from netbots_log import setLogLevel
@@ -251,6 +252,8 @@ def main():
                         default='127.0.0.1', help='Server IP Address')
     parser.add_argument('-sp', metavar='Server Port', dest='serverPort', type=int, nargs='?',
                         default=20000, help='Server port number')
+    parser.add_argument('-randcolors', dest='randomColors', action='store_true',
+                        default=False, help='Randomizes bot colors in viewer')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -264,7 +267,7 @@ def main():
 
     try:
         d.viewerSocket = nbipc.NetBotSocket(args.myIP, args.myPort, d.srvIP, d.srvPort)
-        reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'})
+        reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'}, retries=60, delay=1, delayMultiplier=1)
         d.conf = reply['conf']
         log("Server Configuration: " + str(d.conf), "VERBOSE")
     except Exception as e:
@@ -272,7 +275,10 @@ def main():
         quit()
 
     log("Server registration successful. Opening Window.")
-
+    
+    if args.randomColors:
+        random.shuffle(d.colors)
+        
     openWindow(d)
 
 

@@ -266,7 +266,7 @@ def findOverlapingBots(d, bots):
         if 'health' not in boti or boti['health'] is not 0:
             for j in range(i + 1, len(keys)):
                 botj = bots[keys[j]]
-                if 'health' not in boti or botj['health'] is not 0:
+                if 'health' not in botj or botj['health'] is not 0:
                     if nbmath.distance(boti['x'], boti['y'], botj['x'], botj['y']) <= d.conf['botRadius'] * 2:
                         return [keys[i], keys[j]]
 
