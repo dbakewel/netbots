@@ -32,6 +32,7 @@ class SrvData():
         # Amount of time server targets for each step. Server will sleep if game is running faster than this.
         'stepSec': 0.05,
         'startPermutations':  False,  # Use all permutations of each set of random start locations.
+        'advancedCollisions': False,  # Use advanced collision, affected by -hitdamage
 
         # Messaging
         'dropRate': 11,  # Drop a messages every N messages. Best to use primes.
@@ -511,17 +512,22 @@ def step(d):
     
             if not hit_spot == "":
                 
-                if hit_spot == "left":
-                    collision_to_speed_a = abs(bot['currentDirection'] - math.pi)
-                elif hit_spot == "right":
-                    collision_to_speed_a = bot['currentDirection']
-                elif hit_spot == "top":
-                    collision_to_speed_a = abs(bot['currentDirection'] - math.pi / 2)
-                elif hit_spot == "bottom":
-                    collision_to_speed_a = abs(bot['currentDirection'] - math.pi * 3 / 2)
-        
-                hit_dmg = bot['currentSpeed'] * math.cos(collision_to_speed_a) / 20
-                bot['hitDamage'] = hit_dmg
+                if d.conf['advancedCollisions']:
+                    
+                    if hit_spot == "left":
+                        collision_to_speed_a = abs(bot['currentDirection'] - math.pi)
+                    elif hit_spot == "right":
+                        collision_to_speed_a = bot['currentDirection']
+                    elif hit_spot == "top":
+                        collision_to_speed_a = abs(bot['currentDirection'] - math.pi / 2)
+                    elif hit_spot == "bottom":
+                        collision_to_speed_a = abs(bot['currentDirection'] - math.pi * 3 / 2)
+            
+                    hit_dmg = bot['currentSpeed'] * math.cos(collision_to_speed_a) / 20
+                    bot['hitDamage'] = hit_dmg
+                    
+                else:
+                    bot['hitDamage'] = 1
 
         # detect if bots hit obstacles, if the did move them so they are just barely not touching,
         overlap = findOverlapingBotsAndObstacles(d, d.bots)
@@ -545,14 +551,19 @@ def step(d):
                 b['hitDamage'] = hit_dmg
                 
             if not overlap:
-                # find the angle between the direction vector and the vector towards the point of collision
-                collision_to_speed_a1 = abs(b1['currentDirection'] - a)
-                collision_to_speed_a2 = abs(b2['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
-                hit_dmg = b1['currentSpeed'] * math.cos(collision_to_speed_a1) / 20 +\
-                          b2['currentSpeed'] * math.cos(collision_to_speed_a2) / 20
-                b1['hitDamage'] = hit_dmg
-                b2['hitDamage'] = hit_dmg
-
+    
+                if d.conf['advancedCollisions']:
+                    # find the angle between the direction vector and the vector towards the point of collision
+                    collision_to_speed_a1 = abs(b1['currentDirection'] - a)
+                    collision_to_speed_a2 = abs(b2['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
+                    hit_dmg = b1['currentSpeed'] * math.cos(collision_to_speed_a1) / 20 +\
+                              b2['currentSpeed'] * math.cos(collision_to_speed_a2) / 20
+                    b1['hitDamage'] = hit_dmg
+                    b2['hitDamage'] = hit_dmg
+                else:
+                    b1['hitDamage'] = 1
+                    b2['hitDamage'] = 1
+                    
         # detect if bots hit other bots, if the did move them so they are just barely not touching,
         overlap = findOverlapingBots(d, d.bots)
         while overlap:
@@ -568,15 +579,27 @@ def step(d):
             b1['x'], b1['y'] = nbmath.project(b1['x'], b1['y'], a + math.pi, distance)
             b2['x'], b2['y'] = nbmath.project(b2['x'], b2['y'], a, distance)
             # record damage and check for more bots overlapping
-            b1['hitDamage'] = True
-            b2['hitDamage'] = True
             overlap = findOverlapingBots(d, d.bots)
+            
+            if not overlap:
+                
+                if d.conf['advancedCollisions']:
+                    # find the angle between the direction vector and the vector towards the point of collision
+                    collision_to_speed_a1 = abs(b1['currentDirection'] - a)
+                    collision_to_speed_a2 = abs(b2['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
+                    hit_dmg = b1['currentSpeed'] * math.cos(collision_to_speed_a1) / 20 +\
+                              b2['currentSpeed'] * math.cos(collision_to_speed_a2) / 20
+                    b1['hitDamage'] = hit_dmg
+                    b2['hitDamage'] = hit_dmg
+                else:
+                    b1['hitDamage'] = 1
+                    b2['hitDamage'] = 1
 
     # give damage (only once this step) to bots that hit things. Also stop them.
     for src, bot in d.bots.items():
         if 'hitDamage' in bot:
+            bot['health'] = max(0, bot['health'] - bot['hitDamage'] * d.conf['hitDamage'])
             del bot['hitDamage']
-            bot['health'] = max(0, bot['health'] - d.conf['hitDamage'])
             bot['currentSpeed'] = 0
             bot['requestedSpeed'] = 0
 
@@ -808,6 +831,8 @@ def main():
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
                         default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
+    parser.add_argument('-advancedcollision', dest='advancedCollision', action='store_true',
+                        default=False, help='Uses the advanced collision system, affected by -hitdamage')
     args = parser.parse_args()
 
     setLogLevel(args.debug, args.verbose)
@@ -832,6 +857,7 @@ def main():
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
     d.conf['startPermutations'] = args.startPermutations
     d.conf['noViewers'] = args.noViewers
+    d.conf['advancedCollision'] = args.advancedCollision
     
     mkStartLocations(d)
 
