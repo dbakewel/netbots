@@ -113,7 +113,10 @@ def checkForUpdates(d):
         for src in msg['shells']:
             if not src in d.shellWidgets:
                 c = d.canvas.itemcget(d.botWidgets[src], 'fill')
-                d.shellWidgets[src] = [d.canvas.create_line(0, 0, 0, 0, width=2, arrow=t.LAST, fill=c), d.canvas.create_line(0, 0, 0, 0, width=2, fill=c)]
+                d.shellWidgets[src] = [
+                    d.canvas.create_line(0, 0, 0, 0, width=2, arrow=t.LAST, fill=c),
+                    d.canvas.create_line(0, 0, 0, 0, width=2, fill=c)
+                    ]
 
         # update location of shell widgets
         for src in d.shellWidgets:
