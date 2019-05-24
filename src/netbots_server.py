@@ -460,10 +460,7 @@ def step(d):
 
     # for all bots that are alive
     for src, bot in d.bots.items():
-        if d.conf['allowClasses'] == True:
-            botClass = d.conf['classes'][bot['class']]
-        else:
-            botClass = d.conf['classes']['default']
+        botClass = d.conf['classes'][bot['class']]
         if src in aliveBots:
             # change speed if needed
             if bot['currentSpeed'] > bot['requestedSpeed']:
@@ -613,10 +610,7 @@ def step(d):
             if shell['distanceRemaining'] <= 0:
                 # apply damage to bots.
                 for k, bot in d.bots.items():
-                    if d.conf['allowClasses'] == True and bot['class'] in d.conf['classes']:
-                        botClass = d.conf['classes'][bot['class']]
-                    else:
-                        botClass = d.conf['classes']['default']
+                    botClass = d.conf['classes'][bot['class']]
                     if bot['health'] > 0:
                         distance = nbmath.distance(bot['x'], bot['y'], shell['x'], shell['y'])
                         if distance < d.conf['explRadius']:
