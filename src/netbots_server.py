@@ -93,7 +93,7 @@ class SrvData:
                 # Speeds and Rates of Change
                 'botMaxSpeed': 7,  # bots distance traveled per step at 100% speed
                 'botAccRate': 2.5,  # Amount in % bot can accelerate (or decelerate) per step
-                'botMinTurnRate': math.pi / 500,  # Amount bot can rotate per turn in radians at 100% speed
+                'botMinTurnRate': math.pi / 5000,  # Amount bot can rotate per turn in radians at 100% speed
                 'botMaxTurnRate': math.pi / 30,  # Amount bot can rotate per turn in radians at 0% speed
                 'botArmor': 1.33
                 }
