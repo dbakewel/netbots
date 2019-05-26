@@ -818,6 +818,8 @@ def main():
                         default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int,
                         default=0, help='How many jam zones does the arena have.')
+    parser.add_argument('-allowClasses', dest='allowClasses', action='store_true',
+                        default=False, help='Allow robots to specify a class other than default.')
     parser.add_argument('-startperms', dest='startPermutations', action='store_true',
                         default=False, help='Use all permutations of each set of random start locations.')
     parser.add_argument('-noviewers', dest='noViewers', action='store_true',
@@ -826,8 +828,6 @@ def main():
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
                         default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
-    parser.add_argument('-allowClasses', dest='allowClasses', action='store_true',
-                        default=False, help='Allow classes system or not')
     args = parser.parse_args()
 
     setLogLevel(args.debug, args.verbose)
