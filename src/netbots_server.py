@@ -55,7 +55,7 @@ class SrvData():
         'botMaxTurnRate': math.pi / 50,  # Amount bot can rotate per turn in radians at 0% speed
 
         # Damage
-        'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot.
+        'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot
         # Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
         'explDamage': 10,
         'botArmor': 1.0,  # Damage multiplier
