@@ -72,7 +72,7 @@ class SrvData:
         'keepExplosionSteps': 10,  # Number of steps to keep old explosions in explosion dict (only useful to viewers).
         
         # Robot Classes (values below override what's above for robots in that class)
-        'allowClasses': False,
+        'allowClasses': False,  # Use the class system
         # Only fields listed in classFields are allowed to be overwritten by classes.
         'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor'),
         'classes': {
@@ -904,7 +904,6 @@ def main():
     log("Server Name: " + d.conf['serverName'])
     log("Server Version: " + d.conf['serverVersion'])
     log("Argument List:" + str(sys.argv))
-
     log("Server Configuration: " + str(d.conf), "VERBOSE")
 
     try:
