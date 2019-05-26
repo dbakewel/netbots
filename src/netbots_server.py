@@ -594,7 +594,7 @@ def step(d):
     for src, bot in d.bots.items():
         if 'hitDamage' in bot:
             del bot['hitDamage']
-            bot['health'] = max(0, bot['health'] - d.conf['hitDamage'])
+            bot['health'] = max(0, bot['health'] - d.conf['hitDamage'] * d.getClassValue('botArmor', bot['class']))
             bot['currentSpeed'] = 0
             bot['requestedSpeed'] = 0
 
