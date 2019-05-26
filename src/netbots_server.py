@@ -85,7 +85,7 @@ class SrvData():
                 'botAccRate': 1.1,  # Amount in % bot can accelerate (or decelerate) per step
                 'botMinTurnRate': math.pi / 6500,  # Amount bot can rotate per turn in radians at 100% speed
                 'botMaxTurnRate': math.pi / 150,  # Amount bot can rotate per turn in radians at 0% speed
-                'botArmor': 0.77,
+                'botArmor': 0.77
                 },
             
             'light': {
@@ -94,7 +94,7 @@ class SrvData():
                 'botAccRate': 2.5,  # Amount in % bot can accelerate (or decelerate) per step
                 'botMinTurnRate': math.pi / 500,  # Amount bot can rotate per turn in radians at 100% speed
                 'botMaxTurnRate': math.pi / 30,  # Amount bot can rotate per turn in radians at 0% speed
-                'botArmor': 1.33,
+                'botArmor': 1.33
                 }
             }
         }
