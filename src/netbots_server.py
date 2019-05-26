@@ -59,6 +59,7 @@ class SrvData():
         'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot
         # Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
         'explDamage': 10,
+        'botArmor': 1.0,  # Damage multiplier
 
         # Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
         'obstacles': [],  # Obstacles of form [{'x':float,'y':float,'radius':float},...]
@@ -69,6 +70,34 @@ class SrvData():
 
         # Misc
         'keepExplosionSteps': 10,  # Number of steps to keep old explosions in explosion dict (only useful to viewers).
+        
+        #Robot Classes (values below override what's above for robots in that class)
+        'allowClasses': False,
+        #Only fields listed in classFields are allowed to be overwritten by classes.
+        'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor'),
+        'classes': {
+            'default': {
+                #no changes to values above.
+                },
+                
+            'heavy': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 3.5,  # bots distance traveled per step at 100% speed
+                'botAccRate': 1.1,  # Amount in % bot can accelerate (or decelerate) per step
+                'botMinTurnRate': math.pi / 6500,  # Amount bot can rotate per turn in radians at 100% speed
+                'botMaxTurnRate': math.pi / 150,  # Amount bot can rotate per turn in radians at 0% speed
+                'botArmor': 0.77
+                },
+            
+            'light': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 7,  # bots distance traveled per step at 100% speed
+                'botAccRate': 2.5,  # Amount in % bot can accelerate (or decelerate) per step
+                'botMinTurnRate': math.pi / 500,  # Amount bot can rotate per turn in radians at 100% speed
+                'botMaxTurnRate': math.pi / 30,  # Amount bot can rotate per turn in radians at 0% speed
+                'botArmor': 1.33
+                }
+            }
         }
 
     state = {
@@ -96,6 +125,7 @@ class SrvData():
     bots = {}
     botTemplate = {
         'name': "template",
+        'class': "default",
         'health': 0,
         'x': 500,
         'y': 500,
@@ -132,6 +162,22 @@ class SrvData():
         'ip': "0.0.0.0",
         'port': 20011
         }
+
+
+    def getClassValue(self, fld, c="default"):
+        """
+        Use this function to get values from SrvData.conf that respect robot class. 
+        It ensures that the correct default or class value is returned. Only certain fields
+        in SrvData.conf are allowed to be overwritten with class values.
+        """
+        if fld not in self.conf['classFields']:
+            raise Exception("ERROR, " + str(fld) + " not allowed in robot class.")
+
+        value = self.conf[fld]  # default value
+        if 'classes' in self.conf and c in self.conf['classes'] and fld in self.conf['classes'][c]:
+            value = self.conf['classes'][c][fld]  # class specific value
+        
+        return value
 
 ########################################################
 # Bot Message Processing
@@ -433,11 +479,11 @@ def step(d):
         if src in aliveBots:
             # change speed if needed
             if bot['currentSpeed'] > bot['requestedSpeed']:
-                bot['currentSpeed'] -= d.conf['botAccRate']
+                bot['currentSpeed'] -= d.getClassValue('botAccRate', bot['class'])
                 if bot['currentSpeed'] < bot['requestedSpeed']:
                     bot['currentSpeed'] = bot['requestedSpeed']
             elif bot['currentSpeed'] < bot['requestedSpeed']:
-                bot['currentSpeed'] += d.conf['botAccRate']
+                bot['currentSpeed'] += d.getClassValue('botAccRate', bot['class'])
                 if bot['currentSpeed'] > bot['requestedSpeed']:
                     bot['currentSpeed'] = bot['requestedSpeed']
 
@@ -448,8 +494,10 @@ def step(d):
                     bot['currentDirection'] = bot['requestedDirection']
                 else:
                     # how much can we turn at the speed we are going?
-                    turnRate = d.conf['botMinTurnRate'] + \
-                        (d.conf['botMaxTurnRate'] - d.conf['botMinTurnRate']) * (1 - bot['currentSpeed'] / 100)
+                    turnRate = d.getClassValue('botMinTurnRate', bot['class']) \
+                        + ( d.getClassValue('botMaxTurnRate', bot['class']) \
+                        -   d.getClassValue('botMinTurnRate', bot['class']) ) \
+                        * (1 - bot['currentSpeed'] / 100)
 
                     # if turn is negative and does not pass over 0 radians
                     if bot['currentDirection'] > bot['requestedDirection'] and \
@@ -481,8 +529,8 @@ def step(d):
             # move bot
             if bot['currentSpeed'] != 0:
                 bot['x'], bot['y'] = nbmath.project(bot['x'], bot['y'],
-                                                    bot['currentDirection'],
-                                                    bot['currentSpeed'] / 100.0 * d.conf['botMaxSpeed'])
+                                        bot['currentDirection'],
+                                        bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']))
 
     # do until we get one clean pass where no bot hitting wall, obstacle or other bot.
     foundOverlap = True
@@ -588,7 +636,7 @@ def step(d):
     # give damage (only once this step) to bots that hit things. Also stop them.
     for src, bot in d.bots.items():
         if 'hitDamage' in bot:
-            bot['health'] = max(0, bot['health'] - bot['hitDamage'] * d.conf['hitDamage'])
+            bot['health'] = max(0, bot['health'] - bot['hitDamage'] * d.conf['hitDamage'] * d.getClassValue('botArmor', bot['class']))
             del bot['hitDamage']
             bot['currentSpeed'] = 0
             bot['requestedSpeed'] = 0
@@ -625,7 +673,7 @@ def step(d):
                         distance = nbmath.distance(bot['x'], bot['y'], shell['x'], shell['y'])
                         if distance < d.conf['explRadius']:
                             damage = d.conf['explDamage'] * (1 - distance / d.conf['explRadius'])
-                            bot['health'] = max(0, bot['health'] - damage)
+                            bot['health'] = max(0, bot['health'] - (damage * d.getClassValue('botArmor', bot['class'])))
                             # allow recording of inflicting damage that is greater than health of hit robot.
                             # also record damage to oneself.
                             d.bots[src]['shellDamage'] += damage
@@ -813,6 +861,8 @@ def main():
                         default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int,
                         default=0, help='How many jam zones does the arena have.')
+    parser.add_argument('-allowClasses', dest='allowClasses', action='store_true',
+                        default=False, help='Allow robots to specify a class other than default.')
     parser.add_argument('-startperms', dest='startPermutations', action='store_true',
                         default=False, help='Use all permutations of each set of random start locations.')
     parser.add_argument('-noviewers', dest='noViewers', action='store_true',
@@ -848,12 +898,14 @@ def main():
     d.conf['startPermutations'] = args.startPermutations
     d.conf['noViewers'] = args.noViewers
     d.conf['advancedCollisions'] = args.advancedCollisions
+    d.conf['allowClasses'] = args.allowClasses
     
     mkStartLocations(d)
 
     log("Server Name: " + d.conf['serverName'])
     log("Server Version: " + d.conf['serverVersion'])
     log("Argument List:" + str(sys.argv))
+
     log("Server Configuration: " + str(d.conf), "VERBOSE")
 
     try:
