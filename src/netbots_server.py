@@ -860,8 +860,8 @@ def main():
                         default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int,
                         default=0, help='How many jam zones does the arena have.')
-    parser.add_argument('-allowClasses', dest='allowClasses', action='store_true',
-                        default=False, help='Allow robots to specify a class other than default.')
+    parser.add_argument('-allowclasses', dest='allowClasses', action='store_true',
+                        default=False, help='Allows robots to choose a class, changing their mobility and damage taken.')
     parser.add_argument('-startperms', dest='startPermutations', action='store_true',
                         default=False, help='Use all permutations of each set of random start locations.')
     parser.add_argument('-noviewers', dest='noViewers', action='store_true',
