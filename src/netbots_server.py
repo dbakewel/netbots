@@ -748,7 +748,7 @@ def main():
                         default=11, help='Drop over nth message, best to use primes. 0 == no drop.')
     parser.add_argument('-msgperstep', metavar='int', dest='botMsgsPerStep', type=int,
                         default=4, help='Number of msgs from a bot that server will respond to each step.')
-    parser.add_argument('-arenasize', metavar='int', dest='arenaSize', type=int,
+    parser.add_argument('-arenasize', choices=range(100, 32767), metavar='[100-32767]', dest='arenaSize', type=int,
                         default=1000, help='Size of arena.')
     parser.add_argument('-botradius', metavar='int', dest='botRadius', type=int,
                         default=25, help='Radius of robots.')
