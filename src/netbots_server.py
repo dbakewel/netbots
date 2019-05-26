@@ -17,7 +17,7 @@ import netbots_math as nbmath
 ########################################################
 
 
-class SrvData():
+class SrvData:
     srvSocket = None
 
     conf = {
@@ -71,13 +71,13 @@ class SrvData():
         # Misc
         'keepExplosionSteps': 10,  # Number of steps to keep old explosions in explosion dict (only useful to viewers).
         
-        #Robot Classes (values below override what's above for robots in that class)
+        # Robot Classes (values below override what's above for robots in that class)
         'allowClasses': False,
-        #Only fields listed in classFields are allowed to be overwritten by classes.
+        # Only fields listed in classFields are allowed to be overwritten by classes.
         'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor'),
         'classes': {
             'default': {
-                #no changes to values above.
+                # no changes to values above.
                 },
                 
             'heavy': {
@@ -109,7 +109,7 @@ class SrvData():
         'serverSteps': 0,  # Number of steps server has processed.
         'stepTime': 0,  # Total time spent process steps
         'msgTime': 0,  # Total time spent processing messages
-        'viewerMsgTime': 0, # Total time spend sending information to the viewer
+        'viewerMsgTime': 0,  # Total time spend sending information to the viewer
         'startTime': time.time(),
         'explIndex': 0,
         'sleepTime': 0,
@@ -162,7 +162,6 @@ class SrvData():
         'ip': "0.0.0.0",
         'port': 20011
         }
-
 
     def getClassValue(self, fld, c="default"):
         """
