@@ -55,9 +55,9 @@ class SrvData():
         'botMaxTurnRate': math.pi / 50,  # Amount bot can rotate per turn in radians at 0% speed
 
         # Damage
-        'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot
-        # Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
-        'explDamage': 10,
+        'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot.
+        'explDamage': 10,  # Damage bot inflicts on enemy from direct hit from its shell.
+        'botArmor': 1.0,  # Damage multiplier
 
         # Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
         'obstacles': [],  # Obstacles of form [{'x':float,'y':float,'radius':float},...]
@@ -69,15 +69,13 @@ class SrvData():
         # Misc
         'keepExplosionSteps': 10,  # Number of steps to keep old explosions in explosion dict (only useful to viewers).
         
+        #Robot Classes (values below override what's above for robots in that class)
         'allowClasses': False,
+        #Only fields listed in classFields are allowed to be overwritten by classes.
+        'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor'),
         'classes': {
             'default': {
-                # Speeds and Rates of Change
-                'botMaxSpeed': 5,  # bots distance traveled per step at 100% speed
-                'botAccRate': 2.0,  # Amount in % bot can accelerate (or decelerate) per step
-                'botMinTurnRate': math.pi / 6000,  # Amount bot can rotate per turn in radians at 100% speed
-                'botMaxTurnRate': math.pi / 50,  # Amount bot can rotate per turn in radians at 0% speed
-                'dmgTaken': 1.0,
+                #no changes to values above.
                 },
                 
             'heavy': {
@@ -86,7 +84,7 @@ class SrvData():
                 'botAccRate': 1.1,  # Amount in % bot can accelerate (or decelerate) per step
                 'botMinTurnRate': math.pi / 6500,  # Amount bot can rotate per turn in radians at 100% speed
                 'botMaxTurnRate': math.pi / 150,  # Amount bot can rotate per turn in radians at 0% speed
-                'dmgTaken': 0.77,
+                'botArmor': 0.77,
                 },
             
             'light': {
@@ -95,36 +93,10 @@ class SrvData():
                 'botAccRate': 2.5,  # Amount in % bot can accelerate (or decelerate) per step
                 'botMinTurnRate': math.pi / 500,  # Amount bot can rotate per turn in radians at 100% speed
                 'botMaxTurnRate': math.pi / 30,  # Amount bot can rotate per turn in radians at 0% speed
-                'dmgTaken': 1.33,
+                'botArmor': 1.33,
                 }
             }
         }
-
-
-    def getConfValue(self, fld, c="default"):
-        """
-        Use this function to get values from SrvData.conf. 
-        It ensures that the correct default or class value is used.
-
-        This function only works if self.conf['classes']['default'] == {}.
-        If the default class is empty then this function will return values from
-        self.conf[fld] for robots in the default class.
-
-        Example Use: 
-            value = d.getConfValue('botMaxSpeed',bot['class'])
-        
-        Pseudocode:
-            if class specific value exists then
-                return class specific value (override the default value)
-            else
-                return the default value
-        """
-
-        value = self.conf[fld]  # default value
-        if 'classes' in self.conf and c in self.conf['classes'] and fld in self.conf['classes'][c]:
-            value = self.conf['classes'][c][fld]  # class specific value
-        return value
-
 
     state = {
         # Dynamic vars
@@ -188,6 +160,22 @@ class SrvData():
         'ip': "0.0.0.0",
         'port': 20011
         }
+
+
+    def getClassValue(self, fld, c="default"):
+        """
+        Use this function to get values from SrvData.conf that respect robot class. 
+        It ensures that the correct default or class value is returned. Only certain fields
+        in SrvData.conf are allowed to be overwritten with class values.
+        """
+        if fld not in self.conf['classFields']:
+            raise Exception("ERROR, " + str(fld) + " not allowed in robot class.")
+
+        value = self.conf[fld]  # default value
+        if 'classes' in self.conf and c in self.conf['classes'] and fld in self.conf['classes'][c]:
+            value = self.conf['classes'][c][fld]  # class specific value
+        
+        return value
 
 ########################################################
 # Bot Message Processing
@@ -486,15 +474,14 @@ def step(d):
 
     # for all bots that are alive
     for src, bot in d.bots.items():
-        botClass = d.conf['classes'][bot['class']]
         if src in aliveBots:
             # change speed if needed
             if bot['currentSpeed'] > bot['requestedSpeed']:
-                bot['currentSpeed'] -= botClass['botAccRate']
+                bot['currentSpeed'] -= d.getClassValue('botAccRate', bot['class'])
                 if bot['currentSpeed'] < bot['requestedSpeed']:
                     bot['currentSpeed'] = bot['requestedSpeed']
             elif bot['currentSpeed'] < bot['requestedSpeed']:
-                bot['currentSpeed'] += botClass['botAccRate']
+                bot['currentSpeed'] += d.getClassValue('botAccRate', bot['class'])
                 if bot['currentSpeed'] > bot['requestedSpeed']:
                     bot['currentSpeed'] = bot['requestedSpeed']
 
@@ -505,8 +492,10 @@ def step(d):
                     bot['currentDirection'] = bot['requestedDirection']
                 else:
                     # how much can we turn at the speed we are going?
-                    turnRate = botClass['botMinTurnRate'] + \
-                        (botClass['botMaxTurnRate'] - botClass['botMinTurnRate']) * (1 - bot['currentSpeed'] / 100)
+                    turnRate = d.getClassValue('botMinTurnRate', bot['class']) \
+                        + ( d.getClassValue('botMaxTurnRate', bot['class']) \
+                        -   d.getClassValue('botMinTurnRate', bot['class']) ) \
+                        * (1 - bot['currentSpeed'] / 100)
 
                     # if turn is negative and does not pass over 0 radians
                     if bot['currentDirection'] > bot['requestedDirection'] and \
@@ -538,8 +527,8 @@ def step(d):
             # move bot
             if bot['currentSpeed'] != 0:
                 bot['x'], bot['y'] = nbmath.project(bot['x'], bot['y'],
-                                                    bot['currentDirection'],
-                                                    bot['currentSpeed'] / 100.0 * botClass['botMaxSpeed'])
+                                        bot['currentDirection'],
+                                        bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']))
 
     # do until we get one clean pass where no bot hitting wall, obstacle or other bot.
     foundOverlap = True
@@ -636,12 +625,11 @@ def step(d):
             if shell['distanceRemaining'] <= 0:
                 # apply damage to bots.
                 for k, bot in d.bots.items():
-                    botClass = d.conf['classes'][bot['class']]
                     if bot['health'] > 0:
                         distance = nbmath.distance(bot['x'], bot['y'], shell['x'], shell['y'])
                         if distance < d.conf['explRadius']:
                             damage = d.conf['explDamage'] * (1 - distance / d.conf['explRadius'])
-                            bot['health'] = max(0, bot['health'] - (damage * botClass['dmgTaken']))
+                            bot['health'] = max(0, bot['health'] - (damage * d.getClassValue('botArmor', bot['class'])))
                             # allow recording of inflicting damage that is greater than health of hit robot.
                             # also record damage to oneself.
                             d.bots[src]['shellDamage'] += damage
