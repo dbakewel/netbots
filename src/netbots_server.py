@@ -56,7 +56,8 @@ class SrvData():
 
         # Damage
         'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot.
-        'explDamage': 10,  # Damage bot inflicts on enemy from direct hit from its shell.
+        # Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
+        'explDamage': 10,
         'botArmor': 1.0,  # Damage multiplier
 
         # Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
