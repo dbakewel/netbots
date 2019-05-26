@@ -147,10 +147,12 @@ def scanRequest(d, msg, src):
                 if not jammed:
                     dis = nbmath.contains(bot['x'], bot['y'], msg['startRadians'],
                                           msg['endRadians'], bot2['x'], bot2['y'])
-                    if dis != 0 and distance == 0:
-                        distance = dis
-                    elif dis != 0 and dis < distance:
-                        distance = dis
+                    
+                    if dis <= d.conf['scanMaxDistance'] and dis != 0:
+                        if distance == 0:
+                            distance = dis
+                        elif dis < distance:
+                            distance = dis
 
         return {
             'type': "scanReply",
