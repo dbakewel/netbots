@@ -570,7 +570,8 @@ def step(d):
                     elif hit_spot == "bottom":
                         collision_to_speed_a = abs(bot['currentDirection'] - math.pi * 3 / 2)
             
-                    hit_dmg = bot['currentSpeed'] * math.cos(collision_to_speed_a) / 20
+                    hit_dmg = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class'])\
+                              * math.cos(collision_to_speed_a)
                     bot['hitDamage'] = hit_dmg
                     
                 else:
@@ -595,7 +596,8 @@ def step(d):
             if not overlap:
                 if d.conf['advancedCollisions']:
                     collision_to_speed_a = abs(b['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
-                    hit_dmg = b['currentSpeed'] * math.cos(collision_to_speed_a) / 20
+                    hit_dmg = b['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', b['class'])\
+                              * math.cos(collision_to_speed_a)
                     b['hitDamage'] = hit_dmg
                  
                 else:
@@ -624,8 +626,9 @@ def step(d):
                     # find the angle between the direction vector and the vector towards the point of collision
                     collision_to_speed_a1 = abs(b1['currentDirection'] - a)
                     collision_to_speed_a2 = abs(b2['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
-                    hit_dmg = b1['currentSpeed'] * math.cos(collision_to_speed_a1) / 20 +\
-                              b2['currentSpeed'] * math.cos(collision_to_speed_a2) / 20
+                    hit_dmg = b1['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', b1['class'])\
+                              * math.cos(collision_to_speed_a1) + b2['currentSpeed'] / 100.0\
+                              * d.getClassValue('botMaxSpeed', b2['class']) * math.cos(collision_to_speed_a2)
                     b1['hitDamage'] = hit_dmg
                     b2['hitDamage'] = hit_dmg
                 else:
