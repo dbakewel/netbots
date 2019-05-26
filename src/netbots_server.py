@@ -32,6 +32,7 @@ class SrvData():
         # Amount of time server targets for each step. Server will sleep if game is running faster than this.
         'stepSec': 0.05,
         'startPermutations':  False,  # Use all permutations of each set of random start locations.
+        'scanMaxDistance': 1415,  # Maximum distance a robot can scan and find another robot at
 
         # Messaging
         'dropRate': 11,  # Drop a messages every N messages. Best to use primes.
@@ -748,7 +749,7 @@ def main():
                         default=11, help='Drop over nth message, best to use primes. 0 == no drop.')
     parser.add_argument('-msgperstep', metavar='int', dest='botMsgsPerStep', type=int,
                         default=4, help='Number of msgs from a bot that server will respond to each step.')
-    parser.add_argument('-arenasize', choices=range(100, 32767), metavar='[100-32767]', dest='arenaSize', type=int,
+    parser.add_argument('-arenasize', choices=range(100, 32767), metavar='100-32767', dest='arenaSize', type=int,
                         default=1000, help='Size of arena.')
     parser.add_argument('-botradius', metavar='int', dest='botRadius', type=int,
                         default=25, help='Radius of robots.')
@@ -774,6 +775,8 @@ def main():
                         default=False, help='Use all permutations of each set of random start locations.')
     parser.add_argument('-noviewers', dest='noViewers', action='store_true',
                         default=False, help='Do not allow viewers.')
+    parser.add_argument('-scanmaxdistance', metavar='int', dest='scanMaxDistance', type=int,
+                        default=1415, help='Max distance scans can find a robot at')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -801,6 +804,7 @@ def main():
     d.conf['obstacles'] = mkObstacles(d, args.obstacles)
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
     d.conf['startPermutations'] = args.startPermutations
+    d.conf['scanMaxDistance'] = args.scanMaxDistance
     d.conf['noViewers'] = args.noViewers
     
     mkStartLocations(d)
