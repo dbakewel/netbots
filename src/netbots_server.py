@@ -720,6 +720,21 @@ def logScoreBoard(d):
 ########################################################
 
 
+class Range(argparse.Action):
+    def __init__(self, min=None, max=None, *args, **kwargs):
+        self.min = min
+        self.max = max
+        kwargs["metavar"] = "%d-%d" % (self.min, self.max)
+        super(Range, self).__init__(*args, **kwargs)
+
+    def __call__(self, parser, namespace, value, option_string=None):
+        if not (self.min <= value <= self.max):
+            msg = 'invalid choice: %r (choose from [%d-%d])' % \
+                (value, self.min, self.max)
+            raise argparse.ArgumentError(self, msg)
+        setattr(namespace, self.dest, value)
+        
+
 def quit(signal=None, frame=None):
     log("Quiting", "INFO")
     exit()
@@ -749,7 +764,7 @@ def main():
                         default=11, help='Drop over nth message, best to use primes. 0 == no drop.')
     parser.add_argument('-msgperstep', metavar='int', dest='botMsgsPerStep', type=int,
                         default=4, help='Number of msgs from a bot that server will respond to each step.')
-    parser.add_argument('-arenasize', choices=range(100, 32767), metavar='100-32767', dest='arenaSize', type=int,
+    parser.add_argument('-arenasize', dest='arenaSize', type=int, min=100, max=32767, action=Range,
                         default=1000, help='Size of arena.')
     parser.add_argument('-botradius', metavar='int', dest='botRadius', type=int,
                         default=25, help='Radius of robots.')
