@@ -78,29 +78,29 @@ class SrvData:
         'classes': {
             'default': {
                 # Speeds and Rates of Change
-                'botMaxSpeed': 1,
-                'botAccRate': 1,
-                'botMinTurnRate': 1,
-                'botMaxTurnRate': 1,
-                'botArmor': 1.00
+                'botMaxSpeed': 1,  # multiplier for bot max speed
+                'botAccRate': 1,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 1,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.00  # multiplier of robot damage taken
                 },
                 
             'heavy': {
                 # Speeds and Rates of Change
-                'botMaxSpeed': 0.7,
-                'botAccRate': 0.55,
+                'botMaxSpeed': 0.7,  # multiplier for bot max speed
+                'botAccRate': 0.55,  # multiplier for bot acceleration rate
                 'botMinTurnRate': 0.923076923,
-                'botMaxTurnRate': 3,
-                'botArmor': 0.77
+                'botMaxTurnRate': 3,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 0.77  # multiplier of robot damage taken
                 },
             
             'light': {
                 # Speeds and Rates of Change
-                'botMaxSpeed': 1.4,  # bots distance traveled per step at 100% speed
-                'botAccRate': 1.25,  # Amount in % bot can accelerate (or decelerate) per step
-                'botMinTurnRate': 1.2,  # Amount bot can rotate per turn in radians at 100% speed
-                'botMaxTurnRate': 0.6,  # Amount bot can rotate per turn in radians at 0% speed
-                'botArmor': 1.33
+                'botMaxSpeed': 1.4,  # multiplier for bot max speed
+                'botAccRate': 1.25,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1.2,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 0.6,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.33  # multiplier of robot damage taken
                 }
             }
         }
