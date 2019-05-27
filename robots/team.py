@@ -97,6 +97,8 @@ class Follower(Robot):
         mydata = self.mydata
         friendsData = self.friendsData
 
+        log(name + ": Running!")
+
         self.stop = False  # when this becomes True the run method must return.
         while not self.stop:
             try:
