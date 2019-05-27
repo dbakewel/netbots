@@ -854,7 +854,8 @@ def main():
     parser.add_argument('-shellspeed', metavar='int', dest='shellSpeed', type=int,
                         default=40, help='Distance traveled by shell per step.')
     parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int,
-                        default=1, help='Damage a robot takes from hitting wall or another bot.')
+                        default=1, help='Damage a robot takes from hitting wall or another bot. '
+                                        'When used with -advancedcollisions acts as a damage multiplier.')
     parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int,
                         default=10, help='Damage bot takes from direct hit from shell.')
     parser.add_argument('-obstacles', metavar='int', dest='obstacles', type=int,
