@@ -77,24 +77,29 @@ class SrvData:
         'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor'),
         'classes': {
             'default': {
-                # no changes to values above.
+                # Speeds and Rates of Change
+                'botMaxSpeed': 1,
+                'botAccRate': 1,
+                'botMinTurnRate': 1,
+                'botMaxTurnRate': 1,
+                'botArmor': 1.00
                 },
                 
             'heavy': {
                 # Speeds and Rates of Change
-                'botMaxSpeed': 3.5,  # bots distance traveled per step at 100% speed
-                'botAccRate': 1.1,  # Amount in % bot can accelerate (or decelerate) per step
-                'botMinTurnRate': math.pi / 6500,  # Amount bot can rotate per turn in radians at 100% speed
-                'botMaxTurnRate': math.pi / 150,  # Amount bot can rotate per turn in radians at 0% speed
+                'botMaxSpeed': 0.7,
+                'botAccRate': 0.55,
+                'botMinTurnRate': 0.923076923,
+                'botMaxTurnRate': 3,
                 'botArmor': 0.77
                 },
             
             'light': {
                 # Speeds and Rates of Change
-                'botMaxSpeed': 7,  # bots distance traveled per step at 100% speed
-                'botAccRate': 2.5,  # Amount in % bot can accelerate (or decelerate) per step
-                'botMinTurnRate': math.pi / 5000,  # Amount bot can rotate per turn in radians at 100% speed
-                'botMaxTurnRate': math.pi / 30,  # Amount bot can rotate per turn in radians at 0% speed
+                'botMaxSpeed': 1.4,  # bots distance traveled per step at 100% speed
+                'botAccRate': 1.25,  # Amount in % bot can accelerate (or decelerate) per step
+                'botMinTurnRate': 1.2,  # Amount bot can rotate per turn in radians at 100% speed
+                'botMaxTurnRate': 0.6,  # Amount bot can rotate per turn in radians at 0% speed
                 'botArmor': 1.33
                 }
             }
@@ -174,7 +179,7 @@ class SrvData:
 
         value = self.conf[fld]  # default value
         if 'classes' in self.conf and c in self.conf['classes'] and fld in self.conf['classes'][c]:
-            value = self.conf['classes'][c][fld]  # class specific value
+            value *= self.conf['classes'][c][fld]  # class specific value
         
         return value
 
@@ -494,8 +499,8 @@ def step(d):
                 else:
                     # how much can we turn at the speed we are going?
                     turnRate = d.getClassValue('botMinTurnRate', bot['class']) \
-                        + ( d.getClassValue('botMaxTurnRate', bot['class']) \
-                        -   d.getClassValue('botMinTurnRate', bot['class']) ) \
+                        + (d.getClassValue('botMaxTurnRate', bot['class']) -
+                           d.getClassValue('botMinTurnRate', bot['class'])) \
                         * (1 - bot['currentSpeed'] / 100)
 
                     # if turn is negative and does not pass over 0 radians
