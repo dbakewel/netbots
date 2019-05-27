@@ -91,7 +91,7 @@ class SrvData:
                 'botMaxSpeed': 0.7,  # multiplier for bot max speed
                 'botAccRate': 0.55,  # multiplier for bot acceleration rate
                 'botMinTurnRate': 0.923076923,
-                'botMaxTurnRate': 3,  # multiplier for bot turning rate at 0% speed
+                'botMaxTurnRate': 0.333333333,  # multiplier for bot turning rate at 0% speed
                 'botArmor': 0.77  # multiplier of robot damage taken
                 },
             
@@ -100,7 +100,7 @@ class SrvData:
                 'botMaxSpeed': 1.4,  # multiplier for bot max speed
                 'botAccRate': 1.25,  # multiplier for bot acceleration rate
                 'botMinTurnRate': 1.2,  # multiplier for bot turning rate at 100% speed
-                'botMaxTurnRate': 0.6,  # multiplier for bot turning rate at 0% speed
+                'botMaxTurnRate': 1.6666666666,  # multiplier for bot turning rate at 0% speed
                 'botArmor': 1.33  # multiplier of robot damage taken
                 }
             }
