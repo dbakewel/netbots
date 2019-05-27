@@ -1,9 +1,23 @@
+# bot_controller v1.0.0
+# a highjackable viewer that can be used to control a NetBot
+# initially designed for the Coastal Renaissance, but should be portable enough
+# for use with other NetBots.
+# Based on the official NetBots viewer
+
 import argparse
 import time
 import signal
 import tkinter as t
-import random
-import math
+import os
+import sys
+#import threading # make multiple processes instead of one big ugly one
+# import multiprocessing
+
+# NOTE: Assumes this is in the bot directory
+# comment out below lines if in the src directory
+robotpath = os.path.dirname(os.path.abspath(__file__))
+srcpath = os.path.join(os.path.dirname(robotpath),"src")
+sys.path.insert(0,srcpath)
 
 from netbots_log import log
 from netbots_log import setLogLevel
@@ -23,7 +37,7 @@ class ViewerData():
     shellWidgets = {}
     explWidgets = {}
     bigMsg = None
-    colors = ['#ACACAC','#87FFCD','#9471FF','#FF9DB6','#2ED2EB','#FA8737','#29B548','#FFBC16','#308AFF','#FF3837']
+    colors = ['red', 'green', 'blue', 'purple', 'orange', 'cyan', 'DarkKhaki', 'magenta']
     lastViewData = time.time()
     scale = 1
 
@@ -33,6 +47,30 @@ class ViewerData():
     srvIP = None
     srvPort = None
     conf = None
+    
+    updateThread = None  # thread for drawing to window.
+    
+    # don't call these before creating the window or the behaviour is...
+    # undefined...
+    # might fix in future revision, idk
+    # For more information on events, refer to:
+    # https://www.tcl.tk/man/tcl8.5/TkCmd/bind.htm#M7
+    def setKeyPressHandler(self, handler):
+        self.window.bind_all("<KeyPress>", handler)
+
+    def setKeyReleaseHandler(self, handler):
+        self.window.bind_all("<KeyRelease>", handler)
+
+    def setMousePressHandler(self, handler):
+        # handles both left and right click
+        self.canvas.bind("<ButtonPress>", handler)
+    
+    def setMouseMoveHandler(self, handler):
+        self.canvas.bind("<Motion>", handler)
+    
+    def setMouseReleaseHandler(self, handler):
+        self.canvas.bind("<ButtonRelease>", handler)
+
 
 
 def checkForUpdates(d):
@@ -105,32 +143,24 @@ def checkForUpdates(d):
         # remove shell widgets veiwer has but are not on server.
         for src in list(d.shellWidgets.keys()):
             if not src in msg['shells']:
-                d.canvas.delete(d.shellWidgets[src][1])
-                d.canvas.delete(d.shellWidgets[src][0])
+                d.canvas.delete(d.shellWidgets[src])
                 del d.shellWidgets[src]
 
         # add shell widgets server has that viewer doesn't
         for src in msg['shells']:
             if not src in d.shellWidgets:
                 c = d.canvas.itemcget(d.botWidgets[src], 'fill')
-                d.shellWidgets[src] = [
-                    d.canvas.create_line(0, 0, 0, 0, width=2, arrow=t.LAST, fill=c),
-                    d.canvas.create_line(0, 0, 0, 0, width=2, fill=c)
-                    ]
+                d.shellWidgets[src] = d.canvas.create_oval(0, 0, 0, 0, fill=c)
 
         # update location of shell widgets
         for src in d.shellWidgets:
             centerX = msg['shells'][src]['x'] * d.scale + d.borderSize
             centerY = d.conf['arenaSize'] - msg['shells'][src]['y'] * d.scale + d.borderSize
-            shellDir = msg['shells'][src]['direction']
-            shell_item_1 = d.shellWidgets[src][0]
-            d.canvas.coords(shell_item_1, centerX, centerY,
-                            d.scale * 1 * math.cos(-shellDir) + centerX,
-                            d.scale * 1 * math.sin(-shellDir) + centerY)
-            shell_item_2 = d.shellWidgets[src][1]
-            d.canvas.coords(shell_item_2, centerX, centerY,
-                            d.scale * 10 * math.cos(-shellDir) + centerX,
-                            d.scale * 10 * math.sin(-shellDir) + centerY)
+            d.canvas.coords(d.shellWidgets[src],
+                            centerX - 2,
+                            centerY - 2,
+                            centerX + 2,
+                            centerY + 2)
 
         # remove explosion widgets viewer has but are not on server.
         for k in list(d.explWidgets.keys()):
@@ -174,12 +204,17 @@ def checkForUpdates(d):
         d.nextKeepAlive += 1
 
     # Wait two steps before updating screen.
+    # d.window.update()
     d.window.after(int(d.conf['stepSec'] * 1000), checkForUpdates, d)
 
+def updateLoop(d):
+    while(d.running):
+        d.window.update()
+        d.window.after(int(d.conf['stepSec'] * 1000), checkForUpdates, d)
 
 def openWindow(d):
     d.window = t.Tk()
-    d.window.title("NetBots")
+    d.window.title("Netbots")
 
     if d.window.winfo_screenheight() < d.conf['arenaSize'] + 100 + d.borderSize * 2:
         d.scale = d.window.winfo_screenheight() / float(d.conf['arenaSize'] + 100 + d.borderSize * 2)
@@ -241,7 +276,12 @@ def openWindow(d):
 
     d.lastViewData = time.time()
     checkForUpdates(d)
-    t.mainloop()
+
+    # start updating in separate thread
+    # d.running = True
+    # d.updateThread = threading.Thread(target = updateLoop, args = (d,))
+    # d.updateThread = multiprocessing.Process(target = updateLoop, args = (d,))
+    # d.updateThread.start()
 
 
 def quit(signal=None, frame=None):
@@ -249,34 +289,26 @@ def quit(signal=None, frame=None):
     exit()
 
 
-def main():
+# createController, was main
+# make sure ip:port are not the same as the controlling bot or the server gets T R I G G E R E D
+def createController(ip, port, sip, sp):
     d = ViewerData()
 
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-ip', metavar='My IP', dest='myIP', type=nbipc.argParseCheckIPFormat, nargs='?',
-                        default='127.0.0.1', help='My IP Address')
-    parser.add_argument('-p', metavar='My Port', dest='myPort', type=int, nargs='?',
-                        default=20010, help='My port number')
-    parser.add_argument('-sip', metavar='Server IP', dest='serverIP', type=nbipc.argParseCheckIPFormat, nargs='?',
-                        default='127.0.0.1', help='Server IP Address')
-    parser.add_argument('-sp', metavar='Server Port', dest='serverPort', type=int, nargs='?',
-                        default=20000, help='Server port number')
-    parser.add_argument('-randcolors', dest='randomColors', action='store_true',
-                        default=False, help='Randomizes bot colors in viewer')
-    parser.add_argument('-debug', dest='debug', action='store_true',
-                        default=False, help='Print DEBUG level log messages.')
-    parser.add_argument('-verbose', dest='verbose', action='store_true',
-                        default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
-    args = parser.parse_args()
-    setLogLevel(args.debug, args.verbose)
-    d.srvIP = args.serverIP
-    d.srvPort = args.serverPort
+    # POSSIBLE BUG (if you get triggered at the smallest "issues"):
+    # log level for viewer are the same as they are for the bot.    
+    # setLogLevel(args.debug, args.verbose)
+    #d.srvIP = args.serverIP
+    #d.srvPort = args.serverPort
+    d.srvIP = sip
+    d.srvPort = sp
 
-    log("Registering with Server: " + d.srvIP + ":" + str(d.srvPort))
+    log("Registering with Server: " + d.srvIP + ":" + str(d.srvPort) + " (this could take a few seconds)")
 
     try:
-        d.viewerSocket = nbipc.NetBotSocket(args.myIP, args.myPort, d.srvIP, d.srvPort)
-        reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'}, retries=60, delay=1, delayMultiplier=1)
+        d.viewerSocket = nbipc.NetBotSocket(ip, port, sip, sp)
+        
+        # this step is reeeeeally slow for some reason... must investigate
+        reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'})
         d.conf = reply['conf']
         log("Server Configuration: " + str(d.conf), "VERBOSE")
     except Exception as e:
@@ -284,14 +316,14 @@ def main():
         quit()
 
     log("Server registration successful. Opening Window.")
-    
-    if args.randomColors:
-        random.shuffle(d.colors)
-        
+
     openWindow(d)
+    
+    return d
 
-
+"""
 if __name__ == "__main__":
     # execute only if run as a script
     signal.signal(signal.SIGINT, quit)
     main()
+"""

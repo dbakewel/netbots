@@ -17,7 +17,7 @@ import netbots_math as nbmath
 ########################################################
 
 
-class SrvData():
+class SrvData:
     srvSocket = None
 
     conf = {
@@ -33,6 +33,7 @@ class SrvData():
         'stepSec': 0.05,
         'startPermutations':  False,  # Use all permutations of each set of random start locations.
         'scanMaxDistance': 1415,  # Maximum distance a robot can scan and find another robot at
+        'advancedCollisions': False,  # Use advanced collision, affected by -hitdamage
 
         # Messaging
         'dropRate': 11,  # Drop a messages every N messages. Best to use primes.
@@ -59,6 +60,7 @@ class SrvData():
         'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot
         # Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
         'explDamage': 10,
+        'botArmor': 1.0,  # Damage multiplier
 
         # Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
         'obstacles': [],  # Obstacles of form [{'x':float,'y':float,'radius':float},...]
@@ -69,6 +71,39 @@ class SrvData():
 
         # Misc
         'keepExplosionSteps': 10,  # Number of steps to keep old explosions in explosion dict (only useful to viewers).
+        
+        # Robot Classes (values below override what's above for robots in that class)
+        'allowClasses': False,  # Use the class system
+        # Only fields listed in classFields are allowed to be overwritten by classes.
+        'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor'),
+        'classes': {
+            'default': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 1,  # multiplier for bot max speed
+                'botAccRate': 1,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 1,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.00  # multiplier of robot damage taken
+                },
+                
+            'heavy': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 0.7,  # multiplier for bot max speed
+                'botAccRate': 0.55,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 0.923076923,
+                'botMaxTurnRate': 3,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 0.77  # multiplier of robot damage taken
+                },
+            
+            'light': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 1.4,  # multiplier for bot max speed
+                'botAccRate': 1.25,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1.2,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 0.6,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.33  # multiplier of robot damage taken
+                }
+            }
         }
 
     state = {
@@ -80,7 +115,7 @@ class SrvData():
         'serverSteps': 0,  # Number of steps server has processed.
         'stepTime': 0,  # Total time spent process steps
         'msgTime': 0,  # Total time spent processing messages
-        'viewerMsgTime': 0, # Total time spend sending information to the viewer
+        'viewerMsgTime': 0,  # Total time spend sending information to the viewer
         'startTime': time.time(),
         'explIndex': 0,
         'sleepTime': 0,
@@ -96,6 +131,7 @@ class SrvData():
     bots = {}
     botTemplate = {
         'name': "template",
+        'class': "default",
         'health': 0,
         'x': 500,
         'y': 500,
@@ -132,6 +168,21 @@ class SrvData():
         'ip': "0.0.0.0",
         'port': 20011
         }
+
+    def getClassValue(self, fld, c="default"):
+        """
+        Use this function to get values from SrvData.conf that respect robot class. 
+        It ensures that the correct default or class value is returned. Only certain fields
+        in SrvData.conf are allowed to be overwritten with class values.
+        """
+        if fld not in self.conf['classFields']:
+            raise Exception("ERROR, " + str(fld) + " not allowed in robot class.")
+
+        value = self.conf[fld]  # default value
+        if 'classes' in self.conf and c in self.conf['classes'] and fld in self.conf['classes'][c]:
+            value *= self.conf['classes'][c][fld]  # class specific value
+        
+        return value
 
 ########################################################
 # Bot Message Processing
@@ -433,11 +484,11 @@ def step(d):
         if src in aliveBots:
             # change speed if needed
             if bot['currentSpeed'] > bot['requestedSpeed']:
-                bot['currentSpeed'] -= d.conf['botAccRate']
+                bot['currentSpeed'] -= d.getClassValue('botAccRate', bot['class'])
                 if bot['currentSpeed'] < bot['requestedSpeed']:
                     bot['currentSpeed'] = bot['requestedSpeed']
             elif bot['currentSpeed'] < bot['requestedSpeed']:
-                bot['currentSpeed'] += d.conf['botAccRate']
+                bot['currentSpeed'] += d.getClassValue('botAccRate', bot['class'])
                 if bot['currentSpeed'] > bot['requestedSpeed']:
                     bot['currentSpeed'] = bot['requestedSpeed']
 
@@ -448,8 +499,10 @@ def step(d):
                     bot['currentDirection'] = bot['requestedDirection']
                 else:
                     # how much can we turn at the speed we are going?
-                    turnRate = d.conf['botMinTurnRate'] + \
-                        (d.conf['botMaxTurnRate'] - d.conf['botMinTurnRate']) * (1 - bot['currentSpeed'] / 100)
+                    turnRate = d.getClassValue('botMinTurnRate', bot['class']) \
+                        + (d.getClassValue('botMaxTurnRate', bot['class']) -
+                           d.getClassValue('botMinTurnRate', bot['class'])) \
+                        * (1 - bot['currentSpeed'] / 100)
 
                     # if turn is negative and does not pass over 0 radians
                     if bot['currentDirection'] > bot['requestedDirection'] and \
@@ -481,8 +534,8 @@ def step(d):
             # move bot
             if bot['currentSpeed'] != 0:
                 bot['x'], bot['y'] = nbmath.project(bot['x'], bot['y'],
-                                                    bot['currentDirection'],
-                                                    bot['currentSpeed'] / 100.0 * d.conf['botMaxSpeed'])
+                                        bot['currentDirection'],
+                                        bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']))
 
     # do until we get one clean pass where no bot hitting wall, obstacle or other bot.
     foundOverlap = True
@@ -491,22 +544,44 @@ def step(d):
 
         # detect if bots hit walls. if they, did move them so they are just barely not touching,
         for src, bot in d.bots.items():
+            hit_spot = ""
+    
             if bot['x'] - d.conf['botRadius'] < 0:
                 bot['x'] = d.conf['botRadius'] + 1
-                bot['hitDamage'] = True
+                hit_spot = "left"
                 foundOverlap = True
             if bot['x'] + d.conf['botRadius'] > d.conf['arenaSize']:
                 bot['x'] = d.conf['arenaSize'] - d.conf['botRadius'] - 1
-                bot['hitDamage'] = True
+                hit_spot = "right"
                 foundOverlap = True
             if bot['y'] - d.conf['botRadius'] < 0:
                 bot['y'] = d.conf['botRadius'] + 1
-                bot['hitDamage'] = True
+                hit_spot = "bottom"
                 foundOverlap = True
             if bot['y'] + d.conf['botRadius'] > d.conf['arenaSize']:
                 bot['y'] = d.conf['arenaSize'] - d.conf['botRadius'] - 1
-                bot['hitDamage'] = True
+                hit_spot = "top"
                 foundOverlap = True
+    
+            if not hit_spot == "":
+                
+                if d.conf['advancedCollisions']:
+                    
+                    if hit_spot == "left":
+                        collision_to_speed_a = abs(bot['currentDirection'] - math.pi)
+                    elif hit_spot == "right":
+                        collision_to_speed_a = bot['currentDirection']
+                    elif hit_spot == "top":
+                        collision_to_speed_a = abs(bot['currentDirection'] - math.pi / 2)
+                    elif hit_spot == "bottom":
+                        collision_to_speed_a = abs(bot['currentDirection'] - math.pi * 3 / 2)
+            
+                    hit_dmg = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class'])\
+                              * math.cos(collision_to_speed_a)
+                    bot['hitDamage'] = hit_dmg
+                    
+                else:
+                    bot['hitDamage'] = 1
 
         # detect if bots hit obstacles, if the did move them so they are just barely not touching,
         overlap = findOverlapingBotsAndObstacles(d, d.bots)
@@ -523,7 +598,17 @@ def step(d):
             # record damage and check for more bots overlapping
             b['hitDamage'] = True
             overlap = findOverlapingBotsAndObstacles(d, d.bots)
-
+            
+            if not overlap:
+                if d.conf['advancedCollisions']:
+                    collision_to_speed_a = abs(b['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
+                    hit_dmg = b['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', b['class'])\
+                              * math.cos(collision_to_speed_a)
+                    b['hitDamage'] = hit_dmg
+                 
+                else:
+                    b['hitDamage'] = 1
+                    
         # detect if bots hit other bots, if the did move them so they are just barely not touching,
         overlap = findOverlapingBots(d, d.bots)
         while overlap:
@@ -539,15 +624,28 @@ def step(d):
             b1['x'], b1['y'] = nbmath.project(b1['x'], b1['y'], a + math.pi, distance)
             b2['x'], b2['y'] = nbmath.project(b2['x'], b2['y'], a, distance)
             # record damage and check for more bots overlapping
-            b1['hitDamage'] = True
-            b2['hitDamage'] = True
             overlap = findOverlapingBots(d, d.bots)
+            
+            if not overlap:
+                
+                if d.conf['advancedCollisions']:
+                    # find the angle between the direction vector and the vector towards the point of collision
+                    collision_to_speed_a1 = abs(b1['currentDirection'] - a)
+                    collision_to_speed_a2 = abs(b2['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
+                    hit_dmg = b1['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', b1['class'])\
+                              * math.cos(collision_to_speed_a1) + b2['currentSpeed'] / 100.0\
+                              * d.getClassValue('botMaxSpeed', b2['class']) * math.cos(collision_to_speed_a2)
+                    b1['hitDamage'] = hit_dmg
+                    b2['hitDamage'] = hit_dmg
+                else:
+                    b1['hitDamage'] = 1
+                    b2['hitDamage'] = 1
 
     # give damage (only once this step) to bots that hit things. Also stop them.
     for src, bot in d.bots.items():
         if 'hitDamage' in bot:
+            bot['health'] = max(0, bot['health'] - bot['hitDamage'] * d.conf['hitDamage'] * d.getClassValue('botArmor', bot['class']))
             del bot['hitDamage']
-            bot['health'] = max(0, bot['health'] - d.conf['hitDamage'])
             bot['currentSpeed'] = 0
             bot['requestedSpeed'] = 0
 
@@ -583,7 +681,7 @@ def step(d):
                         distance = nbmath.distance(bot['x'], bot['y'], shell['x'], shell['y'])
                         if distance < d.conf['explRadius']:
                             damage = d.conf['explDamage'] * (1 - distance / d.conf['explRadius'])
-                            bot['health'] = max(0, bot['health'] - damage)
+                            bot['health'] = max(0, bot['health'] - (damage * d.getClassValue('botArmor', bot['class'])))
                             # allow recording of inflicting damage that is greater than health of hit robot.
                             # also record damage to oneself.
                             d.bots[src]['shellDamage'] += damage
@@ -777,7 +875,8 @@ def main():
     parser.add_argument('-shellspeed', metavar='int', dest='shellSpeed', type=int,
                         default=40, help='Distance traveled by shell per step.')
     parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int,
-                        default=1, help='Damage a robot takes from hitting wall or another bot.')
+                        default=1, help='Damage a robot takes from hitting wall or another bot. '
+                                        'When used with -advancedcollisions acts as a damage multiplier.')
     parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int,
                         default=10, help='Damage bot takes from direct hit from shell.')
     parser.add_argument('-obstacles', metavar='int', dest='obstacles', type=int,
@@ -786,6 +885,8 @@ def main():
                         default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int,
                         default=0, help='How many jam zones does the arena have.')
+    parser.add_argument('-allowclasses', dest='allowClasses', action='store_true',
+                        default=False, help='Allows robots to choose a class, changing their mobility and damage taken.')
     parser.add_argument('-startperms', dest='startPermutations', action='store_true',
                         default=False, help='Use all permutations of each set of random start locations.')
     parser.add_argument('-noviewers', dest='noViewers', action='store_true',
@@ -796,6 +897,8 @@ def main():
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
                         default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
+    parser.add_argument('-advancedcollisions', dest='advancedCollisions', action='store_true',
+                        default=False, help='Uses the advanced collision system, affected by -hitdamage')
     args = parser.parse_args()
 
     setLogLevel(args.debug, args.verbose)
@@ -821,6 +924,8 @@ def main():
     d.conf['startPermutations'] = args.startPermutations
     d.conf['scanMaxDistance'] = args.scanMaxDistance
     d.conf['noViewers'] = args.noViewers
+    d.conf['advancedCollisions'] = args.advancedCollisions
+    d.conf['allowClasses'] = args.allowClasses
     
     mkStartLocations(d)
 
