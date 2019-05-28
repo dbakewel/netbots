@@ -869,7 +869,7 @@ def main():
                         default=5, help='Radius of obstacles as %% of arenaSize.')
     parser.add_argument('-jamzones', metavar='int', dest='jamZones', type=int,
                         default=0, help='How many jam zones does the arena have.')
-    parser.add_argument('-allowClasses', dest='allowClasses', action='store_true',
+    parser.add_argument('-allowclasses', dest='allowClasses', action='store_true',
                         default=False, help='Allow robots to specify a class other than default.')
     parser.add_argument('-advancedcollisions', dest='advancedCollisions', action='store_true',
                         default=False, help='Uses the advanced collision system, affected by -hitdamage')
