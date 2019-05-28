@@ -537,6 +537,17 @@ def step(d):
                                         bot['currentDirection'],
                                         bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']))
 
+    '''
+    hitSeverity may be in range 0.0 to 2.0. hitSeverity == 0 means robot did not hit
+    anything this step. hitSeverity == 1 means d.conf['hitDamage'] should applied
+    to robot. For example, if a robot hits wall at full speed while moving directly towards
+    wall then hitSeverity = 1.0. If two robots hit each other while both are driving at
+    full speeds and directly towards each other then hitSeverity = 2.0.
+    '''
+    # set starting hitSeverity to 0 for all robots.
+    for src, bot in d.bots.items():
+        bot['hitSeverity'] = 0.0
+
     # do until we get one clean pass where no bot hitting wall, obstacle or other bot.
     foundOverlap = True
     while foundOverlap:
@@ -544,44 +555,31 @@ def step(d):
 
         # detect if bots hit walls. if they, did move them so they are just barely not touching,
         for src, bot in d.bots.items():
-            hit_spot = ""
-    
+            hitSeverity = 0
             if bot['x'] - d.conf['botRadius'] < 0:
+                # hit right side
                 bot['x'] = d.conf['botRadius'] + 1
-                hit_spot = "left"
-                foundOverlap = True
+                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
+                              d.conf['botMaxSpeed'] * math.cos(min(math.pi / 2, abs(bot['currentDirection'] - math.pi)))
             if bot['x'] + d.conf['botRadius'] > d.conf['arenaSize']:
+                # hit left side
                 bot['x'] = d.conf['arenaSize'] - d.conf['botRadius'] - 1
-                hit_spot = "right"
-                foundOverlap = True
+                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
+                              d.conf['botMaxSpeed'] * math.cos(min(math.pi / 2, abs(bot['currentDirection'])))
             if bot['y'] - d.conf['botRadius'] < 0:
+                # hit bottom side
                 bot['y'] = d.conf['botRadius'] + 1
-                hit_spot = "bottom"
-                foundOverlap = True
+                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
+                              d.conf['botMaxSpeed'] * math.cos(min(math.pi/2, abs(bot['currentDirection'] - math.pi * 3 / 2)))
             if bot['y'] + d.conf['botRadius'] > d.conf['arenaSize']:
+                # hit top side
                 bot['y'] = d.conf['arenaSize'] - d.conf['botRadius'] - 1
-                hit_spot = "top"
-                foundOverlap = True
+                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
+                              d.conf['botMaxSpeed'] * math.cos(min(math.pi/2, abs(bot['currentDirection'] - math.pi / 2)))
     
-            if not hit_spot == "":
-                
-                if d.conf['advancedCollisions']:
-                    
-                    if hit_spot == "left":
-                        collision_to_speed_a = abs(bot['currentDirection'] - math.pi)
-                    elif hit_spot == "right":
-                        collision_to_speed_a = bot['currentDirection']
-                    elif hit_spot == "top":
-                        collision_to_speed_a = abs(bot['currentDirection'] - math.pi / 2)
-                    elif hit_spot == "bottom":
-                        collision_to_speed_a = abs(bot['currentDirection'] - math.pi * 3 / 2)
-            
-                    hit_dmg = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class'])\
-                              * math.cos(collision_to_speed_a)
-                    bot['hitDamage'] = hit_dmg
-                    
-                else:
-                    bot['hitDamage'] = 1
+            if hitSeverity:
+                foundOverlap = True
+                bot['hitSeverity'] = max(bot['hitSeverity'], hitSeverity)
 
         # detect if bots hit obstacles, if the did move them so they are just barely not touching,
         overlap = findOverlapingBotsAndObstacles(d, d.bots)
@@ -595,20 +593,13 @@ def step(d):
             distance = d.conf['botRadius'] + o['radius'] + 0.5 - nbmath.distance(o['x'], o['y'], b['x'], b['y'])
             # move bot
             b['x'], b['y'] = nbmath.project(b['x'], b['y'], a, distance)
-            # record damage and check for more bots overlapping
-            b['hitDamage'] = True
+            # record damage
+            hitSeverity = b['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
+                              d.conf['botMaxSpeed'] * math.cos(min(math.pi / 2, abs(b['currentDirection'] - a + math.pi)))
+            b['hitSeverity'] = max(b['hitSeverity'], hitSeverity)
+            # check for more bots overlapping
             overlap = findOverlapingBotsAndObstacles(d, d.bots)
-            
-            if not overlap:
-                if d.conf['advancedCollisions']:
-                    collision_to_speed_a = abs(b['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
-                    hit_dmg = b['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', b['class'])\
-                              * math.cos(collision_to_speed_a)
-                    b['hitDamage'] = hit_dmg
-                 
-                else:
-                    b['hitDamage'] = 1
-                    
+
         # detect if bots hit other bots, if the did move them so they are just barely not touching,
         overlap = findOverlapingBots(d, d.bots)
         while overlap:
@@ -623,31 +614,26 @@ def step(d):
             # move bots
             b1['x'], b1['y'] = nbmath.project(b1['x'], b1['y'], a + math.pi, distance)
             b2['x'], b2['y'] = nbmath.project(b2['x'], b2['y'], a, distance)
-            # record damage and check for more bots overlapping
+            # record damage
+            # find the angle between the direction vector and the vector towards the point of collision
+            hitSeverity = b1['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
+                              d.conf['botMaxSpeed'] * math.cos(b1['currentDirection'] - a) + \
+                          b2['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
+                              d.conf['botMaxSpeed'] * math.cos(b2['currentDirection'] - a + math.pi)
+            b1['hitSeverity'] = max(b1['hitSeverity'], hitSeverity)
+            b2['hitSeverity'] = max(b2['hitSeverity'], hitSeverity)
+            # check for more bots overlapping
             overlap = findOverlapingBots(d, d.bots)
-            
-            if not overlap:
-                
-                if d.conf['advancedCollisions']:
-                    # find the angle between the direction vector and the vector towards the point of collision
-                    collision_to_speed_a1 = abs(b1['currentDirection'] - a)
-                    collision_to_speed_a2 = abs(b2['currentDirection'] - nbmath.normalizeAngle(a + math.pi))
-                    hit_dmg = b1['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', b1['class'])\
-                              * math.cos(collision_to_speed_a1) + b2['currentSpeed'] / 100.0\
-                              * d.getClassValue('botMaxSpeed', b2['class']) * math.cos(collision_to_speed_a2)
-                    b1['hitDamage'] = hit_dmg
-                    b2['hitDamage'] = hit_dmg
-                else:
-                    b1['hitDamage'] = 1
-                    b2['hitDamage'] = 1
 
     # give damage (only once this step) to bots that hit things. Also stop them.
     for src, bot in d.bots.items():
-        if 'hitDamage' in bot:
-            bot['health'] = max(0, bot['health'] - bot['hitDamage'] * d.conf['hitDamage'] * d.getClassValue('botArmor', bot['class']))
-            del bot['hitDamage']
+        if bot['hitSeverity']:
+            if not d.conf['advancedCollisions']:
+                bot['hitSeverity'] = 1
+            bot['health'] = max(0, bot['health'] - bot['hitSeverity'] * d.conf['hitDamage'] * d.getClassValue('botArmor', bot['class']))
             bot['currentSpeed'] = 0
             bot['requestedSpeed'] = 0
+        del bot['hitSeverity']
 
     # for all shells
     for src in list(d.shells.keys()):
@@ -687,7 +673,7 @@ def step(d):
                             d.bots[src]['shellDamage'] += damage
 
                 # store the explosion so viewers can display it. we can't use src as index because it is possible for two explosions
-                # from same bot to exist (but not likly).
+                # from same bot to exist (but not likely).
                 d.explosions[d.state['explIndex']] = {
                     'x': shell['x'],
                     'y': shell['y'],
@@ -887,6 +873,8 @@ def main():
                         default=0, help='How many jam zones does the arena have.')
     parser.add_argument('-allowclasses', dest='allowClasses', action='store_true',
                         default=False, help='Allows robots to choose a class, changing their mobility and damage taken.')
+    parser.add_argument('-advancedcollisions', dest='advancedCollisions', action='store_true',
+                        default=False, help='Uses the advanced collision system, affected by -hitdamage')
     parser.add_argument('-startperms', dest='startPermutations', action='store_true',
                         default=False, help='Use all permutations of each set of random start locations.')
     parser.add_argument('-noviewers', dest='noViewers', action='store_true',
@@ -897,8 +885,6 @@ def main():
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
                         default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
-    parser.add_argument('-advancedcollisions', dest='advancedCollisions', action='store_true',
-                        default=False, help='Uses the advanced collision system, affected by -hitdamage')
     args = parser.parse_args()
 
     setLogLevel(args.debug, args.verbose)
@@ -921,12 +907,11 @@ def main():
     d.conf['obstacleRadius'] = args.obstacleRadius
     d.conf['obstacles'] = mkObstacles(d, args.obstacles)
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
+    d.conf['allowClasses'] = args.allowClasses
+    d.conf['advancedCollisions'] = args.advancedCollisions
     d.conf['startPermutations'] = args.startPermutations
     d.conf['scanMaxDistance'] = args.scanMaxDistance
     d.conf['noViewers'] = args.noViewers
-    d.conf['advancedCollisions'] = args.advancedCollisions
-    d.conf['allowClasses'] = args.allowClasses
-    
     mkStartLocations(d)
 
     log("Server Name: " + d.conf['serverName'])
