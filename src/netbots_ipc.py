@@ -46,7 +46,7 @@ MsgDef = {
     'fireCanonReply': {},
 
     'scanRequest': {'startRadians': ['(int,float)', 0, math.pi * 2], 'endRadians': ['(int,float)', 0, math.pi * 2]},
-    'scanReply': {'distance': ['(int,float)', 0, 1415]},
+    'scanReply': {'distance': ['(int,float)', 0, 32767]},
 
     'addViewerRequest': {},
     'addViewerReply': {'conf': 'dict'},

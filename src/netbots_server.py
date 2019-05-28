@@ -17,7 +17,7 @@ import netbots_math as nbmath
 ########################################################
 
 
-class SrvData():
+class SrvData:
     srvSocket = None
 
     conf = {
@@ -33,6 +33,7 @@ class SrvData():
         'stepSec': 0.05,
         'startPermutations':  False,  # Use all permutations of each set of random start locations.
         'advancedCollisions': False,  # Use advanced collision, affected by -hitdamage
+        'scanMaxDistance': 1415,  # Maximum distance a scan can detect a robot.
 
         # Messaging
         'dropRate': 11,  # Drop a messages every N messages. Best to use primes.
@@ -797,6 +798,21 @@ def logScoreBoard(d):
 ########################################################
 
 
+class Range(argparse.Action):
+    def __init__(self, min=None, max=None, *args, **kwargs):
+        self.min = min
+        self.max = max
+        kwargs["metavar"] = "%d-%d" % (self.min, self.max)
+        super(Range, self).__init__(*args, **kwargs)
+
+    def __call__(self, parser, namespace, value, option_string=None):
+        if not (self.min <= value <= self.max):
+            msg = 'invalid choice: %r (choose from [%d-%d])' % \
+                (value, self.min, self.max)
+            raise argparse.ArgumentError(self, msg)
+        setattr(namespace, self.dest, value)
+        
+
 def quit(signal=None, frame=None):
     log("Quiting", "INFO")
     exit()
@@ -826,7 +842,7 @@ def main():
                         default=11, help='Drop over nth message, best to use primes. 0 == no drop.')
     parser.add_argument('-msgperstep', metavar='int', dest='botMsgsPerStep', type=int,
                         default=4, help='Number of msgs from a bot that server will respond to each step.')
-    parser.add_argument('-arenasize', metavar='int', dest='arenaSize', type=int,
+    parser.add_argument('-arenasize', dest='arenaSize', type=int, min=100, max=32767, action=Range,
                         default=1000, help='Size of arena.')
     parser.add_argument('-botradius', metavar='int', dest='botRadius', type=int,
                         default=25, help='Radius of robots.')
@@ -854,6 +870,8 @@ def main():
                         default=False, help='Uses the advanced collision system, affected by -hitdamage')
     parser.add_argument('-startperms', dest='startPermutations', action='store_true',
                         default=False, help='Use all permutations of each set of random start locations.')
+    parser.add_argument('-scanmaxdistance', metavar='int', dest='scanMaxDistance', type=int,
+                        default=1415, help='Maximum distance a scan can detect a robot.')
     parser.add_argument('-noviewers', dest='noViewers', action='store_true',
                         default=False, help='Do not allow viewers.')
     parser.add_argument('-debug', dest='debug', action='store_true',
@@ -885,6 +903,7 @@ def main():
     d.conf['allowClasses'] = args.allowClasses
     d.conf['advancedCollisions'] = args.advancedCollisions
     d.conf['startPermutations'] = args.startPermutations
+    d.conf['scanMaxDistance'] = args.scanMaxDistance
     d.conf['noViewers'] = args.noViewers
 
     mkStartLocations(d)
