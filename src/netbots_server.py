@@ -574,10 +574,7 @@ def step(d):
     
             if hitSeverity:
                 foundOverlap = True
-                if d.conf['advancedCollisions']:
-                    bot['hitSeverity'] = max(bot['hitSeverity'], hitSeverity)
-                else:
-                    bot['hitSeverity'] = 1
+                bot['hitSeverity'] = max(bot['hitSeverity'], hitSeverity)
 
         # detect if bots hit obstacles, if the did move them so they are just barely not touching,
         overlap = findOverlapingBotsAndObstacles(d, d.bots)
@@ -592,12 +589,9 @@ def step(d):
             # move bot
             b['x'], b['y'] = nbmath.project(b['x'], b['y'], a, distance)
             # record damage
-            if d.conf['advancedCollisions']:
-                hitSeverity = b['currentSpeed'] / 100.0 * \
-                    math.cos(min(math.pi / 2, abs(b['currentDirection'] - a + math.pi)))
-                b['hitSeverity'] = max(b['hitSeverity'], hitSeverity)
-            else:
-                b['hitSeverity'] = 1
+            hitSeverity = b['currentSpeed'] / 100.0 * \
+                math.cos(min(math.pi / 2, abs(b['currentDirection'] - a + math.pi)))
+            b['hitSeverity'] = max(b['hitSeverity'], hitSeverity)
             # check for more bots overlapping
             overlap = findOverlapingBotsAndObstacles(d, d.bots)
                     
@@ -616,21 +610,19 @@ def step(d):
             b1['x'], b1['y'] = nbmath.project(b1['x'], b1['y'], a + math.pi, distance)
             b2['x'], b2['y'] = nbmath.project(b2['x'], b2['y'], a, distance)
             # record damage
-            if d.conf['advancedCollisions']:
-                # find the angle between the direction vector and the vector towards the point of collision
-                hitSeverity = b1['currentSpeed'] / 100.0 * math.cos(b1['currentDirection'] - a) + \
-                    b2['currentSpeed'] / 100.0 * math.cos(b2['currentDirection'] - a + math.pi)
-                b1['hitSeverity'] = max(b1['hitSeverity'], hitSeverity)
-                b2['hitSeverity'] = max(b2['hitSeverity'], hitSeverity)
-            else:
-                b1['hitSeverity'] = 1
-                b2['hitSeverity'] = 1
+            # find the angle between the direction vector and the vector towards the point of collision
+            hitSeverity = b1['currentSpeed'] / 100.0 * math.cos(b1['currentDirection'] - a) + \
+                b2['currentSpeed'] / 100.0 * math.cos(b2['currentDirection'] - a + math.pi)
+            b1['hitSeverity'] = max(b1['hitSeverity'], hitSeverity)
+            b2['hitSeverity'] = max(b2['hitSeverity'], hitSeverity)
             # check for more bots overlapping
             overlap = findOverlapingBots(d, d.bots)
 
     # give damage (only once this step) to bots that hit things. Also stop them.
     for src, bot in d.bots.items():
         if bot['hitSeverity']:
+            if not d.conf['advancedCollisions']:
+                bot['hitSeverity'] = 1
             bot['health'] = max(0, bot['health'] - bot['hitSeverity'] * d.conf['hitDamage'] * d.getClassValue('botArmor', bot['class']))
             bot['currentSpeed'] = 0
             bot['requestedSpeed'] = 0
