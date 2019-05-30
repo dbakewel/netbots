@@ -87,6 +87,9 @@ def isValidMsg(msg):
         log("Msg does not contain 'type' key: " + str(msg), "ERROR")
         return False
 
+    unvalidedFields = list(msg.keys())
+    unvalidedFields.remove('type')
+
     for msgtype, msgspec in MsgDef.items():
         if msgtype == msg['type']:
             for fld, fldspec in msgspec.items():
@@ -120,7 +123,19 @@ def isValidMsg(msg):
                         log("Msg '" + fld + "' key has value of type " + str(type(msg[fld])) +
                             " but expected " + fldspec + ": " + str(msg), "ERROR")
                         return False
-            return True
+                unvalidedFields.remove(fld)
+            # All fields defined for message type have now been examined and are valid
+            if len(unvalidedFields):
+                # message has fields it should not have.
+                log("Msg contains field(s) " + str(unvalidedFields) + " which is not defined for message type " + msg['type'] + ": " + str(msg), "ERROR")
+                for fld in unvalidedFields:
+                    if fld.endswith('_o'):
+                        log("Optional message fields should not include '_o' suffix in field name.", "WARNING")
+                        break
+                return False
+            else:
+                # message is valid and has no extra fields.
+                return True
     log("Msg 'type' key has value '" + str(msg['type']) + "' which is not known: " + str(msg), "ERROR")
     return False
 
