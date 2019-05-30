@@ -88,7 +88,13 @@ def isValidMsg(msg):
         return False
 
     unvalidedFields = list(msg.keys())
+    # type is validated below as part of loop so does not need specific validation.
     unvalidedFields.remove('type')
+    # msgId and replyData are always optional and have no specific format. So they are always valid if present.
+    if 'msgID' in unvalidedFields:
+        unvalidedFields.remove('msgID')
+    if 'replyData' in unvalidedFields:
+        unvalidedFields.remove('replyData')
 
     for msgtype, msgspec in MsgDef.items():
         if msgtype == msg['type']:
