@@ -115,7 +115,7 @@ class SrvData:
         'serverSteps': 0,  # Number of steps server has processed.
         'stepTime': 0,  # Total time spent process steps
         'msgTime': 0,  # Total time spent processing messages
-        'viewerMsgTime': 0, # Total time spend sending information to the viewer
+        'viewerMsgTime': 0,  # Total time spend sending information to the viewer
         'startTime': time.time(),
         'explIndex': 0,
         'sleepTime': 0,
