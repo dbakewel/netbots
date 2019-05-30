@@ -8,17 +8,34 @@ import argparse
 
 from netbots_log import log
 
-# Every msg is a python dict type with at least the type attribute and a string value.
-# For example: { 'type': 'joinRequest'}
-# MsgDef defines addition fields that must be included based on type.
-# All addition fields have a defined type in the form of <type> or [<type>,min,max].
-# <type> can be expressed as multiple acceptable types as (<type>,<type>,...)
-#
-# All Request messages have a corresponding Reply message. The Request is sent to the
-# server and the server returns the reply message or an Error message.
+"""
+**About Messages**
+
+Every message is a python dict type with at least a type attribute (i.e. field) and a 
+string value.
+
+For example: { 'type': 'getInfoRequest'}
+
+MsgDef below defines valid types and additional fields that must be included and 
+can optionally be included based on type.
+
+Optional fields end in '_o' which marks the fields as optional. The '_o' should not 
+appear in the actual message, it is just a marker that the field is optional.
+For example, a joinRequest message with optional class field would be:
+
+{'type': 'joinRequest', 'name': 'SuperRobot', 'class': 'heavy'}
+
+All fields have a defined type in the form of <type> or [<type>,min,max].
+<type> can be expressed as multiple acceptable types as (<type>,<type>,...)
+
+For fields types of 'str' min and max are the min length and max length of the string.
+
+All Request messages have a corresponding Reply message. The Request is sent to the
+server and the server returns the reply message or an Error message.
+"""
 MsgDef = {
     # msg type              other required msg fields
-    'joinRequest': {'name': ['str', 1, 16]},
+    'joinRequest': {'name': ['str', 1, 16], 'class_o': ['str', 1, 16]},
     'joinReply': {'conf': 'dict'},
 
     'getInfoRequest': {},
@@ -73,7 +90,13 @@ def isValidMsg(msg):
     for msgtype, msgspec in MsgDef.items():
         if msgtype == msg['type']:
             for fld, fldspec in msgspec.items():
-                if fld not in msg:
+                if fld.endswith('_o'):
+                    # remove magic suffix marking field as optional
+                    fld = fld.rstrip('_o')
+                    if fld not in msg:
+                        # optional field is not present, which is valid.
+                        continue
+                elif fld not in msg:
                     log("Msg does not contain required '" + fld + "' key: " + str(msg), "ERROR")
                     return False
                 if isinstance(fldspec, list):
