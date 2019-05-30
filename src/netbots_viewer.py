@@ -3,6 +3,7 @@ import time
 import signal
 import tkinter as t
 import random
+import math
 
 from netbots_log import log
 from netbots_log import setLogLevel
