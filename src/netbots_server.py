@@ -78,12 +78,7 @@ class SrvData:
         'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor'),
         'classes': {
             'default': {
-                # Speeds and Rates of Change
-                'botMaxSpeed': 1,  # multiplier for bot max speed
-                'botAccRate': 1,  # multiplier for bot acceleration rate
-                'botMinTurnRate': 1,  # multiplier for bot turning rate at 100% speed
-                'botMaxTurnRate': 1,  # multiplier for bot turning rate at 0% speed
-                'botArmor': 1.00  # multiplier of robot damage taken
+                # Default class should have no changes.
                 },
                 
             'heavy': {
