@@ -78,25 +78,30 @@ class SrvData:
         'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor'),
         'classes': {
             'default': {
-                #no changes to values above.
+                # Speeds and Rates of Change
+                'botMaxSpeed': 1,  # multiplier for bot max speed
+                'botAccRate': 1,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 1,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.00  # multiplier of robot damage taken
                 },
                 
             'heavy': {
                 # Speeds and Rates of Change
-                'botMaxSpeed': 3.5,  # bots distance traveled per step at 100% speed
-                'botAccRate': 1.1,  # Amount in % bot can accelerate (or decelerate) per step
-                'botMinTurnRate': math.pi / 6500,  # Amount bot can rotate per turn in radians at 100% speed
-                'botMaxTurnRate': math.pi / 150,  # Amount bot can rotate per turn in radians at 0% speed
-                'botArmor': 0.77
+                'botMaxSpeed': 0.7,  # multiplier for bot max speed
+                'botAccRate': 0.55,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 0.923076923,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 0.333333333,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 0.77  # multiplier of robot damage taken
                 },
             
             'light': {
                 # Speeds and Rates of Change
-                'botMaxSpeed': 7,  # bots distance traveled per step at 100% speed
-                'botAccRate': 2.5,  # Amount in % bot can accelerate (or decelerate) per step
-                'botMinTurnRate': math.pi / 500,  # Amount bot can rotate per turn in radians at 100% speed
-                'botMaxTurnRate': math.pi / 30,  # Amount bot can rotate per turn in radians at 0% speed
-                'botArmor': 1.33
+                'botMaxSpeed': 1.4,  # multiplier for bot max speed
+                'botAccRate': 1.25,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1.2,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 1.6666666666,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.33  # multiplier of robot damage taken
                 }
             }
         }
@@ -164,7 +169,6 @@ class SrvData:
         'port': 20011
         }
 
-
     def getClassValue(self, fld, c="default"):
         """
         Use this function to get values from SrvData.conf that respect robot class. 
@@ -176,7 +180,10 @@ class SrvData:
 
         value = self.conf[fld]  # default value
         if 'classes' in self.conf and c in self.conf['classes'] and fld in self.conf['classes'][c]:
-            value = self.conf['classes'][c][fld]  # class specific value
+            if isinstance(value, (int, float)):
+                value *= self.conf['classes'][c][fld]  # class specific multiplier
+            else:
+                value = self.conf['classes'][c][fld]  # class specific value
         
         return value
 
