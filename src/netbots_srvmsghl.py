@@ -134,7 +134,6 @@ def fireCanonRequest(d, msg, src):
 
         return {
             'type': "fireCanonReply",
-            'result': "OK"
         }
 
 
