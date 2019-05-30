@@ -22,7 +22,8 @@ class ViewerData():
     shellWidgets = {}
     explWidgets = {}
     bigMsg = None
-    colors = ['#ACACAC','#87FFCD','#9471FF','#FF9DB6','#2ED2EB','#FA8737','#29B548','#FFBC16','#308AFF','#FF3837']
+    colors = ['#ACACAC', '#87FFCD', '#9471FF', '#FF9DB6', '#2ED2EB', 
+              '#FA8737', '#29B548', '#FFBC16', '#308AFF', '#FF3837']
     lastViewData = time.time()
     scale = 1
 
@@ -75,8 +76,11 @@ def checkForUpdates(d):
                 d.botStatusWidgets[src].config(highlightthickness=d.borderSize)
                 d.botStatusWidgets[src].pack(fill=t.X)
 
-                # create bot widget
+                # create bot widgets
+                d.botTrackLeft[src] = d.canvas.create_line(0, 0, 50, 50, width=10, fill='grey')
+                d.botTrackRight[src] = d.canvas.create_line(0, 0, 50, 50, width=10, fill='grey')
                 d.botWidgets[src] = d.canvas.create_oval(0, 0, 0, 0, fill=c)
+                d.botLine[src] = d.canvas.create_line(0, 0, 50, 50, width=10, arrow=t.LAST, fill='white')
 
             # update text for each bot
             d.botStatusWidgets[src].config(text=bot['name'] +
@@ -91,6 +95,9 @@ def checkForUpdates(d):
             # update location of bot widgets or hide if health == 0
             if bot['health'] == 0:
                 d.canvas.itemconfigure(d.botWidgets[src], state='hidden')
+                d.canvas.itemconfigure(d.botLine[src], state='hidden')
+                d.canvas.itemconfigure(d.botTrackLeft[src], state='hidden')
+                d.canvas.itemconfigure(d.botTrackRight[src], state='hidden')
             else:
                 centerX = bot['x'] * d.scale + d.borderSize
                 centerY = d.conf['arenaSize'] - bot['y'] * d.scale + d.borderSize
@@ -99,7 +106,26 @@ def checkForUpdates(d):
                                 centerY - d.conf['botRadius'],
                                 centerX + d.conf['botRadius'],
                                 centerY + d.conf['botRadius'])
+                
+                d.canvas.coords(d.botLine[src], centerX + 19 * math.cos(-bot['currentDirection']),
+                                centerY + 19 * math.sin(-bot['currentDirection']),
+                                24 * math.cos(-bot['currentDirection']) + centerX,
+                                24 * math.sin(-bot['currentDirection']) + centerY)
+
+                d.canvas.coords(d.botTrackLeft[src], centerX  + 30 * math.cos(-bot['currentDirection'] - math.pi / 4),
+                                centerY + 30 * math.sin(-bot['currentDirection'] - math.pi / 4),
+                                30 * math.cos(-bot['currentDirection'] - (3 * math.pi) / 4) + centerX,
+                                30 * math.sin(-bot['currentDirection']- (3 * math.pi) / 4) + centerY )
+
+                d.canvas.coords(d.botTrackRight[src], centerX + 30 * math.cos(-bot['currentDirection'] - (5 * math.pi) / 4),
+                                centerY + 30 * math.sin(-bot['currentDirection'] - (5 * math.pi) / 4),
+                                30 * math.cos(-bot['currentDirection'] - (7 * math.pi) / 4) + centerX,
+                                30 * math.sin(-bot['currentDirection'] - (7 * math.pi) / 4) + centerY)
+                
+                d.canvas.itemconfigure(d.botLine[src], state='normal')
                 d.canvas.itemconfigure(d.botWidgets[src], state='normal')
+                d.canvas.itemconfigure(d.botTrackLeft[src], state='normal')
+                d.canvas.itemconfigure(d.botTrackRight[src], state='normal')
 
         # remove shell widgets veiwer has but are not on server.
         for src in list(d.shellWidgets.keys()):
