@@ -17,6 +17,9 @@ class ViewerData():
     frame = None
     statusWidget = None
     canvas = None
+    botLine = {}
+    botTrackLeft = {}
+    botTrackRight = {}
     botWidgets = {}
     botStatusWidgets = {}
     shellWidgets = {}
