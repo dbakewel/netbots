@@ -138,7 +138,13 @@ class SrvData:
         'firedCount': 0,
         'shellDamage': 0,
         'winHealth': 0,
-        'winCount': 0
+        'winCount': 0,
+        'last': {
+            # Copies of last fire and scan requests. This data is not stored elsewhere
+            # and is useful for viewer to display.
+            'fireCanonRequest': {'direction': 0, 'distance': 10},
+            'scanRequest': {'startRadians': 0, 'endRadians': 0},
+            }
         }
 
     shells = {}
