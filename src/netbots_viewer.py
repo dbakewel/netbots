@@ -10,6 +10,11 @@ from netbots_log import setLogLevel
 import netbots_ipc as nbipc
 import netbots_math as nbmath
 
+REPLAY_STEP_SEC = 0.05
+REPLAY_SAVE_EVERY_NTH = 1
+REPLAY_SAVE_STEPS = 200
+toggleReplaying = False
+
 
 class ViewerData():
     viewerSocket = None
@@ -17,6 +22,7 @@ class ViewerData():
     window = None
     frame = None
     statusWidget = None
+    replayWidget = None
     canvas = None
     botWidgets = {}
     botStatusWidgets = {}
@@ -33,9 +39,15 @@ class ViewerData():
     srvIP = None
     srvPort = None
     conf = None
-
-
+    
+    replayData = []
+    isReplaying = False
+    playingData = []
+    
+    
 def checkForUpdates(d):
+    global toggleReplaying
+    
     msg = {"type": "Error", "result": "We never got any new data from server."}
     try:
         # keep getting messages until we get the last one and then an exception is thrown.
@@ -51,6 +63,55 @@ def checkForUpdates(d):
         quit()
 
     if msg['type'] == 'viewData':
+        
+        # store replay data
+        if not d.isReplaying and msg['state']['serverSteps'] % REPLAY_SAVE_EVERY_NTH == 0:
+            d.replayData.append(msg)
+            while len(d.replayData) > REPLAY_SAVE_STEPS / REPLAY_SAVE_EVERY_NTH:
+                d.replayData.pop(0)
+        
+        # turn replay on or off if space bar pressed
+        if toggleReplaying:
+            if d.isReplaying:
+                d.playingData = []
+                d.replayData = []
+                toggleReplaying = False
+                d.isReplaying = False
+            else:
+                d.playingData = []
+                d.playingData.extend(d.replayData)
+                d.replayData = []
+                toggleReplaying = False
+                d.isReplaying = True
+        
+        # remove old data 
+        if d.isReplaying:
+            if len(d.playingData) > 0:
+                msg = d.playingData[0]
+                d.playingData.pop(0)
+
+            # replay is over
+            else:
+                d.isReplaying = False
+
+        # draw red border on arena and red instant replay widget
+        if d.isReplaying:
+            d.canvas.config(highlightbackground='#FF0000')
+
+            if d.replayWidget is None:
+                d.replayWidget = t.Message(d.frame, width=200, justify='center')
+                d.replayWidget.config(highlightbackground='#FF0000')
+                d.replayWidget.config(highlightthickness=d.borderSize)
+                d.replayWidget.pack(fill=t.X)
+                d.replayWidget.config(text="Instant Replay!")
+
+        else:
+            d.canvas.config(highlightbackground='#000')
+
+            if d.replayWidget is not None:
+                d.replayWidget.destroy()
+                d.replayWidget = None
+        
         # if gameNumber == 0 then post message
         if msg['state']['gameNumber'] == 0:
             leftToJoin = d.conf['botsInGame'] - len(msg['bots'])
@@ -181,6 +242,8 @@ def openWindow(d):
     d.window = t.Tk()
     d.window.title("NetBots")
 
+    d.window.bind_all("<KeyPress>", keyPressHandler)
+    
     if d.window.winfo_screenheight() < d.conf['arenaSize'] + 100 + d.borderSize * 2:
         d.scale = d.window.winfo_screenheight() / float(d.conf['arenaSize'] + 100 + d.borderSize * 2)
         d.conf['arenaSize'] *= d.scale
@@ -244,6 +307,15 @@ def openWindow(d):
     t.mainloop()
 
 
+def keyPressHandler(event):
+    global toggleReplaying
+
+    sym = event.keysym
+
+    if sym == "space":
+        toggleReplaying = True
+
+    
 def quit(signal=None, frame=None):
     log("Quiting", "INFO")
     exit()
