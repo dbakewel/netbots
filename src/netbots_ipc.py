@@ -18,7 +18,7 @@ from netbots_log import log
 # server and the server returns the reply message or an Error message.
 MsgDef = {
     # msg type              other required msg fields
-    'joinRequest': {'name': 'str'},
+    'joinRequest': {'name': ['str', 1, 16]},
     'joinReply': {'conf': 'dict'},
 
     'getInfoRequest': {},
@@ -81,7 +81,13 @@ def isValidMsg(msg):
                         log("Msg '" + fld + "' key has value of type " + str(type(msg[fld])) +
                             " but expected " + fldspec[0] + ": " + str(msg), "ERROR")
                         return False
-                    if msg[fld] < fldspec[1] or msg[fld] > fldspec[2]:
+                    if fldspec[0] is 'str':
+                        if len(msg[fld]) < fldspec[1] or len(msg[fld]) > fldspec[2]:
+                            log("Msg '" + fld + "' key has a string value " + str(msg[fld]) +
+                                " with length out of range [" + str(fldspec[1]) + "," +
+                                str(fldspec[2]) + "] : " + str(msg), "ERROR")
+                            return False
+                    elif msg[fld] < fldspec[1] or msg[fld] > fldspec[2]:
                         log("Msg '" + fld + "' key has a value " + str(msg[fld]) +
                             " which is out of range [" + str(fldspec[1]) + "," +
                             str(fldspec[2]) + "] : " + str(msg), "ERROR")

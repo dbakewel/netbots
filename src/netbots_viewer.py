@@ -2,6 +2,8 @@ import argparse
 import time
 import signal
 import tkinter as t
+import random
+import math
 
 from netbots_log import log
 from netbots_log import setLogLevel
@@ -103,24 +105,32 @@ def checkForUpdates(d):
         # remove shell widgets veiwer has but are not on server.
         for src in list(d.shellWidgets.keys()):
             if not src in msg['shells']:
-                d.canvas.delete(d.shellWidgets[src])
+                d.canvas.delete(d.shellWidgets[src][1])
+                d.canvas.delete(d.shellWidgets[src][0])
                 del d.shellWidgets[src]
 
         # add shell widgets server has that viewer doesn't
         for src in msg['shells']:
             if not src in d.shellWidgets:
                 c = d.canvas.itemcget(d.botWidgets[src], 'fill')
-                d.shellWidgets[src] = d.canvas.create_oval(0, 0, 0, 0, fill=c)
+                d.shellWidgets[src] = [
+                    d.canvas.create_line(0, 0, 0, 0, width=2, arrow=t.LAST, fill=c),
+                    d.canvas.create_line(0, 0, 0, 0, width=2, fill=c)
+                    ]
 
         # update location of shell widgets
         for src in d.shellWidgets:
             centerX = msg['shells'][src]['x'] * d.scale + d.borderSize
             centerY = d.conf['arenaSize'] - msg['shells'][src]['y'] * d.scale + d.borderSize
-            d.canvas.coords(d.shellWidgets[src],
-                            centerX - 2,
-                            centerY - 2,
-                            centerX + 2,
-                            centerY + 2)
+            shellDir = msg['shells'][src]['direction']
+            shell_item_1 = d.shellWidgets[src][0]
+            d.canvas.coords(shell_item_1, centerX, centerY,
+                            d.scale * 1 * math.cos(-shellDir) + centerX,
+                            d.scale * 1 * math.sin(-shellDir) + centerY)
+            shell_item_2 = d.shellWidgets[src][1]
+            d.canvas.coords(shell_item_2, centerX, centerY,
+                            d.scale * 10 * math.cos(-shellDir) + centerX,
+                            d.scale * 10 * math.sin(-shellDir) + centerY)
 
         # remove explosion widgets viewer has but are not on server.
         for k in list(d.explWidgets.keys()):
@@ -251,6 +261,8 @@ def main():
                         default='127.0.0.1', help='Server IP Address')
     parser.add_argument('-sp', metavar='Server Port', dest='serverPort', type=int, nargs='?',
                         default=20000, help='Server port number')
+    parser.add_argument('-randcolors', dest='randomColors', action='store_true',
+                        default=False, help='Randomizes bot colors in viewer')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -264,7 +276,7 @@ def main():
 
     try:
         d.viewerSocket = nbipc.NetBotSocket(args.myIP, args.myPort, d.srvIP, d.srvPort)
-        reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'})
+        reply = d.viewerSocket.sendRecvMessage({'type': 'addViewerRequest'}, retries=60, delay=1, delayMultiplier=1)
         d.conf = reply['conf']
         log("Server Configuration: " + str(d.conf), "VERBOSE")
     except Exception as e:
@@ -272,7 +284,10 @@ def main():
         quit()
 
     log("Server registration successful. Opening Window.")
-
+    
+    if args.randomColors:
+        random.shuffle(d.colors)
+        
     openWindow(d)
 
 

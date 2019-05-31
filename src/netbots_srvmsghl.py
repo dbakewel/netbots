@@ -159,7 +159,10 @@ def scanRequest(d, msg, src):
 
 
 def addViewerRequest(d, msg, src):
-    if src in d.bots:
+    if d.conf['noViewers']:
+        return {'type': 'Error', 'result': "Viewers are not allowed to join."}
+        log(src + " tried to join as viewer but viewers are not allowed to join.")
+    elif src in d.bots:
         return {'type': 'Error', 'result': "Bots are not allowed to be viewers."}
         log("Bot from " + src + " tried to join as viewer.")
     elif src in d.viewers:
