@@ -305,6 +305,28 @@ def sendToViwers(d):
 # Game Logic
 ########################################################
 
+def getHitSeverity(d, b1, a, b2 = None):
+    '''
+    hitSeverity returns a number in range 0.0 to 1.0 if b2 is None and b1 is in default class.
+    hitSeverity returns a number in range 0.0 to 2.0 if b2 is a bot and both are in default class.
+    
+    'b1' is the bot who collided.
+    'a' is the angle from b1 towards the collision.
+    'b2' is the other bot that collied if this is a bot on bot collision.
+    '''
+
+    hitSeverity = b1['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', b1['class']) / \
+                          d.conf['botMaxSpeed'] * math.cos(b1['currentDirection'] - a)
+    if b2:
+        # This may reduce hitSeverity if b2 is moving away from b1 or
+        # increase hitSeverity if b2 moving towards b1.
+        hitSeverity += b2['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', b2['class']) / \
+                          d.conf['botMaxSpeed'] * math.cos(b2['currentDirection'] - a + math.pi)
+    if hitSeverity < 0:
+        hitSeverity = 0
+
+    return hitSeverity
+
 
 def findOverlapingBots(d, bots):
     """
@@ -541,14 +563,8 @@ def step(d):
                                         bot['currentDirection'],
                                         bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']))
 
-    '''
-    hitSeverity may be in range 0.0 to 2.0. hitSeverity == 0 means robot did not hit
-    anything this step. hitSeverity == 1 means d.conf['hitDamage'] should applied
-    to robot. For example, if a robot hits wall at full speed while moving directly towards
-    wall then hitSeverity = 1.0. If two robots hit each other while both are driving at
-    full speeds and directly towards each other then hitSeverity = 2.0.
-    '''
-    # set starting hitSeverity to 0 for all robots.
+    # set starting hitSeverity to 0 for all robots. hitSeverity == 0 means robot did not 
+    # hit anything this step.
     for src, bot in d.bots.items():
         bot['hitSeverity'] = 0.0
 
@@ -561,28 +577,21 @@ def step(d):
         for src, bot in d.bots.items():
             hitSeverity = 0
             if bot['x'] - d.conf['botRadius'] < 0:
-                # hit right side
-                bot['x'] = d.conf['botRadius'] + 1
-                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                              d.conf['botMaxSpeed'] * math.cos(min(math.pi / 2, abs(bot['currentDirection'] - \
-                              math.pi)))
-            if bot['x'] + d.conf['botRadius'] > d.conf['arenaSize']:
                 # hit left side
+                bot['x'] = d.conf['botRadius'] + 1
+                hitSeverity = getHitSeverity(d, bot, math.pi)
+            if bot['x'] + d.conf['botRadius'] > d.conf['arenaSize']:
+                # hit right side
                 bot['x'] = d.conf['arenaSize'] - d.conf['botRadius'] - 1
-                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                              d.conf['botMaxSpeed'] * math.cos(min(math.pi / 2, abs(bot['currentDirection'])))
+                hitSeverity = getHitSeverity(d, bot, 0)
             if bot['y'] - d.conf['botRadius'] < 0:
                 # hit bottom side
                 bot['y'] = d.conf['botRadius'] + 1
-                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                              d.conf['botMaxSpeed'] * math.cos(min(math.pi/2, abs(bot['currentDirection'] - \
-                              math.pi * 3 / 2)))
+                hitSeverity = getHitSeverity(d, bot, math.pi * 3 / 2)
             if bot['y'] + d.conf['botRadius'] > d.conf['arenaSize']:
                 # hit top side
                 bot['y'] = d.conf['arenaSize'] - d.conf['botRadius'] - 1
-                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                              d.conf['botMaxSpeed'] * math.cos(min(math.pi/2, abs(bot['currentDirection'] - \
-                              math.pi / 2)))
+                hitSeverity = getHitSeverity(d, bot, math.pi/2)
     
             if hitSeverity:
                 foundOverlap = True
@@ -601,8 +610,7 @@ def step(d):
             # move bot
             b['x'], b['y'] = nbmath.project(b['x'], b['y'], a, distance)
             # record damage
-            hitSeverity = b['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                          d.conf['botMaxSpeed'] * math.cos(min(math.pi / 2, abs(b['currentDirection'] - a + math.pi)))
+            hitSeverity = getHitSeverity(d, b, a + math.pi)
             b['hitSeverity'] = max(b['hitSeverity'], hitSeverity)
             # check for more bots overlapping
             overlap = findOverlapingBotsAndObstacles(d, d.bots)
@@ -622,11 +630,7 @@ def step(d):
             b1['x'], b1['y'] = nbmath.project(b1['x'], b1['y'], a + math.pi, distance)
             b2['x'], b2['y'] = nbmath.project(b2['x'], b2['y'], a, distance)
             # record damage
-            # find the angle between the direction vector and the vector towards the point of collision
-            hitSeverity = b1['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                          d.conf['botMaxSpeed'] * math.cos(b1['currentDirection'] - a) + \
-                          b2['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                          d.conf['botMaxSpeed'] * math.cos(b2['currentDirection'] - a + math.pi)
+            hitSeverity = getHitSeverity(d, b1, a, b2)
             b1['hitSeverity'] = max(b1['hitSeverity'], hitSeverity)
             b2['hitSeverity'] = max(b2['hitSeverity'], hitSeverity)
             # check for more bots overlapping
