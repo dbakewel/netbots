@@ -80,6 +80,10 @@ def testHitSeverity():
     if round(nbsrv.getHitSeverity(d,b1, 0, b2),8) != round(1+0.7071067811865476,8):
         log("test 18 failed","ERROR")
 
+    b2 = {'class': "default", 'currentSpeed': 100, 'currentDirection': math.pi/4}
+    if round(nbsrv.getHitSeverity(d,b1, math.pi, b2),8) != round(0,8):
+        log("test 19 failed","ERROR")
+
 def main():
     testHitSeverity()
 
