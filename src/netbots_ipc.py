@@ -8,17 +8,34 @@ import argparse
 
 from netbots_log import log
 
-# Every msg is a python dict type with at least the type attribute and a string value.
-# For example: { 'type': 'joinRequest'}
-# MsgDef defines addition fields that must be included based on type.
-# All addition fields have a defined type in the form of <type> or [<type>,min,max].
-# <type> can be expressed as multiple acceptable types as (<type>,<type>,...)
-#
-# All Request messages have a corresponding Reply message. The Request is sent to the
-# server and the server returns the reply message or an Error message.
+"""
+**About Messages**
+
+Every message is a python dict type with at least a type attribute (i.e. field) and a 
+string value.
+
+For example: { 'type': 'getInfoRequest'}
+
+MsgDef below defines valid types and additional fields that must be included and 
+can optionally be included based on type.
+
+Optional fields end in '_o' which marks the fields as optional. The '_o' should not 
+appear in the actual message, it is just a marker that the field is optional.
+For example, a joinRequest message with optional class field would be:
+
+{'type': 'joinRequest', 'name': 'SuperRobot', 'class': 'heavy'}
+
+All fields have a defined type in the form of <type> or [<type>,min,max].
+<type> can be expressed as multiple acceptable types as (<type>,<type>,...)
+
+For fields types of 'str' min and max are the min length and max length of the string.
+
+All Request messages have a corresponding Reply message. The Request is sent to the
+server and the server returns the reply message or an Error message.
+"""
 MsgDef = {
     # msg type              other required msg fields
-    'joinRequest': {'name': ['str', 1, 16]},
+    'joinRequest': {'name': ['str', 1, 16], 'class_o': ['str', 1, 16]},
     'joinReply': {'conf': 'dict'},
 
     'getInfoRequest': {},
@@ -46,7 +63,7 @@ MsgDef = {
     'fireCanonReply': {},
 
     'scanRequest': {'startRadians': ['(int,float)', 0, math.pi * 2], 'endRadians': ['(int,float)', 0, math.pi * 2]},
-    'scanReply': {'distance': ['(int,float)', 0, 1415]},
+    'scanReply': {'distance': ['(int,float)', 0, 32767]},
 
     'addViewerRequest': {},
     'addViewerReply': {'conf': 'dict'},
@@ -70,10 +87,25 @@ def isValidMsg(msg):
         log("Msg does not contain 'type' key: " + str(msg), "ERROR")
         return False
 
+    unvalidedFields = list(msg.keys())
+    # type is validated below as part of loop so does not need specific validation.
+    unvalidedFields.remove('type')
+    # msgId and replyData are always optional and have no specific format. So they are always valid if present.
+    if 'msgID' in unvalidedFields:
+        unvalidedFields.remove('msgID')
+    if 'replyData' in unvalidedFields:
+        unvalidedFields.remove('replyData')
+
     for msgtype, msgspec in MsgDef.items():
         if msgtype == msg['type']:
             for fld, fldspec in msgspec.items():
-                if fld not in msg:
+                if fld.endswith('_o'):
+                    # remove magic suffix marking field as optional
+                    fld = fld.rstrip('_o')
+                    if fld not in msg:
+                        # optional field is not present, which is valid.
+                        continue
+                elif fld not in msg:
                     log("Msg does not contain required '" + fld + "' key: " + str(msg), "ERROR")
                     return False
                 if isinstance(fldspec, list):
@@ -97,7 +129,19 @@ def isValidMsg(msg):
                         log("Msg '" + fld + "' key has value of type " + str(type(msg[fld])) +
                             " but expected " + fldspec + ": " + str(msg), "ERROR")
                         return False
-            return True
+                unvalidedFields.remove(fld)
+            # All fields defined for message type have now been examined and are valid
+            if len(unvalidedFields):
+                # message has fields it should not have.
+                log("Msg contains field(s) " + str(unvalidedFields) + " which is not defined for message type " + msg['type'] + ": " + str(msg), "ERROR")
+                for fld in unvalidedFields:
+                    if fld.endswith('_o'):
+                        log("Optional message fields should not include '_o' suffix in field name.", "WARNING")
+                        break
+                return False
+            else:
+                # message is valid and has no extra fields.
+                return True
     log("Msg 'type' key has value '" + str(msg['type']) + "' which is not known: " + str(msg), "ERROR")
     return False
 
