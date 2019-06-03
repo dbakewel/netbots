@@ -26,7 +26,7 @@ class ViewerData():
     shellWidgets = {}
     explWidgets = {}
     bigMsg = None
-    colors = ['#ACACAC', '#87FFCD', '#9471FF', '#FF9DB6', '#2ED2EB', 
+    colors = ['#ACACAC', '#87FFCD', '#9471FF', '#FF9DB6', '#2ED2EB',
               '#FA8737', '#29B548', '#FFBC16', '#308AFF', '#FF3837']
     lastViewData = time.time()
     scale = 1
@@ -63,8 +63,8 @@ def checkForUpdates(d):
             else:
                 s = "s"
             d.canvas.itemconfigure(d.bigMsg, text="Waiting for " +
-                                   str(leftToJoin) +
-                                   " robot" + s + " to join.")
+                                                  str(leftToJoin) +
+                                                  " robot" + s + " to join.")
         else:
             d.canvas.itemconfigure(d.bigMsg, text="")
 
@@ -81,20 +81,24 @@ def checkForUpdates(d):
                 d.botStatusWidgets[src].pack(fill=t.X)
 
                 # create bot widgets
-                d.botTrackLeft[src] = d.canvas.create_line(0, 0, 50, 50, width=10, fill='grey')
-                d.botTrackRight[src] = d.canvas.create_line(0, 0, 50, 50, width=10, fill='grey')
+                d.botTrackLeft[src] = d.canvas.create_line(0, 0, 50, 50, width=
+                d.scale * d.conf['botRadius'] * (10/24.0), fill='grey')
+                d.botTrackRight[src] = d.canvas.create_line(0, 0, 50, 50, width=
+                d.scale * d.conf['botRadius'] * (10/24.0), fill='grey')
                 d.botWidgets[src] = d.canvas.create_oval(0, 0, 0, 0, fill=c)
-                d.botLine[src] = d.canvas.create_line(0, 0, 50, 50, width=10, arrow=t.LAST, fill='white')
+                d.botLine[src] = d.canvas.create_line(0, 0, 50, 50, width=
+                d.scale * d.conf['botRadius'] * (5/24.0), arrow=t.LAST, fill='white')
 
             # update text for each bot
             d.botStatusWidgets[src].config(text=bot['name'] +
-                                           "\n" + "__________________________________" +
-                                           "\nPoints: " + str(bot['points']) +
-                                           "\nCanon Fired: " + str(bot['firedCount']) +
-                                           "\nShell Damage Inflicted: " + '%.1f' % (bot['shellDamage']) +
-                                           "\n" + "__________________________________" +
-                                           "\nHealth: " + '%.1f' % (bot['health']) + "%"
-                                           "   Speed: " + '%.1f' % (bot['currentSpeed']) + "%")
+                                                "\n" + "__________________________________" +
+                                                "\nPoints: " + str(bot['points']) +
+                                                "\nCanon Fired: " + str(bot['firedCount']) +
+                                                "\nShell Damage Inflicted: " + '%.1f' % (bot['shellDamage']) +
+                                                "\n" + "__________________________________" +
+                                                "\nHealth: " + '%.1f' % (bot['health']) + "%"
+                                                                                          "   Speed: " + '%.1f' % (
+                                                bot['currentSpeed']) + "%")
 
             # update location of bot widgets or hide if health == 0
             if bot['health'] == 0:
@@ -106,26 +110,37 @@ def checkForUpdates(d):
                 centerX = bot['x'] * d.scale + d.borderSize
                 centerY = d.conf['arenaSize'] - bot['y'] * d.scale + d.borderSize
                 d.canvas.coords(d.botWidgets[src],
-                                centerX - d.conf['botRadius'],
-                                centerY - d.conf['botRadius'],
-                                centerX + d.conf['botRadius'],
-                                centerY + d.conf['botRadius'])
-                
-                d.canvas.coords(d.botLine[src], centerX + 19 * math.cos(-bot['currentDirection']),
-                                centerY + 19 * math.sin(-bot['currentDirection']),
-                                24 * math.cos(-bot['currentDirection']) + centerX,
-                                24 * math.sin(-bot['currentDirection']) + centerY)
+                                centerX - d.conf['botRadius'] * d.scale,
+                                centerY - d.conf['botRadius'] * d.scale,
+                                centerX + d.conf['botRadius'] * d.scale,
+                                centerY + d.conf['botRadius'] * d.scale)
 
-                d.canvas.coords(d.botTrackLeft[src], centerX  + 30 * math.cos(-bot['currentDirection'] - math.pi / 4),
-                                centerY + 30 * math.sin(-bot['currentDirection'] - math.pi / 4),
-                                30 * math.cos(-bot['currentDirection'] - (3 * math.pi) / 4) + centerX,
-                                30 * math.sin(-bot['currentDirection']- (3 * math.pi) / 4) + centerY )
+                d.canvas.coords(d.botLine[src], centerX + d.conf['botRadius'] * (19.0/24.0)
+                                * d.scale * math.cos(-bot['currentDirection']), #19
+                                centerY + d.conf['botRadius'] * (19.0/24.0) * d.scale * math.sin(-bot['currentDirection']),
+                                d.conf['botRadius'] * d.scale * math.cos(-bot['currentDirection']) + centerX,  #24
+                                d.conf['botRadius'] * d.scale * math.sin(-bot['currentDirection']) + centerY)
 
-                d.canvas.coords(d.botTrackRight[src], centerX + 30 * math.cos(-bot['currentDirection'] - (5 * math.pi) / 4),
-                                centerY + 30 * math.sin(-bot['currentDirection'] - (5 * math.pi) / 4),
-                                30 * math.cos(-bot['currentDirection'] - (7 * math.pi) / 4) + centerX,
-                                30 * math.sin(-bot['currentDirection'] - (7 * math.pi) / 4) + centerY)
-                
+                d.canvas.coords(d.botTrackLeft[src],
+                                centerX + d.conf['botRadius'] * (30.0/24.0) * d.scale
+                                * math.cos(-bot['currentDirection'] - math.pi / 4),
+                                centerY + d.conf['botRadius'] * (30.0/24.0) * d.scale
+                                * math.sin(-bot['currentDirection'] - math.pi / 4),
+                                d.conf['botRadius'] * (30.0/24.0) * d.scale * math.cos(-bot['currentDirection']
+                                                                                       - (3 * math.pi) / 4) + centerX,
+                                d.conf['botRadius'] * (30.0/24.0) * d.scale * math.sin(-bot['currentDirection']
+                                                                                       - (3 * math.pi) / 4) + centerY)
+
+                d.canvas.coords(d.botTrackRight[src],
+                                centerX + d.conf['botRadius'] * (30.0/24.0) * d.scale
+                                * math.cos(-bot['currentDirection'] - (5 * math.pi) / 4),
+                                centerY + d.conf['botRadius'] * (30.0/24.0) * d.scale
+                                * math.sin(-bot['currentDirection'] - (5 * math.pi) / 4),
+                                d.conf['botRadius'] * (30.0/ 24.0) * d.scale
+                                * math.cos(-bot['currentDirection'] - (7 * math.pi) / 4) + centerX,
+                                d.conf['botRadius'] * (30.0/24.0)
+                                * d.scale * math.sin(-bot['currentDirection'] - (7 * math.pi) / 4) + centerY)
+
                 d.canvas.itemconfigure(d.botLine[src], state='normal')
                 d.canvas.itemconfigure(d.botWidgets[src], state='normal')
                 d.canvas.itemconfigure(d.botTrackLeft[src], state='normal')
@@ -134,32 +149,24 @@ def checkForUpdates(d):
         # remove shell widgets veiwer has but are not on server.
         for src in list(d.shellWidgets.keys()):
             if not src in msg['shells']:
-                d.canvas.delete(d.shellWidgets[src][1])
-                d.canvas.delete(d.shellWidgets[src][0])
+                d.canvas.delete(d.shellWidgets[src])
                 del d.shellWidgets[src]
 
         # add shell widgets server has that viewer doesn't
         for src in msg['shells']:
             if not src in d.shellWidgets:
                 c = d.canvas.itemcget(d.botWidgets[src], 'fill')
-                d.shellWidgets[src] = [
-                    d.canvas.create_line(0, 0, 0, 0, width=2, arrow=t.LAST, fill=c),
-                    d.canvas.create_line(0, 0, 0, 0, width=2, fill=c)
-                    ]
+                d.shellWidgets[src] = d.canvas.create_oval(0, 0, 0, 0, fill=c)
 
         # update location of shell widgets
         for src in d.shellWidgets:
             centerX = msg['shells'][src]['x'] * d.scale + d.borderSize
             centerY = d.conf['arenaSize'] - msg['shells'][src]['y'] * d.scale + d.borderSize
-            shellDir = msg['shells'][src]['direction']
-            shell_item_1 = d.shellWidgets[src][0]
-            d.canvas.coords(shell_item_1, centerX, centerY,
-                            d.scale * 1 * math.cos(-shellDir) + centerX,
-                            d.scale * 1 * math.sin(-shellDir) + centerY)
-            shell_item_2 = d.shellWidgets[src][1]
-            d.canvas.coords(shell_item_2, centerX, centerY,
-                            d.scale * 10 * math.cos(-shellDir) + centerX,
-                            d.scale * 10 * math.sin(-shellDir) + centerY)
+            d.canvas.coords(d.shellWidgets[src],
+                            centerX - 2,
+                            centerY - 2,
+                            centerX + 2,
+                            centerY + 2)
 
         # remove explosion widgets viewer has but are not on server.
         for k in list(d.explWidgets.keys()):
@@ -191,8 +198,8 @@ def checkForUpdates(d):
 
         # update game status widget
         d.statusWidget.config(text=d.conf['serverName'] +
-                              "\n\nGame: " + str(msg['state']['gameNumber']) + " / " + str(d.conf['gamesToPlay']) +
-                              "\nStep: " + str(msg['state']['gameStep']) + " / " + str(d.conf['stepMax']))
+                                   "\n\nGame: " + str(msg['state']['gameNumber']) + " / " + str(d.conf['gamesToPlay']) +
+                                   "\nStep: " + str(msg['state']['gameStep']) + " / " + str(d.conf['stepMax']))
 
         # record the last time we got good view data from server.
         d.lastViewData = time.time()
@@ -313,10 +320,10 @@ def main():
         quit()
 
     log("Server registration successful. Opening Window.")
-    
+
     if args.randomColors:
         random.shuffle(d.colors)
-        
+
     openWindow(d)
 
 
