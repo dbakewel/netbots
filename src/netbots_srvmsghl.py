@@ -20,9 +20,17 @@ def joinRequest(d, msg, src):
     elif len(d.bots) >= d.conf['botsInGame']:
         result = "Game is full. No more bots can join."
         log("Bot from " + src + " tried to join full game.")
+    elif not d.conf['allowClasses'] and 'class' in msg and msg['class'] != "default":
+        result = "Message contained class other than 'default' but server is set to only allow 'class' == 'default'"
+        log("Bot from " + src + " requested class other than default when only default is allowed.")
+    elif d.conf['allowClasses'] and 'class' in msg and msg['class'] not in d.conf['classes']:
+        result = "Message contained class that is not known to server."
+        log("Bot from " + src + " requested class that is not known to server.")
     else:
         d.bots[src] = copy.deepcopy(d.botTemplate)
         d.bots[src]['name'] = msg['name']
+        if 'class' in msg:
+            d.bots[src]['class'] = msg['class']
         d.startBots.append(src)
         result = "OK"
         log("Bot joined game: " + d.bots[src]['name'] + " (" + src + ")")
@@ -124,9 +132,10 @@ def fireCanonRequest(d, msg, src):
 
         d.bots[src]['firedCount'] += 1
 
+        d.bots[src]['last']['fireCanonRequest'] = {'direction': msg['direction'], 'distance': msg['distance']}
+
         return {
             'type': "fireCanonReply",
-            'result': "OK"
         }
 
 
@@ -147,10 +156,14 @@ def scanRequest(d, msg, src):
                 if not jammed:
                     dis = nbmath.contains(bot['x'], bot['y'], msg['startRadians'],
                                           msg['endRadians'], bot2['x'], bot2['y'])
-                    if dis != 0 and distance == 0:
-                        distance = dis
-                    elif dis != 0 and dis < distance:
-                        distance = dis
+                    
+                    if dis <= d.conf['scanMaxDistance'] and dis != 0:
+                        if distance == 0:
+                            distance = dis
+                        elif dis < distance:
+                            distance = dis
+        
+        d.bots[src]['last']['scanRequest'] = {'startRadians': msg['startRadians'], 'endRadians': msg['endRadians']}
 
         return {
             'type': "scanReply",

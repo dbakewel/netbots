@@ -13,7 +13,7 @@ The image below is the NetBots viewer. The filled circles are robots and the unf
 
 ### How is NetBots different?
 
-NetBots differs from RobotWar, and it's clones by being real-time and network centric. The server and robots each run in separate processes and can run on the same or separate computers. The server runs at a specific rate (steps/second). Additionally, the server emulates an unreliable network where message (packet) loss is common. Writing programs to deal with the real-time nature and network unreliability provides additional programming challenges. 
+NetBots differs from RobotWar, and its clones by being real-time and network centric. The server and robots each run in separate processes and can run on the same or separate computers. The server runs at a specific rate (steps/second). Additionally, the server emulates an unreliable network where message (packet) loss is common. Writing programs to deal with the real-time nature and network unreliability provides additional programming challenges. 
 
 Finally, NetBots offers two optional challenges for robot logic, [obstacles and jam zones](#obstacles-and-jam-zones). The image below shows obstacles (black circles) and jam zones (gray circles).
 
