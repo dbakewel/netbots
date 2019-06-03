@@ -17,6 +17,7 @@ class ViewerData():
     window = None
     frame = None
     statusWidget = None
+    replayWidget = None
     canvas = None
     botWidgets = {}
     botLine = {}
@@ -36,6 +37,15 @@ class ViewerData():
     srvIP = None
     srvPort = None
     conf = None
+    
+    replayData = []
+    playingData = []
+    isReplaying = False
+    toggleReplaying = False
+    replaySec = 7
+    replayStepSec = 0.05
+    replaySaveEveryNth = 1
+    replaySaveSteps = math.ceil(replaySec / replayStepSec)
 
 
 def checkForUpdates(d):
@@ -44,6 +54,10 @@ def checkForUpdates(d):
         # keep getting messages until we get the last one and then an exception is thrown.
         while True:
             msg, ip, port = d.viewerSocket.recvMessage()
+            
+            d.replayData.append(msg)
+            while len(d.replayData) > d.replaySaveSteps / d.replaySaveEveryNth:
+                d.replayData.pop(0)
     except nbipc.NetBotSocketException as e:
         # if message type is Error and we have not got good data for 100 steps then quit
         if msg['type'] == 'Error' and d.lastViewData + d.conf['stepSec'] * 100 < time.time():
@@ -54,6 +68,47 @@ def checkForUpdates(d):
         quit()
 
     if msg['type'] == 'viewData':
+        
+        # turn replay on or off if space bar pressed
+        if d.toggleReplaying:
+            if d.isReplaying:
+                d.playingData = []
+                d.toggleReplaying = False
+                d.isReplaying = False
+            else:
+                d.playingData = []
+                d.playingData.extend(d.replayData)
+                d.toggleReplaying = False
+                d.isReplaying = True
+
+        # play back and then remove data
+        if d.isReplaying:
+            if len(d.playingData) > 0:
+                msg = d.playingData[0]
+                d.playingData.pop(0)
+
+            # replay is over
+            else:
+                d.isReplaying = False
+
+        # draw red border on arena and red instant replay widget
+        if d.isReplaying:
+            d.canvas.config(highlightbackground='#FF0000')
+
+            if d.replayWidget is None:
+                d.replayWidget = t.Message(d.frame, width=200, justify='center')
+                d.replayWidget.config(highlightbackground='#FF0000')
+                d.replayWidget.config(highlightthickness=d.borderSize)
+                d.replayWidget.pack(fill=t.X)
+                d.replayWidget.config(text="Instant Replay!")
+
+        else:
+            d.canvas.config(highlightbackground='#000')
+
+            if d.replayWidget is not None:
+                d.replayWidget.destroy()
+                d.replayWidget = None
+                
         # if gameNumber == 0 then post message
         if msg['state']['gameNumber'] == 0:
             leftToJoin = d.conf['botsInGame'] - len(msg['bots'])
@@ -216,13 +271,24 @@ def checkForUpdates(d):
         d.viewerSocket.sendMessage({'type': 'viewKeepAlive'}, d.srvIP, d.srvPort)
         d.nextKeepAlive += 1
 
-    # Wait two steps before updating screen.
-    d.window.after(int(d.conf['stepSec'] * 1000), checkForUpdates, d)
+    # wait during instant replay
+    if d.isReplaying:
+        # Wait two steps before updating screen.
+        wakeat = int(d.replayStepSec * d.replaySaveEveryNth * 1000)
+
+    # normal wait
+    else:
+        # Wait two steps before updating screen.
+        wakeat = int(d.conf['stepSec'] * 1000)
+
+    d.window.after(wakeat, checkForUpdates, d)
 
 
 def openWindow(d):
     d.window = t.Tk()
     d.window.title("NetBots")
+    
+    d.window.bind_all("<KeyPress>", keyPressHandler)
 
     if d.window.winfo_screenheight() < d.conf['arenaSize'] + 100 + d.borderSize * 2:
         d.scale = d.window.winfo_screenheight() / float(d.conf['arenaSize'] + 100 + d.borderSize * 2)
@@ -286,6 +352,14 @@ def openWindow(d):
     checkForUpdates(d)
     t.mainloop()
 
+    
+def keyPressHandler(event):
+    global d
+
+    sym = event.keysym
+
+    if sym == "space":
+        d.toggleReplaying = True
 
 def quit(signal=None, frame=None):
     log("Quiting", "INFO")
@@ -293,6 +367,8 @@ def quit(signal=None, frame=None):
 
 
 def main():
+    global d
+    
     d = ViewerData()
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
