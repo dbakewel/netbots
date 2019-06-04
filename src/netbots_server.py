@@ -679,8 +679,8 @@ def step(d):
 
         # if did not hit an obstacle and shell's explosion would touch inside of arena
         if not shellHitObstacle and \
-           (shell['x'] > d.conf['explRadius'] * -1 and shell['x'] < d.conf['arenaSize'] + d.conf['explRadius'] and
-                shell['y'] > d.conf['explRadius'] * -1 and shell['y'] < d.conf['arenaSize'] + d.conf['explRadius']):
+           (shell['x'] > d.getClassValue('explRadius', d.bots[src]['class']) * -1 and shell['x'] < d.conf['arenaSize'] + d.getClassValue('explRadius', d.bots[src]['class']) and
+                shell['y'] > d.getClassValue('explRadius', d.bots[src]['class']) * -1 and shell['y'] < d.conf['arenaSize'] + d.getClassValue('explRadius', d.bots[src]['class'])):
 
             # if shell has reached it destination then explode.
             if shell['distanceRemaining'] <= 0:
