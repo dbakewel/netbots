@@ -20,9 +20,11 @@ class ViewerData():
     replayWidget = None
     canvas = None
     botWidgets = {}
-    botLine = {}
+    botCurrentDirection = {}
+    botRequestedDirection = {}
     botTrackLeft = {}
     botTrackRight = {}
+    botScan = {}
     botStatusWidgets = {}
     shellWidgets = {}
     explWidgets = {}
@@ -135,12 +137,16 @@ def checkForUpdates(d):
                 d.botStatusWidgets[src].pack(fill=t.X)
 
                 # create bot widgets
+                d.botScan[src] = d.canvas.create_arc(0, 0, 50, 50, start=0, extent=0,
+                             style='arc', width=4, outline='#bbb')
                 d.botTrackLeft[src] = d.canvas.create_line(0, 0, 50, 50, width=
                 d.scale * d.conf['botRadius'] * (10 / 24.0), fill='grey')
                 d.botTrackRight[src] = d.canvas.create_line(0, 0, 50, 50, width=
                 d.scale * d.conf['botRadius'] * (10 / 24.0), fill='grey')
                 d.botWidgets[src] = d.canvas.create_oval(0, 0, 0, 0, fill=c)
-                d.botLine[src] = d.canvas.create_line(0, 0, 50, 50, width=
+                d.botRequestedDirection[src] = d.canvas.create_line(0, 0, 50, 50, width=
+                d.scale * d.conf['botRadius'] * (5 / 24.0), arrow=t.LAST, fill='#444')
+                d.botCurrentDirection[src] = d.canvas.create_line(0, 0, 50, 50, width=
                 d.scale * d.conf['botRadius'] * (5 / 24.0), arrow=t.LAST, fill='white')
 
             # update text for each bot
@@ -156,9 +162,11 @@ def checkForUpdates(d):
             # update location of bot widgets or hide if health == 0
             if bot['health'] == 0:
                 d.canvas.itemconfigure(d.botWidgets[src], state='hidden')
-                d.canvas.itemconfigure(d.botLine[src], state='hidden')
+                d.canvas.itemconfigure(d.botRequestedDirection[src], state='hidden')
+                d.canvas.itemconfigure(d.botCurrentDirection[src], state='hidden')
                 d.canvas.itemconfigure(d.botTrackLeft[src], state='hidden')
                 d.canvas.itemconfigure(d.botTrackRight[src], state='hidden')
+                d.canvas.itemconfigure(d.botScan[src], state='hidden')
             else:
                 centerX = bot['x'] * d.scale + d.borderSize
                 centerY = d.conf['arenaSize'] - bot['y'] * d.scale + d.borderSize
@@ -168,7 +176,14 @@ def checkForUpdates(d):
                                 centerX + d.conf['botRadius'] * d.scale,
                                 centerY + d.conf['botRadius'] * d.scale)
 
-                d.canvas.coords(d.botLine[src], centerX + d.conf['botRadius'] * (19.0 / 24.0)
+                d.canvas.coords(d.botRequestedDirection[src], centerX + d.conf['botRadius'] * (19.0 / 24.0)
+                                * d.scale * math.cos(-bot['requestedDirection']),  # 19
+                                centerY + d.conf['botRadius'] * (19.0 / 24.0) * d.scale * math.sin(
+                                    -bot['requestedDirection']),
+                                d.conf['botRadius'] * d.scale * math.cos(-bot['requestedDirection']) + centerX,  # 24
+                                d.conf['botRadius'] * d.scale * math.sin(-bot['requestedDirection']) + centerY)
+
+                d.canvas.coords(d.botCurrentDirection[src], centerX + d.conf['botRadius'] * (19.0 / 24.0)
                                 * d.scale * math.cos(-bot['currentDirection']),  # 19
                                 centerY + d.conf['botRadius'] * (19.0 / 24.0) * d.scale * math.sin(
                                     -bot['currentDirection']),
@@ -195,10 +210,23 @@ def checkForUpdates(d):
                                 d.conf['botRadius'] * (30.0 / 24.0)
                                 * d.scale * math.sin(-bot['currentDirection'] - (7 * math.pi) / 4) + centerY)
 
-                d.canvas.itemconfigure(d.botLine[src], state='normal')
+                d.canvas.coords(d.botScan[src],
+                                centerX - d.conf['botRadius'] * d.scale * 1.45,
+                                centerY - d.conf['botRadius'] * d.scale * 1.45,
+                                centerX + d.conf['botRadius'] * d.scale * 1.45,
+                                centerY + d.conf['botRadius'] * d.scale * 1.45)
+                d.canvas.itemconfigure(d.botScan[src], start=math.degrees(bot['last']['scanRequest']['startRadians']))
+                extent = bot['last']['scanRequest']['endRadians'] - bot['last']['scanRequest']['startRadians']
+                if extent < 0:
+                    extent += math.pi*2
+                d.canvas.itemconfigure(d.botScan[src], extent=math.degrees(extent))
+
+                d.canvas.itemconfigure(d.botRequestedDirection[src], state='normal')
+                d.canvas.itemconfigure(d.botCurrentDirection[src], state='normal')
                 d.canvas.itemconfigure(d.botWidgets[src], state='normal')
                 d.canvas.itemconfigure(d.botTrackLeft[src], state='normal')
                 d.canvas.itemconfigure(d.botTrackRight[src], state='normal')
+                d.canvas.itemconfigure(d.botScan[src], state='normal')
 
         # remove shell widgets veiwer has but are not on server.
         for src in list(d.shellWidgets.keys()):
