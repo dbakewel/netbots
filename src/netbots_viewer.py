@@ -252,10 +252,11 @@ def checkForUpdates(d):
                 c = d.canvas.itemcget(d.botWidgets[expl['src']], 'fill')
                 centerX = expl['x'] * d.scale + d.borderSize
                 centerY = d.conf['arenaSize'] - expl['y'] * d.scale + d.borderSize
-                d.explWidgets[k] = d.canvas.create_oval(centerX - d.conf['explRadius'],
-                                                        centerY - d.conf['explRadius'],
-                                                        centerX + d.conf['explRadius'],
-                                                        centerY + d.conf['explRadius'],
+                explRadius = getClassValue(d, 'explRadius', msg['bots'][expl['src']]['class'])
+                d.explWidgets[k] = d.canvas.create_oval(centerX - explRadius,
+                                                        centerY - explRadius,
+                                                        centerX + explRadius,
+                                                        centerY + explRadius,
                                                         fill=c, width=3, outline=c)
 
         # update game status widget
