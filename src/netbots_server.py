@@ -689,7 +689,7 @@ def step(d):
                     if bot['health'] > 0:
                         distance = nbmath.distance(bot['x'], bot['y'], shell['x'], shell['y'])
                         if distance < d.conf['explRadius']:
-                            damage = d.getClassValue('explDamage', d.bots[src]['class']) * (1 - distance / d.getClassValue('explRadius', d.bots[src]['class']))
+                            damage = max(0, d.getClassValue('explDamage', d.bots[src]['class']) * (1 - distance / d.getClassValue('explRadius', d.bots[src]['class'])))
                             bot['health'] = max(0, bot['health'] - (damage * d.getClassValue('botArmor', bot['class'])))
                             # allow recording of inflicting damage that is greater than health of hit robot.
                             # also record damage to oneself.
