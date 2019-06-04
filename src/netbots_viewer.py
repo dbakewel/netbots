@@ -7,6 +7,7 @@ import math
 
 from netbots_log import log
 from netbots_log import setLogLevel
+from netbots_server import SrvData
 import netbots_ipc as nbipc
 import netbots_math as nbmath
 
@@ -289,7 +290,7 @@ def checkForUpdates(d):
                 c = d.canvas.itemcget(d.botWidgets[expl['src']], 'fill')
                 centerX = expl['x'] * d.scale + d.borderSize
                 centerY = d.conf['arenaSize'] - expl['y'] * d.scale + d.borderSize
-                explRadius = getClassValue(d, 'explRadius', msg['bots'][expl['src']]['class'])
+                explRadius = SrvData.getClassValue(d, 'explRadius', msg['bots'][expl['src']]['class'])
                 d.explWidgets[k] = d.canvas.create_oval(centerX - explRadius,
                                                         centerY - explRadius,
                                                         centerX + explRadius,
