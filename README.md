@@ -189,7 +189,7 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 **wallbanger.py**: Wall Banger demonstrates how to use the python random module.
 
-**train.py**: Is a more complex moving robot that monitors its location and avoids hitting walls.
+**scaredycat.py**: Scaredy Cat demonstrates how to effectively use scaned information to avoid enemies and to avoid ramming walls.
 
 **lighthouse.py**: Lighthouse demonstrates scanning and firing the robot's canon.
 
