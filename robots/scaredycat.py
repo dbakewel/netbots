@@ -81,14 +81,14 @@ def play(botSocket, srvConf):
 
                 # move in the opposite direction of the quandrant where the closest enemy is at, at a 45 degree angle.
                 # ie. if closest enemy is in quadrant 3, it will move in the direction pi * 1.0/4.0 in the first quadrant
-                if moveDirection == 1:
-                    moveDirection == math.pi*(5.0/4.0)
+                if moveDirection == 0:
+                    moveDirection = math.pi * (5.0/4.0)
+                elif moveDirection == 1:
+                    moveDirection = math.pi * (7.0 / 4.0)
                 elif moveDirection == 2:
-                    moveDirection == math.pi * (7.0 / 4.0)
+                    moveDirection = math.pi * (1.0 / 4.0)
                 elif moveDirection == 3:
-                    moveDirection == math.pi * (1.0 / 4.0)
-                elif moveDirection == 4:
-                    moveDirection == math.pi * (3.0 / 4.0)
+                    moveDirection = math.pi * (3.0 / 4.0)
 
                 # Turn in a new direction
                 botSocket.sendRecvMessage({'type': 'setDirectionRequest', 'requestedDirection': moveDirection})
