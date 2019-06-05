@@ -667,7 +667,7 @@ def step(d):
         oldy = shell['y']
 
         # move shell
-        distance = min(d.conf['shellSpeed'], shell['distanceRemaining'])
+        distance = min(d.getClassValue('shellSpeed', d.bots[src]['class']), shell['distanceRemaining'])
         shell['x'], shell['y'] = nbmath.project(shell['x'], shell['y'], shell['direction'], distance)
         shell['distanceRemaining'] -= distance
 
