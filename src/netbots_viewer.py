@@ -158,16 +158,16 @@ def checkForUpdates(d):
                 d.botScan[src] = d.canvas.create_arc(0, 0, 50, 50, start=0, extent=0,
                              style='arc', width=4, outline='#bbb')
                 d.botTrackLeft[src] = d.canvas.create_line(0, 0, 50, 50, width=
-                d.scale * d.conf['botRadius'] * (10 / 24.0), fill='grey')
+                    d.conf['botRadius'] * (10 / 24.0), fill='grey')
                 d.botTrackRight[src] = d.canvas.create_line(0, 0, 50, 50, width=
-                d.scale * d.conf['botRadius'] * (10 / 24.0), fill='grey')
+                    d.conf['botRadius'] * (10 / 24.0), fill='grey')
                 d.botWidgets[src] = d.canvas.create_oval(0, 0, 0, 0, fill=c)
                 d.botCanon[src] = d.canvas.create_line(0, 0, 50, 50, width=
-                d.scale * d.conf['botRadius'] * (1/3.0), fill=c)
+                    d.conf['botRadius'] * (1/3.0), fill=c)
                 d.botRequestedDirection[src] = d.canvas.create_line(0, 0, 50, 50, width=
-                d.scale * d.conf['botRadius'] * (5 / 24.0), arrow=t.LAST, fill=color_variant(c,-100))
+                    d.conf['botRadius'] * (5 / 24.0), arrow=t.LAST, fill=color_variant(c,-100))
                 d.botCurrentDirection[src] = d.canvas.create_line(0, 0, 50, 50, width=
-                d.scale * d.conf['botRadius'] * (5 / 24.0), arrow=t.LAST, fill=color_variant(c,100))
+                    d.conf['botRadius'] * (5 / 24.0), arrow=t.LAST, fill=color_variant(c,100))
 
             # update text for each bot
             d.botStatusWidgets[src].config(text=bot['name'] +
@@ -192,54 +192,54 @@ def checkForUpdates(d):
                 centerX = bot['x'] * d.scale + d.borderSize
                 centerY = d.conf['arenaSize'] - bot['y'] * d.scale + d.borderSize
                 d.canvas.coords(d.botWidgets[src],
-                                centerX - d.conf['botRadius'] * d.scale,
-                                centerY - d.conf['botRadius'] * d.scale,
-                                centerX + d.conf['botRadius'] * d.scale,
-                                centerY + d.conf['botRadius'] * d.scale)
+                                centerX - d.conf['botRadius'],
+                                centerY - d.conf['botRadius'],
+                                centerX + d.conf['botRadius'],
+                                centerY + d.conf['botRadius'])
 
                 d.canvas.coords(d.botRequestedDirection[src], centerX + d.conf['botRadius'] * (19.0 / 24.0)
-                                * d.scale * math.cos(-bot['requestedDirection']),  # 19
-                                centerY + d.conf['botRadius'] * (19.0 / 24.0) * d.scale * math.sin(
+                                * math.cos(-bot['requestedDirection']),  # 19
+                                centerY + d.conf['botRadius'] * (19.0 / 24.0) * math.sin(
                                     -bot['requestedDirection']),
-                                d.conf['botRadius'] * d.scale * math.cos(-bot['requestedDirection']) + centerX,  # 24
-                                d.conf['botRadius'] * d.scale * math.sin(-bot['requestedDirection']) + centerY)
+                                d.conf['botRadius'] * math.cos(-bot['requestedDirection']) + centerX,  # 24
+                                d.conf['botRadius'] * math.sin(-bot['requestedDirection']) + centerY)
 
                 d.canvas.coords(d.botCurrentDirection[src], centerX + d.conf['botRadius'] * (19.0 / 24.0)
-                                * d.scale * math.cos(-bot['currentDirection']),  # 19
-                                centerY + d.conf['botRadius'] * (19.0 / 24.0) * d.scale * math.sin(
+                                * math.cos(-bot['currentDirection']),  # 19
+                                centerY + d.conf['botRadius'] * (19.0 / 24.0) * math.sin(
                                     -bot['currentDirection']),
-                                d.conf['botRadius'] * d.scale * math.cos(-bot['currentDirection']) + centerX,  # 24
-                                d.conf['botRadius'] * d.scale * math.sin(-bot['currentDirection']) + centerY)
+                                d.conf['botRadius'] * math.cos(-bot['currentDirection']) + centerX,  # 24
+                                d.conf['botRadius'] * math.sin(-bot['currentDirection']) + centerY)
 
                 d.canvas.coords(d.botTrackLeft[src],
-                                centerX + d.conf['botRadius'] * (30.0 / 24.0) * d.scale
+                                centerX + d.conf['botRadius'] * (30.0 / 24.0)
                                 * math.cos(-bot['currentDirection'] - math.pi / 4),
-                                centerY + d.conf['botRadius'] * (30.0 / 24.0) * d.scale
+                                centerY + d.conf['botRadius'] * (30.0 / 24.0)
                                 * math.sin(-bot['currentDirection'] - math.pi / 4),
-                                d.conf['botRadius'] * (30.0 / 24.0) * d.scale * math.cos(-bot['currentDirection']
+                                d.conf['botRadius'] * (30.0 / 24.0) * math.cos(-bot['currentDirection']
                                                                                          - (3 * math.pi) / 4) + centerX,
-                                d.conf['botRadius'] * (30.0 / 24.0) * d.scale * math.sin(-bot['currentDirection']
+                                d.conf['botRadius'] * (30.0 / 24.0) * math.sin(-bot['currentDirection']
                                                                                          - (3 * math.pi) / 4) + centerY)
                 d.canvas.coords(d.botTrackRight[src],
-                                centerX + d.conf['botRadius'] * (30.0 / 24.0) * d.scale
+                                centerX + d.conf['botRadius'] * (30.0 / 24.0)
                                 * math.cos(-bot['currentDirection'] - (5 * math.pi) / 4),
-                                centerY + d.conf['botRadius'] * (30.0 / 24.0) * d.scale
+                                centerY + d.conf['botRadius'] * (30.0 / 24.0)
                                 * math.sin(-bot['currentDirection'] - (5 * math.pi) / 4),
-                                d.conf['botRadius'] * (30.0 / 24.0) * d.scale
+                                d.conf['botRadius'] * (30.0 / 24.0)
                                 * math.cos(-bot['currentDirection'] - (7 * math.pi) / 4) + centerX,
                                 d.conf['botRadius'] * (30.0 / 24.0)
-                                * d.scale * math.sin(-bot['currentDirection'] - (7 * math.pi) / 4) + centerY)
+                                * math.sin(-bot['currentDirection'] - (7 * math.pi) / 4) + centerY)
 
                 x2, y2 = nbmath.project(centerX, 0, bot['last']['fireCanonRequest']['direction'], 
-                    d.conf['botRadius'] * 1.35 * d.scale)
+                    d.conf['botRadius'] * 1.35)
                 y2 = centerY - y2
                 d.canvas.coords(d.botCanon[src], centerX, centerY, x2, y2)
 
                 d.canvas.coords(d.botScan[src],
-                                centerX - d.conf['botRadius'] * d.scale * 1.5,
-                                centerY - d.conf['botRadius'] * d.scale * 1.5,
-                                centerX + d.conf['botRadius'] * d.scale * 1.5,
-                                centerY + d.conf['botRadius'] * d.scale * 1.5)
+                                centerX - d.conf['botRadius'] * 1.5,
+                                centerY - d.conf['botRadius'] * 1.5,
+                                centerX + d.conf['botRadius'] * 1.5,
+                                centerY + d.conf['botRadius'] * 1.5)
                 d.canvas.itemconfigure(d.botScan[src], start=math.degrees(bot['last']['scanRequest']['startRadians']))
                 extent = bot['last']['scanRequest']['endRadians'] - bot['last']['scanRequest']['startRadians']
                 if extent < 0:
