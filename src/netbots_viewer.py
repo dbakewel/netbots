@@ -426,7 +426,9 @@ def main():
     
     d = ViewerData()
 
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                    epilog="Note: pressing the space bar activates a 7 second long instant replay at the default step speed. "
+                                     + "Live action will resume after the replay completes.")
     parser.add_argument('-ip', metavar='My IP', dest='myIP', type=nbipc.argParseCheckIPFormat, nargs='?',
                         default='127.0.0.1', help='My IP Address')
     parser.add_argument('-p', metavar='My Port', dest='myPort', type=int, nargs='?',
