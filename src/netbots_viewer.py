@@ -7,6 +7,7 @@ import math
 
 from netbots_log import log
 from netbots_log import setLogLevel
+from netbots_server import SrvData
 import netbots_ipc as nbipc
 import netbots_math as nbmath
 
@@ -20,6 +21,12 @@ class ViewerData():
     replayWidget = None
     canvas = None
     botWidgets = {}
+    botCurrentDirection = {}
+    botRequestedDirection = {}
+    botCanon = {}
+    botTrackLeft = {}
+    botTrackRight = {}
+    botScan = {}
     botStatusWidgets = {}
     shellWidgets = {}
     explWidgets = {}
@@ -44,6 +51,22 @@ class ViewerData():
     replaySaveEveryNth = 1
     replaySaveSteps = math.ceil(replaySec / replayStepSec)
 
+
+def colorVariant(hexColor, brightnessOffset=1):
+    """ takes a color like #87c95f and produces a lighter or darker variant """
+    if len(hexColor) != 7:
+        raise Exception("Passed %s into colorVariant(), needs to be in #87c95f format." % hexColor)
+    rgbHex = [hexColor[x:x+2] for x in [1, 3, 5]]
+    newRGBInt = [int(hexValue, 16) + brightnessOffset for hexValue in rgbHex]
+    newRGBInt = [min([255, max([0, i])]) for i in newRGBInt] # make sure new values are between 0 and 255
+    
+    hexstr = "#"
+    for i in newRGBInt:
+        if i < 16:
+            hexstr += "0"
+        # hex() produces "0x88" or "0x8", we want just "88" or "8"
+        hexstr += hex(i)[2:]
+    return hexstr
 
 def checkForUpdates(d):
     msg = {"type": "Error", "result": "We never got any new data from server."}
@@ -131,8 +154,20 @@ def checkForUpdates(d):
                 d.botStatusWidgets[src].config(highlightthickness=d.borderSize)
                 d.botStatusWidgets[src].pack(fill=t.X)
 
-                # create bot widget
+                # create bot widgets
+                d.botScan[src] = d.canvas.create_arc(0, 0, 50, 50, start=0, extent=0,
+                             style='arc', width=4, outline='#bbb')
+                d.botTrackLeft[src] = d.canvas.create_line(0, 0, 50, 50, width=
+                    d.conf['botRadius'] * (10 / 24.0), fill='grey')
+                d.botTrackRight[src] = d.canvas.create_line(0, 0, 50, 50, width=
+                    d.conf['botRadius'] * (10 / 24.0), fill='grey')
                 d.botWidgets[src] = d.canvas.create_oval(0, 0, 0, 0, fill=c)
+                d.botCanon[src] = d.canvas.create_line(0, 0, 50, 50, width=
+                    d.conf['botRadius'] * (1/3.0), fill=c)
+                d.botRequestedDirection[src] = d.canvas.create_line(0, 0, 50, 50, width=
+                    d.conf['botRadius'] * (5 / 24.0), arrow=t.LAST, fill=colorVariant(c,-100))
+                d.botCurrentDirection[src] = d.canvas.create_line(0, 0, 50, 50, width=
+                    d.conf['botRadius'] * (5 / 24.0), arrow=t.LAST, fill=colorVariant(c,100))
 
             # update text for each bot
             d.botStatusWidgets[src].config(text=bot['name'] +
@@ -147,6 +182,12 @@ def checkForUpdates(d):
             # update location of bot widgets or hide if health == 0
             if bot['health'] == 0:
                 d.canvas.itemconfigure(d.botWidgets[src], state='hidden')
+                d.canvas.itemconfigure(d.botRequestedDirection[src], state='hidden')
+                d.canvas.itemconfigure(d.botCurrentDirection[src], state='hidden')
+                d.canvas.itemconfigure(d.botTrackLeft[src], state='hidden')
+                d.canvas.itemconfigure(d.botTrackRight[src], state='hidden')
+                d.canvas.itemconfigure(d.botScan[src], state='hidden')
+                d.canvas.itemconfigure(d.botCanon[src], state='hidden')
             else:
                 centerX = bot['x'] * d.scale + d.borderSize
                 centerY = d.conf['arenaSize'] - bot['y'] * d.scale + d.borderSize
@@ -155,7 +196,63 @@ def checkForUpdates(d):
                                 centerY - d.conf['botRadius'],
                                 centerX + d.conf['botRadius'],
                                 centerY + d.conf['botRadius'])
+
+                d.canvas.coords(d.botRequestedDirection[src], centerX + d.conf['botRadius'] * (19.0 / 24.0)
+                                * math.cos(-bot['requestedDirection']),  # 19
+                                centerY + d.conf['botRadius'] * (19.0 / 24.0) * math.sin(
+                                    -bot['requestedDirection']),
+                                d.conf['botRadius'] * math.cos(-bot['requestedDirection']) + centerX,  # 24
+                                d.conf['botRadius'] * math.sin(-bot['requestedDirection']) + centerY)
+
+                d.canvas.coords(d.botCurrentDirection[src], centerX + d.conf['botRadius'] * (19.0 / 24.0)
+                                * math.cos(-bot['currentDirection']),  # 19
+                                centerY + d.conf['botRadius'] * (19.0 / 24.0) * math.sin(
+                                    -bot['currentDirection']),
+                                d.conf['botRadius'] * math.cos(-bot['currentDirection']) + centerX,  # 24
+                                d.conf['botRadius'] * math.sin(-bot['currentDirection']) + centerY)
+
+                d.canvas.coords(d.botTrackLeft[src],
+                                centerX + d.conf['botRadius'] * (30.0 / 24.0)
+                                * math.cos(-bot['currentDirection'] - math.pi / 4),
+                                centerY + d.conf['botRadius'] * (30.0 / 24.0)
+                                * math.sin(-bot['currentDirection'] - math.pi / 4),
+                                d.conf['botRadius'] * (30.0 / 24.0) * math.cos(-bot['currentDirection']
+                                                                                         - (3 * math.pi) / 4) + centerX,
+                                d.conf['botRadius'] * (30.0 / 24.0) * math.sin(-bot['currentDirection']
+                                                                                         - (3 * math.pi) / 4) + centerY)
+                d.canvas.coords(d.botTrackRight[src],
+                                centerX + d.conf['botRadius'] * (30.0 / 24.0)
+                                * math.cos(-bot['currentDirection'] - (5 * math.pi) / 4),
+                                centerY + d.conf['botRadius'] * (30.0 / 24.0)
+                                * math.sin(-bot['currentDirection'] - (5 * math.pi) / 4),
+                                d.conf['botRadius'] * (30.0 / 24.0)
+                                * math.cos(-bot['currentDirection'] - (7 * math.pi) / 4) + centerX,
+                                d.conf['botRadius'] * (30.0 / 24.0)
+                                * math.sin(-bot['currentDirection'] - (7 * math.pi) / 4) + centerY)
+
+                x2, y2 = nbmath.project(centerX, 0, bot['last']['fireCanonRequest']['direction'], 
+                    d.conf['botRadius'] * 1.35)
+                y2 = centerY - y2
+                d.canvas.coords(d.botCanon[src], centerX, centerY, x2, y2)
+
+                d.canvas.coords(d.botScan[src],
+                                centerX - d.conf['botRadius'] * 1.5,
+                                centerY - d.conf['botRadius'] * 1.5,
+                                centerX + d.conf['botRadius'] * 1.5,
+                                centerY + d.conf['botRadius'] * 1.5)
+                d.canvas.itemconfigure(d.botScan[src], start=math.degrees(bot['last']['scanRequest']['startRadians']))
+                extent = bot['last']['scanRequest']['endRadians'] - bot['last']['scanRequest']['startRadians']
+                if extent < 0:
+                    extent += math.pi*2
+                d.canvas.itemconfigure(d.botScan[src], extent=math.degrees(extent))
+
+                d.canvas.itemconfigure(d.botRequestedDirection[src], state='normal')
+                d.canvas.itemconfigure(d.botCurrentDirection[src], state='normal')
                 d.canvas.itemconfigure(d.botWidgets[src], state='normal')
+                d.canvas.itemconfigure(d.botTrackLeft[src], state='normal')
+                d.canvas.itemconfigure(d.botTrackRight[src], state='normal')
+                d.canvas.itemconfigure(d.botScan[src], state='normal')
+                d.canvas.itemconfigure(d.botCanon[src], state='normal')
 
         # remove shell widgets veiwer has but are not on server.
         for src in list(d.shellWidgets.keys()):
@@ -209,10 +306,11 @@ def checkForUpdates(d):
                 c = d.canvas.itemcget(d.botWidgets[expl['src']], 'fill')
                 centerX = expl['x'] * d.scale + d.borderSize
                 centerY = d.conf['arenaSize'] - expl['y'] * d.scale + d.borderSize
-                d.explWidgets[k] = d.canvas.create_oval(centerX - d.conf['explRadius'],
-                                                        centerY - d.conf['explRadius'],
-                                                        centerX + d.conf['explRadius'],
-                                                        centerY + d.conf['explRadius'],
+                explRadius = SrvData.getClassValue(d, 'explRadius', msg['bots'][expl['src']]['class'])
+                d.explWidgets[k] = d.canvas.create_oval(centerX - explRadius,
+                                                        centerY - explRadius,
+                                                        centerX + explRadius,
+                                                        centerY + explRadius,
                                                         fill=c, width=3, outline=c)
 
         # update game status widget

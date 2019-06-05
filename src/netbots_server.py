@@ -75,7 +75,7 @@ class SrvData:
         #Robot Classes (values below override what's above for robots in that class)
         'allowClasses': False,
         #Only fields listed in classFields are allowed to be overwritten by classes.
-        'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor'),
+        'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor', 'shellSpeed', 'explDamage', 'explRadius'),
         'classes': {
             'default': {
                 # Default class should have no changes.
@@ -87,16 +87,28 @@ class SrvData:
                 'botAccRate': 0.55,  # multiplier for bot acceleration rate
                 'botMinTurnRate': 0.923076923,  # multiplier for bot turning rate at 100% speed
                 'botMaxTurnRate': 0.333333333,  # multiplier for bot turning rate at 0% speed
-                'botArmor': 0.77  # multiplier of robot damage taken
+                'botArmor': 0.864  # multiplier of robot damage taken
                 },
             
             'light': {
                 # Speeds and Rates of Change
+                'botMaxSpeed': 2.15,  # multiplier for bot max speed
+                'botAccRate': 1.4,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1.3,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 1.7,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.303  # multiplier of robot damage taken
+                },
+                
+            'lighter': {
+                # Speeds and Rates of Change
                 'botMaxSpeed': 1.4,  # multiplier for bot max speed
-                'botAccRate': 1.25,  # multiplier for bot acceleration rate
+                'botAccRate': 1.2,  # multiplier for bot acceleration rate
                 'botMinTurnRate': 1.2,  # multiplier for bot turning rate at 100% speed
-                'botMaxTurnRate': 1.6666666666,  # multiplier for bot turning rate at 0% speed
-                'botArmor': 1.33  # multiplier of robot damage taken
+                'botMaxTurnRate': 1.6,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 0.92,  # multiplier of robot damage taken
+                'shellSpeed': 30,  # distance traveled by shell per step
+                'explDamage': 0.238,
+                'explRadius': 1.1
                 }
             }
         }
@@ -667,8 +679,8 @@ def step(d):
 
         # if did not hit an obstacle and shell's explosion would touch inside of arena
         if not shellHitObstacle and \
-           (shell['x'] > d.conf['explRadius'] * -1 and shell['x'] < d.conf['arenaSize'] + d.conf['explRadius'] and
-                shell['y'] > d.conf['explRadius'] * -1 and shell['y'] < d.conf['arenaSize'] + d.conf['explRadius']):
+           (shell['x'] > d.getClassValue('explRadius', d.bots[src]['class']) * -1 and shell['x'] < d.conf['arenaSize'] + d.getClassValue('explRadius', d.bots[src]['class']) and
+                shell['y'] > d.getClassValue('explRadius', d.bots[src]['class']) * -1 and shell['y'] < d.conf['arenaSize'] + d.getClassValue('explRadius', d.bots[src]['class'])):
 
             # if shell has reached it destination then explode.
             if shell['distanceRemaining'] <= 0:
@@ -676,8 +688,8 @@ def step(d):
                 for k, bot in d.bots.items():
                     if bot['health'] > 0:
                         distance = nbmath.distance(bot['x'], bot['y'], shell['x'], shell['y'])
-                        if distance < d.conf['explRadius']:
-                            damage = d.conf['explDamage'] * (1 - distance / d.conf['explRadius'])
+                        if distance < d.getClassValue('explRadius', d.bots[src]['class']):
+                            damage = d.getClassValue('explDamage', d.bots[src]['class']) * (1 - distance / d.getClassValue('explRadius', d.bots[src]['class']))
                             bot['health'] = max(0, bot['health'] - (damage * d.getClassValue('botArmor', bot['class'])))
                             # allow recording of inflicting damage that is greater than health of hit robot.
                             # also record damage to oneself.
