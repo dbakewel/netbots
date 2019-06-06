@@ -21,5 +21,4 @@
 ### turtle
 <img src="images/turtle.png" width="60%">
 
-## How to make classes system work
 
