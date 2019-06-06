@@ -442,33 +442,29 @@ class NetBotSocket:
         msg['msgID'] = self.msgID
 
         gotReply = False
-        sendMessage = True
+        sendMessage = 0
         while remaining != 0 and gotReply == False:
-            if sendMessage:
-                remaining = remaining - 1
+            if sendMessage <= time.perf_counter():
                 self.sendMessage(msg, destinationIP, destinationPort)
+                if sendMessage != 0:
+                    self.sendRecvMessageResends += 1
+                remaining = remaining - 1
+                sendMessage = time.perf_counter() + nextDelay
                 self.s.settimeout(nextDelay)
                 nextDelay = nextDelay * delayMultiplier
 
             try:
                 replyMsg, ip, port = self.recvMessage()
             except NetBotSocketException as e:
-                # We didn't get anything from the buffer or it was an invald message.
+                # We didn't get anything from the buffer or it was an invalid message.
                 ip = None
 
             if ip is not None:
-                # if the message came from the same ip:port we sent it to
+                # if the message is the one we are looking for.
                 if ip == destinationIP and port == destinationPort and \
                         isinstance(replyMsg, dict) and \
                         'msgID' in replyMsg and replyMsg['msgID'] == msg['msgID']:
                     gotReply = True
-                else:
-                    # we got a message but it was not the one were were looking for. Try to receive again before sending
-                    sendMessage = False
-            else:
-                # there is noting in the receive buffer after the timeout so try sending message again.
-                sendMessage = True
-                self.sendRecvMessageResends += 1
 
         self.s.settimeout(0)
 
