@@ -195,6 +195,9 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 > Demo robots all use the synchronous netbots_ipc.sendRecvMessage() method for communication.
 
+## Team Demo Robot
+
+**team.py** is an advanced robot that demonstrates how to control two robots with a single python script. The two robots work as a team and share information with shared memory. **teamdemo.bat** runs a tournament with team.py.
 
 # Game Mechanics
 
