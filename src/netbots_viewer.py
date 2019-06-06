@@ -197,19 +197,23 @@ def checkForUpdates(d):
                                 centerX + d.conf['botRadius'],
                                 centerY + d.conf['botRadius'])
 
-                d.canvas.coords(d.botRequestedDirection[src], centerX + d.conf['botRadius'] * (19.0 / 24.0)
+                d.canvas.coords(d.botRequestedDirection[src], centerX + d.conf['botRadius'] 
+                                * bot['requestedSpeed']/100 * (19.0 / 24.0)
                                 * math.cos(-bot['requestedDirection']),  # 19
-                                centerY + d.conf['botRadius'] * (19.0 / 24.0) * math.sin(
+                                centerY + d.conf['botRadius'] 
+                                * bot['requestedSpeed']/100 * (19.0 / 24.0) * math.sin(
                                     -bot['requestedDirection']),
-                                d.conf['botRadius'] * math.cos(-bot['requestedDirection']) + centerX,  # 24
-                                d.conf['botRadius'] * math.sin(-bot['requestedDirection']) + centerY)
+                                d.conf['botRadius'] * bot['requestedSpeed']/100 * math.cos(-bot['requestedDirection']) + centerX,  # 24
+                                d.conf['botRadius'] * bot['requestedSpeed']/100 * math.sin(-bot['requestedDirection']) + centerY)
 
-                d.canvas.coords(d.botCurrentDirection[src], centerX + d.conf['botRadius'] * (19.0 / 24.0)
+                d.canvas.coords(d.botCurrentDirection[src], centerX + d.conf['botRadius'] 
+                                * bot['currentSpeed']/100 * (19.0 / 24.0)
                                 * math.cos(-bot['currentDirection']),  # 19
-                                centerY + d.conf['botRadius'] * (19.0 / 24.0) * math.sin(
+                                centerY + d.conf['botRadius'] 
+                                * bot['currentSpeed']/100 * (19.0 / 24.0) * math.sin(
                                     -bot['currentDirection']),
-                                d.conf['botRadius'] * math.cos(-bot['currentDirection']) + centerX,  # 24
-                                d.conf['botRadius'] * math.sin(-bot['currentDirection']) + centerY)
+                                d.conf['botRadius'] * bot['currentSpeed']/100 * math.cos(-bot['currentDirection']) + centerX,  # 24
+                                d.conf['botRadius'] * bot['currentSpeed']/100 * math.sin(-bot['currentDirection']) + centerY)
 
                 d.canvas.coords(d.botTrackLeft[src],
                                 centerX + d.conf['botRadius'] * (30.0 / 24.0)
