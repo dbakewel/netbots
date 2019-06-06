@@ -11,7 +11,7 @@ The image below is the NetBots viewer. The filled circles are robots and the unf
 <img src="images/basicgame.png" width="60%">
 
 ### Demo Video (Test only)
-<iframe width="560" height="315" src="https://www.youtube.com/embed/5ORAs6Gq7wE" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![](http://img.youtube.com/vi/5ORAs6Gq7wE/0.jpg)](http://www.youtube.com/watch?v=5ORAs6Gq7wE "NetBots Demo Video")
 
 ### How is NetBots different?
 
