@@ -87,29 +87,54 @@ class SrvData:
                 'botAccRate': 0.55,  # multiplier for bot acceleration rate
                 'botMinTurnRate': 0.923076923,  # multiplier for bot turning rate at 100% speed
                 'botMaxTurnRate': 0.333333333,  # multiplier for bot turning rate at 0% speed
-                'botArmor': 0.864  # multiplier of robot damage taken
+                'botArmor': 0.862  # multiplier of robot damage taken
                 },
             
             'light': {
                 # Speeds and Rates of Change
-                'botMaxSpeed': 2.15,  # multiplier for bot max speed
-                'botAccRate': 1.4,  # multiplier for bot acceleration rate
-                'botMinTurnRate': 1.3,  # multiplier for bot turning rate at 100% speed
-                'botMaxTurnRate': 1.7,  # multiplier for bot turning rate at 0% speed
-                'botArmor': 1.303  # multiplier of robot damage taken
+                'botMaxSpeed': 2.8,  # multiplier for bot max speed
+                'botAccRate': 1.6,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1.4,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 1.75,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.25  # multiplier of robot damage taken
                 },
                 
-            'lighter': {
+            'machineGun': {
                 # Speeds and Rates of Change
                 'botMaxSpeed': 1.4,  # multiplier for bot max speed
                 'botAccRate': 1.2,  # multiplier for bot acceleration rate
                 'botMinTurnRate': 1.2,  # multiplier for bot turning rate at 100% speed
                 'botMaxTurnRate': 1.6,  # multiplier for bot turning rate at 0% speed
-                'botArmor': 0.92,  # multiplier of robot damage taken
-                'shellSpeed': 30,  # distance traveled by shell per step
-                'explDamage': 0.238,
+                'botArmor': 0.93,  # multiplier of robot damage taken
+                'shellSpeed': 30,  # multiplier of distance traveled by shell per step
+                'explDamage': 0.237,
                 'explRadius': 1.1
-                }
+                },
+                
+            'sniper': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 1,  # multiplier for bot max speed
+                'botAccRate': 0.7,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 0.8,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.1,  # multiplier of robot damage taken
+                'shellSpeed': 3,  # multiplier of distance traveled by shell per step
+                'explDamage': 2.85,
+                'explRadius': 0.4
+                },
+                
+            'turtle': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 0.5,  # multiplier for bot max speed
+                'botAccRate': 0.15,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 0.6,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 0.5,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 0.83,  # multiplier of robot damage taken
+                'shellSpeed': 0.38,  # multiplier of distance traveled by shell per step
+                'explDamage': 2.8,
+                'explRadius': 1.6
+                },
+                
             }
         }
 
