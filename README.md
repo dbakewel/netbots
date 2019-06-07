@@ -10,9 +10,6 @@ The image below is the NetBots viewer. The filled circles are robots and the unf
 
 <img src="images/basicgame.png" width="60%">
 
-### Demo Video (Test only)
-[![](http://img.youtube.com/vi/5ORAs6Gq7wE/0.jpg)](http://www.youtube.com/watch?v=5ORAs6Gq7wE "NetBots Demo Video")
-
 ### How is NetBots different?
 
 NetBots differs from RobotWar, and its clones by being real-time and network centric. The server and robots each run in separate processes and can run on the same or separate computers. The server runs at a specific rate (steps/second). Additionally, the server emulates an unreliable network where message (packet) loss is common. Writing programs to deal with the real-time nature and network unreliability provides additional programming challenges. 
@@ -121,48 +118,57 @@ D:\netbots\src>python src\netbots_server.py -h
 usage: netbots_server.py [-h] [-ip Server_IP] [-p Server_Port]
                          [-name Server_Name] [-games int] [-bots int]
                          [-stepsec sec] [-stepmax int] [-droprate int]
-                         [-msgperstep int] [-arenasize int] [-botradius int]
-                         [-explradius int] [-botmaxspeed int]
+                         [-msgperstep int] [-arenasize 100-32767]
+                         [-botradius int] [-explradius int] [-botmaxspeed int]
                          [-botaccrate float] [-shellspeed int]
                          [-hitdamage int] [-expldamage int] [-obstacles int]
-                         [-obstacleradius int] [-jamzones int] [-startperms]
-                         [-debug] [-verbose]
+                         [-obstacleradius int] [-jamzones int] [-allowclasses]
+                         [-simplecollisions] [-startperms]
+                         [-scanmaxdistance int] [-noviewers] [-debug]
+                         [-verbose]
 
 optional arguments:
-  -h, --help           show this help message and exit
-  -ip Server_IP        My IP Address (default: 127.0.0.1)
-  -p Server_Port       My port number (default: 20000)
-  -name Server_Name    Name displayed by connected viewers. (default: Netbots
-                       Server)
-  -games int           Games server will play before quiting. (default: 10)
-  -bots int            Number of bots required to join before game can start.
-                       (default: 4)
-  -stepsec sec         How many seconds between server steps. (default: 0.05)
-  -stepmax int         Max steps in one game. (default: 1000)
-  -droprate int        Drop over nth message, best to use primes. 0 == no
-                       drop. (default: 11)
-  -msgperstep int      Number of msgs from a bot that server will respond to
-                       each step. (default: 4)
-  -arenasize int       Size of arena. (default: 1000)
-  -botradius int       Radius of robots. (default: 25)
-  -explradius int      Radius of explosions. (default: 75)
-  -botmaxspeed int     Robot distance traveled per step at 100% speed
-                       (default: 5)
-  -botaccrate float    % robot can accelerate (or decelerate) per step
-                       (default: 2.0)
-  -shellspeed int      Distance traveled by shell per step. (default: 40)
-  -hitdamage int       Damage a robot takes from hitting wall or another bot.
-                       (default: 1)
-  -expldamage int      Damage bot takes from direct hit from shell. (default:
-                       10)
-  -obstacles int       How many obstacles does the arena have. (default: 0)
-  -obstacleradius int  Radius of obstacles as % of arenaSize. (default: 5)
-  -jamzones int        How many jam zones does the arena have. (default: 0)
-  -startperms          Use all permutations of each set of random start
-                       locations. (default: False)
-  -debug               Print DEBUG level log messages. (default: False)
-  -verbose             Print VERBOSE level log messages. Note, -debug includes
-                       -verbose. (default: False)
+  -h, --help            show this help message and exit
+  -ip Server_IP         My IP Address (default: 127.0.0.1)
+  -p Server_Port        My port number (default: 20000)
+  -name Server_Name     Name displayed by connected viewers. (default: Netbots
+                        Server)
+  -games int            Games server will play before quiting. (default: 10)
+  -bots int             Number of bots required to join before game can start.
+                        (default: 4)
+  -stepsec sec          How many seconds between server steps. (default: 0.05)
+  -stepmax int          Max steps in one game. (default: 1000)
+  -droprate int         Drop over nth message, best to use primes. 0 == no
+                        drop. (default: 11)
+  -msgperstep int       Number of msgs from a bot that server will respond to
+                        each step. (default: 4)
+  -arenasize 100-32767  Size of arena. (default: 1000)
+  -botradius int        Radius of robots. (default: 25)
+  -explradius int       Radius of explosions. (default: 75)
+  -botmaxspeed int      Robot distance traveled per step at 100% speed
+                        (default: 5)
+  -botaccrate float     % robot can accelerate (or decelerate) per step
+                        (default: 2.0)
+  -shellspeed int       Distance traveled by shell per step. (default: 40)
+  -hitdamage int        Damage a robot takes from hitting wall or another bot.
+                        (default: 10)
+  -expldamage int       Damage bot takes from direct hit from shell. (default:
+                        10)
+  -obstacles int        How many obstacles does the arena have. (default: 0)
+  -obstacleradius int   Radius of obstacles as % of arenaSize. (default: 5)
+  -jamzones int         How many jam zones does the arena have. (default: 0)
+  -allowclasses         Allow robots to specify a class other than default.
+                        (default: False)
+  -simplecollisions     Uses the simple collision system, damage taken is the
+                        same as -hitdamage (default: False)
+  -startperms           Use all permutations of each set of random start
+                        locations. (default: False)
+  -scanmaxdistance int  Maximum distance a scan can detect a robot. (default:
+                        1415)
+  -noviewers            Do not allow viewers. (default: False)
+  -debug                Print DEBUG level log messages. (default: False)
+  -verbose              Print VERBOSE level log messages. Note, -debug
+                        includes -verbose. (default: False)
 ```
 
 ---
@@ -303,7 +309,7 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
     'conf': {
         # Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
-        'serverVersion': "1.1.1",
+        'serverVersion': "1.4.0",
 
         # Game and Tournament
         'botsInGame': 4,  # Number of bots required to join before game can start.
@@ -312,12 +318,15 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
         # Amount of time server targets for each step. Server will sleep if game is running faster than this.
         'stepSec': 0.05,
         'startPermutations':  False,  # Use all permutations of each set of random start locations.
+        'simpleCollisions': False,  # Use simple collision system, affected by -hitdamage
+        'scanMaxDistance': 1415,  # Maximum distance a scan can detect a robot.
 
         # Messaging
         'dropRate': 11,  # Drop a messages every N messages. Best to use primes.
         # Number of msgs from a bot that server will respond to each step. Others in Q will be dropped.
         'botMsgsPerStep': 4,
         'allowRejoin': True,  # Allows crashed bots to rejoin game in progress.
+        'noViewers': False,  # if True addViewerRequest messages will be rejected. 
 
         # Sizes
         # Area is a square with each side = arenaSize units (0,0 is bottom left,
@@ -334,9 +343,10 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
         'botMaxTurnRate': math.pi / 50,  # Amount bot can rotate per turn in radians at 0% speed
 
         # Damage
-        'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot
+        'hitDamage': 10,  # Damage a bot takes from hitting wall or another bot
         # Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
         'explDamage': 10,
+        'botArmor': 1.0,  # Damage multiplier
 
         # Obstacles (robots and shells are stopped by obstacles but obstacles are transparent to scan)
         'obstacles': [],  # Obstacles of form [{'x':float,'y':float,'radius':float},...]
@@ -347,6 +357,17 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
 
         # Misc
         'keepExplosionSteps': 10,  # Number of steps to keep old explosions in explosion dict (only useful to viewers).
+        
+        #Robot Classes (values below override what's above for robots in that class)
+        'allowClasses': False,
+        #Only fields listed in classFields are allowed to be overwritten by classes.
+        'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor', 'shellSpeed', 'explDamage', 'explRadius'),
+        'classes': {
+            'default': {
+                # Default class should have no changes.
+                }, 
+            [Other classes removed for brevity. See server conf for details.]
+        }
     }
 }
 ```
