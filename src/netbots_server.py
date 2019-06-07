@@ -32,7 +32,7 @@ class SrvData:
         # Amount of time server targets for each step. Server will sleep if game is running faster than this.
         'stepSec': 0.05,
         'startPermutations':  False,  # Use all permutations of each set of random start locations.
-        'advancedCollisions': False,  # Use advanced collision, affected by -hitdamage
+        'simpleCollisions': False,  # Use advanced collision, affected by -hitdamage
         'scanMaxDistance': 1415,  # Maximum distance a scan can detect a robot.
 
         # Messaging
@@ -57,7 +57,7 @@ class SrvData:
         'botMaxTurnRate': math.pi / 50,  # Amount bot can rotate per turn in radians at 0% speed
 
         # Damage
-        'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot
+        'hitDamage': 10,  # Damage a bot takes from hitting wall or another bot
         # Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
         'explDamage': 10,
         'botArmor': 1.0,  # Damage multiplier
@@ -563,8 +563,8 @@ def step(d):
                 else:
                     # how much can we turn at the speed we are going?
                     turnRate = d.getClassValue('botMinTurnRate', bot['class']) \
-                        + ( d.getClassValue('botMaxTurnRate', bot['class']) \
-                        -   d.getClassValue('botMinTurnRate', bot['class']) ) \
+                        + (d.getClassValue('botMaxTurnRate', bot['class']) -
+                           d.getClassValue('botMinTurnRate', bot['class'])) \
                         * (1 - bot['currentSpeed'] / 100)
 
                     # if turn is negative and does not pass over 0 radians
@@ -676,7 +676,7 @@ def step(d):
     # give damage (only once this step) to bots that hit things. Also stop them.
     for src, bot in d.bots.items():
         if bot['hitSeverity']:
-            if not d.conf['advancedCollisions']:
+            if d.conf['simpleCollisions']:
                 bot['hitSeverity'] = 1
             bot['health'] = max(0, bot['health'] - bot['hitSeverity'] * d.conf['hitDamage'] * d.getClassValue('botArmor', bot['class']))
             bot['currentSpeed'] = 0
@@ -909,7 +909,7 @@ def main():
     parser.add_argument('-shellspeed', metavar='int', dest='shellSpeed', type=int,
                         default=40, help='Distance traveled by shell per step.')
     parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int,
-                        default=1, help='Damage a robot takes from hitting wall or another bot.')
+                        default=10, help='Damage a robot takes from hitting wall or another bot.')
     parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int,
                         default=10, help='Damage bot takes from direct hit from shell.')
     parser.add_argument('-obstacles', metavar='int', dest='obstacles', type=int,
@@ -920,8 +920,8 @@ def main():
                         default=0, help='How many jam zones does the arena have.')
     parser.add_argument('-allowclasses', dest='allowClasses', action='store_true',
                         default=False, help='Allow robots to specify a class other than default.')
-    parser.add_argument('-advancedcollisions', dest='advancedCollisions', action='store_true',
-                        default=False, help='Uses the advanced collision system, affected by -hitdamage')
+    parser.add_argument('-simplecollisions', dest='simpleCollisions', action='store_true',
+                        default=False, help='Uses the simple collision system, damage taken is the same as -hitdamage')
     parser.add_argument('-startperms', dest='startPermutations', action='store_true',
                         default=False, help='Use all permutations of each set of random start locations.')
     parser.add_argument('-scanmaxdistance', metavar='int', dest='scanMaxDistance', type=int,
@@ -955,7 +955,7 @@ def main():
     d.conf['obstacles'] = mkObstacles(d, args.obstacles)
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
     d.conf['allowClasses'] = args.allowClasses
-    d.conf['advancedCollisions'] = args.advancedCollisions
+    d.conf['simpleCollisions'] = args.simpleCollisions
     d.conf['startPermutations'] = args.startPermutations
     d.conf['scanMaxDistance'] = args.scanMaxDistance
     d.conf['noViewers'] = args.noViewers
