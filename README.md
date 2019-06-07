@@ -207,6 +207,10 @@ The best way to write your own robot is to start with a demo robot. There are fi
 
 **team.py** is an advanced robot that demonstrates how to control two robots with a single python script. The two robots work as a team and share information with shared memory. **teamdemo.bat** runs a tournament with team.py.
 
+## Storing Your Robot
+
+The NetBots git repository is set up to ignore the netbots/myrobots/ directory (see .gitignore). This allows you to clone netbots onto your local computer and then create a new git repository in netbots/myrobots/ for your own work. Please remember to keep your work in a private repository. Sharing your robots publicly is discouraged so netbots will continue to be a useful learning tool for new players.
+
 # Game Mechanics
 
 ## Coordinates and Angles
