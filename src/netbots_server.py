@@ -32,7 +32,7 @@ class SrvData:
         # Amount of time server targets for each step. Server will sleep if game is running faster than this.
         'stepSec': 0.05,
         'startPermutations':  False,  # Use all permutations of each set of random start locations.
-        'simpleCollisions': False,  # Use advanced collision, affected by -hitdamage
+        'simpleCollisions': False,  # Use simple collision system, affected by -hitdamage
         'scanMaxDistance': 1415,  # Maximum distance a scan can detect a robot.
 
         # Messaging
@@ -133,8 +133,7 @@ class SrvData:
                 'shellSpeed': 0.38,  # multiplier of distance traveled by shell per step
                 'explDamage': 2.8,
                 'explRadius': 1.6
-                },
-                
+                }
             }
         }
 
