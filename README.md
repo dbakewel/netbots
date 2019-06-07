@@ -272,7 +272,7 @@ Obstacles and Jam Zones are placed randomly and do not move during a tournament.
 
 ## Damage
 
-Damage from hitting walls, obstacles, or other robots is the same regardless of speed. If two robots collide then both robots will be damaged.
+Damage from hitting walls, obstacles, or other robots is the same regardless of speed. If two robots collide then both robots will be damaged.  This collision damage is based on the speed and direction of the robots.  By default, if a robot has a head on collision with a wall at max speed they will take 10 damage.
 
 Shell explosions are of radius of 75 by default. All robots inside an explosion's radius will take damage. Robots in the center of the explosion will be damaged by 10% (health reduced by 10) by default. The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear.
 
