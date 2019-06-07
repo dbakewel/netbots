@@ -4,19 +4,21 @@
 ## Classes
 
 ### default
-The most simple one.
+<img src="images/default.png" width="60%">
 
 ### heavy
-Slower but has more armor.
+<img src="images/heavy.png" width="60%">
 
 ### light
-Faster but has less armor.
+<img src="images/light.png" width="60%">
 
 ### machineGun
-Faster, more armor, shoot faster, but low damage per shots.
+<img src="images/machineGun.png" width="60%">
 
 ### sniper
-Slower, more armor, faster shell speed, and higher damage per shots. But shell explotion radius is low.
+<img src="images/sniper.png" width="60%">
 
 ### turtle
-Super slow, super tanky, high damage per shots, but shell speed is slow.
+<img src="images/turtle.png" width="60%">
+
+
