@@ -16,7 +16,7 @@ from netbots_log import setLogLevel
 import netbots_ipc as nbipc
 import netbots_math as nbmath
 
-robotName = "Train v1"
+robotName = "ScaredyCat v1" #Written by Michael Chen @MCSnapTurtle
 
 
 def play(botSocket, srvConf):
@@ -41,84 +41,60 @@ def play(botSocket, srvConf):
             gameNumber = getInfoReply['gameNumber']
             log("Game " + str(gameNumber) + " has started. Points so far = " + str(getInfoReply['points']))
 
-            # currentMode is the wall we are closet to. We drive along this the currentMode wall.
-            # Use special mode of "start" when we don't know where we are yet.
-            currentMode = "start"
+            # The distance to the closest bot in each quadrant is stored in this list.
+            quadrant = [0, 0, 0, 0]
 
-            # distance from a wall to start turning (1/5 arena size)
-            turnDistance = srvConf['arenaSize'] / 5
-
-            # The last direction we requested to go in.
-            requestedDirection = None
 
         try:
-            # find out where we are. All the logic below needs this.
+
+            # if ScaredyCat is at the arena boundary, it should stop
             getLocationReply = botSocket.sendRecvMessage({'type': 'getLocationRequest'})
+            if round(getLocationReply['x']) == srvConf['botRadius'] + 1 :
+                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 0})
+            elif round(getLocationReply['x']) == srvConf['arenaSize'] - srvConf['botRadius'] - 1:
+                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 0})
+            elif round(getLocationReply['y']) == srvConf['botRadius'] + 1:
+                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 0})
+            elif round(getLocationReply['y']) == srvConf['arenaSize'] - srvConf['botRadius'] - 1:
+                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 0})
+            else:
 
-            if currentMode == "start":  # this will only be run once per game.
-                # Find out which wall we are closest to and set best mode from that
-                choices = [
-                    ('left', getLocationReply['x']),  # distance to left wall
-                    ('bottom', getLocationReply['y']),  # distance to bottom wall
-                    ('right', srvConf['arenaSize'] - getLocationReply['x']),  # distance to right wall
-                    ('top', srvConf['arenaSize'] - getLocationReply['y'])  # distance to top wall
-                    ]
+                # variables that are iterated in the while loop
+                x = 0
+                i = 0
 
-                pickMode = choices[0][0]
-                pickDistance = choices[0][1]
-                for i in range(1, len(choices)):
-                    if choices[i][1] < pickDistance:
-                        pickMode = choices[i][0]
-                        pickDistance = choices[i][1]
+                # ScaredyCat scans all four quadrants and looks for the closest target
+                while x < 2.0:
 
-                currentMode = pickMode
-                log("Mode set to " +
-                    currentMode +
-                    " based on x = " +
-                    str(getLocationReply['x']) +
-                    ", y = " +
-                    str(getLocationReply['y']), "VERBOSE")
+                    # ScaredyCat scans the quadrant starting from x pi to 1/2 more than x. This is a quarter of a circle.
+                    # Then , it adds the server's response to the list
+                    scanReply = botSocket.sendRecvMessage({'type': 'scanRequest', 'startRadians': math.pi*x, 'endRadians': math.pi*(x + 1.0/2.0)})
+                    quadrant[i] = scanReply['distance']
+                    x += 1.0/2.0
+                    i += 1
 
-            # If we are too close to the wall we are moving towards to then switch mode so we turn.
-            if currentMode == "left" and getLocationReply['y'] < turnDistance:
-                # Moving along left wall and about to hit bottom wall.
-                currentMode = "bottom"
-                log("Mode set to " + currentMode + " based on y = " + str(getLocationReply['y']), "VERBOSE")
-            elif currentMode == "bottom" and getLocationReply['x'] > srvConf['arenaSize'] - turnDistance:
-                # Moving along bottom wall and about to hit right wall.
-                currentMode = "right"
-                log("Mode set to " + currentMode + " based on x = " + str(getLocationReply['x']), "VERBOSE")
-            elif currentMode == "right" and getLocationReply['y'] > srvConf['arenaSize'] - turnDistance:
-                # Moving along right wall and about to hit top wall.
-                currentMode = "top"
-                log("Mode set to " + currentMode + " based on y = " + str(getLocationReply['y']), "VERBOSE")
-            elif currentMode == "top" and getLocationReply['x'] < turnDistance:
-                # Moving along top wall and about to hit left wall.
-                currentMode = "left"
-                log("Mode set to " + currentMode + " based on x = " + str(getLocationReply['x']), "VERBOSE")
+                # finds how far the closest enemy is from us (can't be zero)
+                minDistance = min(i for i in quadrant if i > 0)
 
-            if currentMode == "left":
-                # closet to left wall so go down (counter clockwise around arena)
-                newDirection = math.pi * 1.5
-            elif currentMode == "bottom":
-                # closet to bottom wall so go right (counter clockwise around arena)
-                newDirection = 0
-            elif currentMode == "right":
-                # closet to right wall so go up (counter clockwise around arena)
-                newDirection = math.pi * 0.5
-            elif currentMode == "top":
-                # closet to top wall so go left (counter clockwise around arena)
-                newDirection = math.pi
+                # finds which quadrant that enemy is in
+                moveDirection = quadrant.index(minDistance)
 
-            if newDirection != requestedDirection:
+                # move in the opposite direction of the quandrant where the closest enemy is at, at a 45 degree angle.
+                # ie. if closest enemy is in quadrant 3, it will move in the direction pi * 1.0/4.0 in the first quadrant
+                if moveDirection == 0:
+                    moveDirection = math.pi * (5.0/4.0)
+                elif moveDirection == 1:
+                    moveDirection = math.pi * (7.0 / 4.0)
+                elif moveDirection == 2:
+                    moveDirection = math.pi * (1.0 / 4.0)
+                elif moveDirection == 3:
+                    moveDirection = math.pi * (3.0 / 4.0)
+
                 # Turn in a new direction
-                botSocket.sendRecvMessage({'type': 'setDirectionRequest', 'requestedDirection': newDirection})
-                requestedDirection = newDirection
+                botSocket.sendRecvMessage({'type': 'setDirectionRequest', 'requestedDirection': moveDirection})
 
-            # Request we start accelerating to 50 speed. That should be fast enough to get
-            # shot less but still slow enough to make tight turns without hitting walls.
-            # Need to keep sending speed msgs in case we hit things and stop.
-            botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 50})
+                # Request we start accelerating to max speed
+                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 30})
 
         except nbipc.NetBotSocketException as e:
             # Consider this a warning here. It may simply be that a request returned
