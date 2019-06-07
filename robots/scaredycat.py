@@ -16,7 +16,7 @@ from netbots_log import setLogLevel
 import netbots_ipc as nbipc
 import netbots_math as nbmath
 
-robotName = "WallBanger v1"
+robotName = "ScaredyCat v1" #Written by Michael Chen @MCSnapTurtle
 
 
 def play(botSocket, srvConf):
@@ -41,31 +41,61 @@ def play(botSocket, srvConf):
             gameNumber = getInfoReply['gameNumber']
             log("Game " + str(gameNumber) + " has started. Points so far = " + str(getInfoReply['points']))
 
-            # Wallbanger is not smart enough to have any variables to reset, but if it did this is where
-            # they would be. ;)
+            # The distance to the closest bot in each quadrant is stored in this list.
+            quadrant = [0, 0, 0, 0]
+
 
         try:
-            # get speed data from server
-            getSpeedReply = botSocket.sendRecvMessage({'type': 'getSpeedRequest'})
 
-            # if our requested speed is 0 then it's the start of the game or we hit something.
-            # note, we will stop when we hit a wall or another bot. 'currentSpeed' and 'requestedSpeed'
-            # will be reset to 0
-            if getSpeedReply['requestedSpeed'] == 0:
-                # pick a new random direction (hopefully away from what we just hit).
-                # random.random() returns value between 0 and 1.
-                # 2*math.pi is a full circle in radians.
-                radians = random.random() * 2 * math.pi
+            # if ScaredyCat is at the arena boundary, it should stop
+            getLocationReply = botSocket.sendRecvMessage({'type': 'getLocationRequest'})
+            if round(getLocationReply['x']) == srvConf['botRadius'] + 1 :
+                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 0})
+            elif round(getLocationReply['x']) == srvConf['arenaSize'] - srvConf['botRadius'] - 1:
+                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 0})
+            elif round(getLocationReply['y']) == srvConf['botRadius'] + 1:
+                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 0})
+            elif round(getLocationReply['y']) == srvConf['arenaSize'] - srvConf['botRadius'] - 1:
+                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 0})
+            else:
+
+                # variables that are iterated in the while loop
+                x = 0
+                i = 0
+
+                # ScaredyCat scans all four quadrants and looks for the closest target
+                while x < 2.0:
+
+                    # ScaredyCat scans the quadrant starting from x pi to 1/2 more than x. This is a quarter of a circle.
+                    # Then , it adds the server's response to the list
+                    scanReply = botSocket.sendRecvMessage({'type': 'scanRequest', 'startRadians': math.pi*x, 'endRadians': math.pi*(x + 1.0/2.0)})
+                    quadrant[i] = scanReply['distance']
+                    x += 1.0/2.0
+                    i += 1
+
+                # finds how far the closest enemy is from us (can't be zero)
+                minDistance = min(i for i in quadrant if i > 0)
+
+                # finds which quadrant that enemy is in
+                moveDirection = quadrant.index(minDistance)
+
+                # move in the opposite direction of the quandrant where the closest enemy is at, at a 45 degree angle.
+                # ie. if closest enemy is in quadrant 3, it will move in the direction pi * 1.0/4.0 in the first quadrant
+                if moveDirection == 0:
+                    moveDirection = math.pi * (5.0/4.0)
+                elif moveDirection == 1:
+                    moveDirection = math.pi * (7.0 / 4.0)
+                elif moveDirection == 2:
+                    moveDirection = math.pi * (1.0 / 4.0)
+                elif moveDirection == 3:
+                    moveDirection = math.pi * (3.0 / 4.0)
 
                 # Turn in a new direction
-                botSocket.sendRecvMessage({'type': 'setDirectionRequest', 'requestedDirection': radians})
+                botSocket.sendRecvMessage({'type': 'setDirectionRequest', 'requestedDirection': moveDirection})
 
                 # Request we start accelerating to max speed
-                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 100})
+                botSocket.sendRecvMessage({'type': 'setSpeedRequest', 'requestedSpeed': 30})
 
-                # log some useful information.
-                degrees = str(int(round(math.degrees(radians))))
-                log("Requested to go " + degrees + " degress at max speed.", "INFO")
         except nbipc.NetBotSocketException as e:
             # Consider this a warning here. It may simply be that a request returned
             # an Error reply because our health == 0 since we last checked. We can
