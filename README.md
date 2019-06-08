@@ -14,10 +14,7 @@ The image below is the NetBots viewer. The filled circles are robots and the unf
 
 NetBots differs from RobotWar, and its clones by being real-time and network centric. The server and robots each run in separate processes and can run on the same or separate computers. The server runs at a specific rate (steps/second). Additionally, the server emulates an unreliable network where message (packet) loss is common. Writing programs to deal with the real-time nature and network unreliability provides additional programming challenges. 
 
-Finally, NetBots offers two optional challenges for robot logic, [obstacles and jam zones](#obstacles-and-jam-zones). The image below shows obstacles (black circles) and jam zones (gray circles).
-
-<img src="images/zones.png" width="60%">
-
+Finally, NetBots offers other optional challenges for robot logic: [Robot Classes](docs/robot_classes.md), [Obstacles, and Jam Zones](docs/obstacles_and_jam_zones.md).
 
 ### NetBots as a Learning Tool
 
@@ -266,19 +263,7 @@ The smaller the scan slice the greater the confidence about the direction of the
 
 Scanning smaller slices is useful for firing shells accurately. Scanning a small slice is a good indication of the direction to the enemy. Since a scan returns the distance to the enemy, the robot then knows both the estimated direction and exact distance of the enemy.
 
-Direction and distance is all that is needed for a **[fireCanonRequest](#fireCanon)** message. Shells fired from the canon will travel in the specific direction until they reach the specified distance and then they will explode. Only one shell from a robot can be in progress at a time. If a shell is already in progress then firing a new shell will replace the old shell and the old shell with not explode. 
-
-
-## Obstacles and Jam Zones
-
-Obstacles and Jam Zones and are not turned on by default. See server help for switches to enable them.
-
-Jam Zones hide robots from enemy scans. Robots **fully within** a jam zone will not be detected by scans however they can continue to use their scanner normally.
-
-Obstacles block robots and shells however they are transparent to scan, i.e., scan results are the same with or without obstacles. If a shell hits an obstacle before reaching the specified distance then it will stop and not explode.
-
-Obstacles and Jam Zones are placed randomly and do not move during a tournament. Robots are informed of the location of Jam Zones and Obstacles is in the server configuration in the **[joinReply](#join)** message.
-
+Direction and distance is all that is needed for a **[fireCanonRequest](#fireCanon)** message. Shells fired from the canon will travel in the specific direction until they reach the specified distance and then they will explode. Only one shell from a robot can be in progress at a time. If a shell is already in progress then firing a new shell will replace the old shell and the old shell with not explode.
 
 ## Damage
 
