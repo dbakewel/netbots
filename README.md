@@ -16,7 +16,7 @@ NetBots differs from RobotWar, and its clones by being real-time and network cen
 
 Finally, NetBots offers two optional challenges for robot logic, [obstacles and jam zones](#obstacles-and-jam-zones). The image below shows obstacles (black circles) and jam zones (gray circles).
 
-<img src="images/advancedgame.png" width="60%">
+<img src="images/zones.png" width="60%">
 
 
 ### NetBots as a Learning Tool

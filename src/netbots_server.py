@@ -99,7 +99,7 @@ class SrvData:
                 'botArmor': 1.25  # multiplier of robot damage taken
                 },
                 
-            'machineGun': {
+            'machinegun': {
                 # Speeds and Rates of Change
                 'botMaxSpeed': 1.4,  # multiplier for bot max speed
                 'botAccRate': 1.2,  # multiplier for bot acceleration rate
