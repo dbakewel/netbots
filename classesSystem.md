@@ -3,22 +3,20 @@
 
 ## Classes
 
-### default
+### Default
 <img src="images/default.png" width="60%">
 
-### heavy
+### Heavy
 <img src="images/heavy.png" width="60%">
 
-### light
+### Light
 <img src="images/light.png" width="60%">
 
-### machineGun
+### MachineGun
 <img src="images/machineGun.png" width="60%">
 
-### sniper
+### Sniper
 <img src="images/sniper.png" width="60%">
 
-### turtle
+### Turtle
 <img src="images/turtle.png" width="60%">
-
-
