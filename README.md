@@ -10,6 +10,37 @@ The image below is the NetBots viewer. The filled circles are robots and the unf
 
 <img src="images/basicgame.png" width="100%">
 
+Below is a sample score board, which is output after each game by the NetBots server.
+```
+
+                ------ Score Board ------
+               Tournament Time: 1140.929 secs.
+                         Games: 1000
+             Average Game Time: 1.141 secs.
+                         Steps: 569173
+          Average Steps / Game: 569.173
+                      Run Time: 1140.967 secs.
+      Time Processing Messages: 211.796 secs.
+                   Messages In: 1953793
+                  Messages Out: 1628161
+              Messages Dropped: 325632
+             Messages / Second: 3424.803
+         Time Processing Steps: 15.490 secs.
+                Steps / Second: 498.868
+                 Time Sleeping: 905.588 secs.
+            Average Sleep Time: 0.001589 secs.
+     Steps Slower Than stepSec: 184 (0.03%)
+
+                    ---- Score -----  ------ Wins -------  --------- CanonFired ----------                       
+              Name      Points     %    Count   AvgHealth    Count   AvgDamage   TotDamage  IP:Port              
+ ------------------------------------------------------------------------------------------------------------------
+      Super Bot v3        4727  27.9      310       40.59    29729        3.17    94094.14  127.0.0.1:20171      
+            Rascal        4411  26.1      296       42.79    24663        3.97    97828.85  127.0.0.1:20182      
+           Level 5        4371  25.8      246       36.20    28715        3.50   100594.83  127.0.0.1:20129      
+             Oscar        3418  20.2      141       35.94    21832        3.33    72758.46  127.0.0.1:20189      
+ ------------------------------------------------------------------------------------------------------------------
+```
+
 ### How is NetBots different?
 
 NetBots differs from RobotWar, and its clones by being real-time and network centric. The server and robots each run in separate processes and can run on the same or separate computers. The server runs at a specific rate (steps/second). Additionally, the server emulates an unreliable network where message (packet) loss is common. Writing programs to deal with the real-time nature and network unreliability provides additional programming challenges.
@@ -355,7 +386,7 @@ Robots receive a copy of the server configuration in the **[joinReply](#join)** 
             'default': {
                 # Default class should have no changes.
                 }, 
-            [Other classes removed for brevity. See server conf for details.]
+            [Other classes removed for brevity. See netbots_server.py for details.]
         }
     }
 }
