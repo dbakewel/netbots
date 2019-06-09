@@ -785,6 +785,8 @@ def step(d):
 
 def logScoreBoard(d):
     now = time.time()
+    totalRecv = sum(d.srvSocket.recv.values())
+    totalSent = sum(d.srvSocket.sent.values())
     output = "\n\n                ------ Score Board ------" +\
         "\n               Tournament Time: " + '%.3f' % (now - d.state['tourStartTime']) + " secs." +\
         "\n                         Games: " + str(d.state['gameNumber']) +\
@@ -794,10 +796,10 @@ def logScoreBoard(d):
         "\n                      Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +\
         "\nTime Processing Robot Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
         "\n  Time Sending Viewer Messages: " + '%.3f' % (d.state['viewerMsgTime']) + " secs." +\
-        "\n                   Messages In: " + str(d.srvSocket.recv) +\
-        "\n                  Messages Out: " + str(d.srvSocket.sent) +\
+        "\n                   Messages In: " + str(totalRecv) +\
+        "\n                  Messages Out: " + str(totalSent) +\
         "\n              Messages Dropped: " + str(d.state['dropCount']) +\
-        "\n             Messages / Second: " + '%.3f' % ((d.srvSocket.recv + d.srvSocket.recv) / float(time.time() - d.state['startTime'])) +\
+        "\n             Messages / Second: " + '%.3f' % ((totalRecv + totalSent) / float(time.time() - d.state['startTime'])) +\
         "\n         Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +\
         "\n                Steps / Second: " + '%.3f' % (d.state['serverSteps'] / float(max(1, time.time() - d.state['tourStartTime']))) +\
         "\n                 Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +\
@@ -867,11 +869,15 @@ class Range(argparse.Action):
         
 
 def quit(signal=None, frame=None):
+    global d
+    log(d.srvSocket.getStats())
+    logScoreBoard(d)
     log("Quiting", "INFO")
     exit()
 
 
 def main():
+    global d  # d is global so quit() can access it.
     d = SrvData()
 
     random.seed()
@@ -990,9 +996,8 @@ def main():
             if not d.state['tourStartTime']:
                 d.state['tourStartTime'] = time.time()
 
-            logScoreBoard(d)
-
             if d.conf['gamesToPlay'] != d.state['gameNumber']:
+                logScoreBoard(d)
                 initGame(d)
             else:
                 log("All games have been played.")
