@@ -10,4 +10,4 @@ Obstacles and Jam Zones are placed randomly and do not move during a tournament.
 
  The image below shows obstacles (black circles) and jam zones (gray circles).
 
-<img src="images/zones.png" width="60%">
+<img src="images/zones.png" width="100%">

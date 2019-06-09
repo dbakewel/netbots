@@ -23,7 +23,7 @@ NetBots can be used in a learning environment. Students can be challenged in two
 1. Learn to write programs that must interact with a constantly changing real-time environment with limited information and limited control.
 2. Learn about networking, the impact of unreliable networks, and synchronous vs asynchronous programming.
 
-See [Proposed Learning Goals](docs/proposed_learning_goals.md) below.
+See [Proposed Learning Goals](docs/proposed_learning_goals.md) for further ideas.
 
 
 ---

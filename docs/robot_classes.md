@@ -13,22 +13,27 @@ Classes must be enabled by adding the ```-allowclasses``` option to the server. 
 
 ### default
 <img src="images/class_default.png" width="60%">
+
 ---
 
 ### heavy
 <img src="images/class_heavy.png" width="60%">
+
 ---
 
 ### light
 <img src="images/class_light.png" width="60%">
+
 ---
 
 ### machinegun
 <img src="images/class_machinegun.png" width="60%">
+
 ---
 
 ### sniper
 <img src="images/class_sniper.png" width="60%">
+
 ---
 
 ### turtle
