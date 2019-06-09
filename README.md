@@ -12,7 +12,7 @@ The image below is the NetBots viewer. The filled circles are robots and the unf
 
 ### How is NetBots different?
 
-NetBots differs from RobotWar, and its clones by being real-time and network centric. The server and robots each run in separate processes and can run on the same or separate computers. The server runs at a specific rate (steps/second). Additionally, the server emulates an unreliable network where message (packet) loss is common. Writing programs to deal with the real-time nature and network unreliability provides additional programming challenges. 
+NetBots differs from RobotWar, and its clones by being real-time and network centric. The server and robots each run in separate processes and can run on the same or separate computers. The server runs at a specific rate (steps/second). Additionally, the server emulates an unreliable network where message (packet) loss is common. Writing programs to deal with the real-time nature and network unreliability provides additional programming challenges.
 
 Finally, NetBots offers other optional challenges for robot logic: [Robot Classes](docs/robot_classes.md), [Obstacles, and Jam Zones](docs/obstacles_and_jam_zones.md).
 
@@ -267,9 +267,9 @@ Direction and distance is all that is needed for a **[fireCanonRequest](#fireCan
 
 ## Damage
 
-Damage from hitting walls, obstacles, or other robots is the same regardless of speed. If two robots collide then both robots will be damaged.  This collision damage is based on the speed and direction of the robots.  By default, if a robot has a head on collision with a wall at max speed they will take 10 damage.
+Robots are damaged (health reduced) from colliding with walls, obstacles, and other robots. If two robots collide then both robots will be damaged. Collision damage is affected by the speed and angle of the collision.  By default, if a robot has a head on collision with a wall while moving at 100% speed then the robot will take 10 damage (health reduced by 10). Reduced speed and an off angel collision will result in less damage.
 
-Shell explosions are of radius of 75 by default. All robots inside an explosion's radius will take damage. Robots in the center of the explosion will be damaged by 10% (health reduced by 10) by default. The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear.
+Shell explosions also cause damage. All robots inside an explosion's radius will take damage. Explosions have a radius of 75 by default. Robots in the center of the explosion will be damaged by 10 by default (health reduced by 10). The further a robot is from the center of an explosion the less damage it will take. The damage fall off from the explosions center to edge is linear.
 
 ## Points
 
