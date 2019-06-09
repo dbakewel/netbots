@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2019-06-09
+### Added
+- Robot classes have been significantly improved. See [Robot Classes](docs/robot_classes.md) for details. Robot classes more values, such as explRadius.
+- Instant replay added to viewer. Pressing the space bar activates a 7 second long instant replay at the default step speed. Live action will resume after the replay completes.
+- Robots in viewer have been updated to indicate most parameters: direction, requested direction, speed, requested speed, last scan, and last fire direction.
+- When it quits, NetBots server outputs netbot_ipc stats separated by ip:port.
+
+### Changed
+- Advanced collisions is now the default and default hitDamage has been increased to 10. **This means robots will take much more damage from collisions.** Restore old behavior with ```-simplecollisions -hitdamage 1```.
+- Demo robot train.py replaced with scaredycat.py. Scaredy Cat demonstrates avoidance of other robots and walls by using scan and location data.
+- Other updates to README. Some information from README has been moved under docs/.
+
 ## [1.4.0] - 2019-06-02
 ### Added
 - The server now supports advanced collisions (enable with -advancedcollisions option). Hit damage is assigned based on speed and angle of collision.
@@ -78,7 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0] - 2019-04-16
 - Beta release.
 
-[Unreleased]: https://github.com/dbakewel/netbots/compare/1.4.0...HEAD
+[Unreleased]: https://github.com/dbakewel/netbots/compare/2.0.0...HEAD
+[2.0.0]: https://github.com/dbakewel/netbots/compare/1.4.0...2.0.0
 [1.4.0]: https://github.com/dbakewel/netbots/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/dbakewel/netbots/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/dbakewel/netbots/compare/1.1.1...1.2.0

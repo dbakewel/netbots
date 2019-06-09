@@ -23,7 +23,7 @@ class SrvData:
     conf = {
         # Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
-        'serverVersion': "1.4.0",
+        'serverVersion': "2.0.0",
 
         # Game and Tournament
         'botsInGame': 4,  # Number of bots required to join before game can start.
