@@ -132,6 +132,8 @@ def fireCanonRequest(d, msg, src):
 
         d.bots[src]['firedCount'] += 1
 
+        d.bots[src]['last']['fireCanonRequest'] = {'direction': msg['direction'], 'distance': msg['distance']}
+
         return {
             'type': "fireCanonReply",
         }
@@ -160,6 +162,8 @@ def scanRequest(d, msg, src):
                             distance = dis
                         elif dis < distance:
                             distance = dis
+        
+        d.bots[src]['last']['scanRequest'] = {'startRadians': msg['startRadians'], 'endRadians': msg['endRadians']}
 
         return {
             'type': "scanReply",

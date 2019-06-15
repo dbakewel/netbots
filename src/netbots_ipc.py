@@ -206,8 +206,8 @@ class NetBotSocket:
         Raises socket related exceptions.
         """
 
-        self.sent = 0  # Number of messages sent to OS socket
-        self.recv = 0  # Number of messages recv from OS socket
+        self.sent = {}  # Number of messages sent to OS socket
+        self.recv = {}  # Number of messages recv from OS socket
         self.sendRecvMessageCalls = 0  # Number of calls to sendRecvMessage
         self.sendRecvMessageResends = 0  # Number of resends made by sendRecvMessage
         self.sendRecvMessageTime = 0  # Total time in sendRecvMessage
@@ -243,9 +243,7 @@ class NetBotSocket:
 
     def getStats(self):
         """ Return str of NetBotSocket stats. """
-        output = "\n\n                 ====== Stats ======" +\
-            "\n\n               Messages Sent: " + str(self.sent) +\
-            "\n              Messages Recv: " + str(self.recv)
+        output = "\n\n                 ====== Stats ======"
 
         if self.sendRecvMessageCalls:
             output += \
@@ -254,15 +252,22 @@ class NetBotSocket:
                 "\n  Avg sendRecvMessage Time: " + \
                 '%.6f' % (self.sendRecvMessageTime / self.sendRecvMessageCalls) + " secs."
 
-        output += "\n\n                Messages Sent by Type"
-        for t, c in sorted(self.sendTypes.items(), key=lambda x: x[0]):
-            output += "\n" + '%26s' % (t) + ": " + str(c)
+        for src in self.sent.keys():
+            output += "\n\n               === To/From: " + src + " ==="\
+                "\n             Messages Sent: " + str(self.sent[src]) +\
+                "\n             Messages Recv: " + str(self.recv[src])
 
-        output += "\n\n                Messages Recv by Type"
-        for t, c in sorted(self.recvTypes.items(), key=lambda x: x[0]):
-            output += "\n" + '%26s' % (t) + ": " + str(c)
+            if src in self.sendTypes:
+                output += "\n\n                Messages Sent by Type"
+                for t, c in sorted(self.sendTypes[src].items(), key=lambda x: x[0]):
+                    output += "\n" + '%26s' % (t) + ": " + str(c)
 
-        output += "\n\n"
+            if src in self.recvTypes:
+                output += "\n\n                Messages Recv by Type"
+                for t, c in sorted(self.recvTypes[src].items(), key=lambda x: x[0]):
+                    output += "\n" + '%26s' % (t) + ": " + str(c)
+
+            output += "\n"
 
         return output
 
@@ -328,17 +333,24 @@ class NetBotSocket:
         log("Sending msg to " + destinationIP + ":" + str(destinationPort) +
             " len=" + str(len(networkbytes)) + " bytes " + str(msg), "DEBUG")
         self.s.sendto(networkbytes, (destinationIP, destinationPort))
-        self.sent = self.sent + 1
+
+        dest = formatIpPort(destinationIP, destinationPort)
+        if dest in self.sent:
+            self.sent[dest] += 1
+        else:
+            self.sent[dest] = 1
 
         if not packedAndChecked:
             msgtype = msg['type']
         else:
             msgtype = "Serialized"
 
-        if msgtype in self.sendTypes:
-            self.sendTypes[msgtype] += 1
+        if dest not in self.sendTypes:
+            self.sendTypes[dest] = {}
+        if msgtype in self.sendTypes[dest]:
+            self.sendTypes[dest][msgtype] += 1
         else:
-            self.sendTypes[msgtype] = 1
+            self.sendTypes[dest][msgtype] = 1
 
     def recvMessage(self):
         """
@@ -373,11 +385,19 @@ class NetBotSocket:
             log("Received msg from " + ip + ":" + str(port) + " len=" +
                 str(len(bytesAddressPair[0])) + " bytes " + str(msg), "DEBUG")
 
-            self.recv = self.recv + 1
-            if msg['type'] in self.recvTypes:
-                self.recvTypes[msg['type']] += 1
+            src = formatIpPort(ip, port)
+            if src in self.recv:
+                self.recv[src] += 1
             else:
-                self.recvTypes[msg['type']] = 1
+                self.recv[src] = 1
+
+            if src not in self.recvTypes:
+                self.recvTypes[src] = {}
+            if msg['type'] in self.recvTypes[src]:
+                self.recvTypes[src][msg['type']] += 1
+            else:
+                self.recvTypes[src][msg['type']] = 1
+
         except (BlockingIOError, socket.timeout):
             # There was no data in the receive buffer.
             raise NetBotSocketException("Receive buffer empty.")
@@ -442,33 +462,29 @@ class NetBotSocket:
         msg['msgID'] = self.msgID
 
         gotReply = False
-        sendMessage = True
+        sendMessage = 0
         while remaining != 0 and gotReply == False:
-            if sendMessage:
-                remaining = remaining - 1
+            if sendMessage <= time.perf_counter():
                 self.sendMessage(msg, destinationIP, destinationPort)
+                if sendMessage != 0:
+                    self.sendRecvMessageResends += 1
+                remaining = remaining - 1
+                sendMessage = time.perf_counter() + nextDelay
                 self.s.settimeout(nextDelay)
                 nextDelay = nextDelay * delayMultiplier
 
             try:
                 replyMsg, ip, port = self.recvMessage()
             except NetBotSocketException as e:
-                # We didn't get anything from the buffer or it was an invald message.
+                # We didn't get anything from the buffer or it was an invalid message.
                 ip = None
 
             if ip is not None:
-                # if the message came from the same ip:port we sent it to
+                # if the message is the one we are looking for.
                 if ip == destinationIP and port == destinationPort and \
                         isinstance(replyMsg, dict) and \
                         'msgID' in replyMsg and replyMsg['msgID'] == msg['msgID']:
                     gotReply = True
-                else:
-                    # we got a message but it was not the one were were looking for. Try to receive again before sending
-                    sendMessage = False
-            else:
-                # there is noting in the receive buffer after the timeout so try sending message again.
-                sendMessage = True
-                self.sendRecvMessageResends += 1
 
         self.s.settimeout(0)
 

@@ -23,7 +23,7 @@ class SrvData:
     conf = {
         # Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
-        'serverVersion': "1.3.0+ (develop)",
+        'serverVersion': "2.0.0",
 
         # Game and Tournament
         'botsInGame': 4,  # Number of bots required to join before game can start.
@@ -32,7 +32,7 @@ class SrvData:
         # Amount of time server targets for each step. Server will sleep if game is running faster than this.
         'stepSec': 0.05,
         'startPermutations':  False,  # Use all permutations of each set of random start locations.
-        'advancedCollisions': False,  # Use advanced collision, affected by -hitdamage
+        'simpleCollisions': False,  # Use simple collision system, affected by -hitdamage
         'scanMaxDistance': 1415,  # Maximum distance a scan can detect a robot.
 
         # Messaging
@@ -57,7 +57,7 @@ class SrvData:
         'botMaxTurnRate': math.pi / 50,  # Amount bot can rotate per turn in radians at 0% speed
 
         # Damage
-        'hitDamage': 1,  # Damage a bot takes from hitting wall or another bot
+        'hitDamage': 10,  # Damage a bot takes from hitting wall or another bot
         # Damage bot takes from direct hit from shell. The further from shell explosion will result in less damage.
         'explDamage': 10,
         'botArmor': 1.0,  # Damage multiplier
@@ -75,7 +75,7 @@ class SrvData:
         #Robot Classes (values below override what's above for robots in that class)
         'allowClasses': False,
         #Only fields listed in classFields are allowed to be overwritten by classes.
-        'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor'),
+        'classFields': ('botMaxSpeed', 'botAccRate', 'botMinTurnRate', 'botMaxTurnRate', 'botArmor', 'shellSpeed', 'explDamage', 'explRadius'),
         'classes': {
             'default': {
                 # Default class should have no changes.
@@ -87,16 +87,52 @@ class SrvData:
                 'botAccRate': 0.55,  # multiplier for bot acceleration rate
                 'botMinTurnRate': 0.923076923,  # multiplier for bot turning rate at 100% speed
                 'botMaxTurnRate': 0.333333333,  # multiplier for bot turning rate at 0% speed
-                'botArmor': 0.77  # multiplier of robot damage taken
+                'botArmor': 0.862  # multiplier of robot damage taken
                 },
             
             'light': {
                 # Speeds and Rates of Change
+                'botMaxSpeed': 2.8,  # multiplier for bot max speed
+                'botAccRate': 1.6,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1.4,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 1.75,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.25  # multiplier of robot damage taken
+                },
+                
+            'machinegun': {
+                # Speeds and Rates of Change
                 'botMaxSpeed': 1.4,  # multiplier for bot max speed
-                'botAccRate': 1.25,  # multiplier for bot acceleration rate
+                'botAccRate': 1.2,  # multiplier for bot acceleration rate
                 'botMinTurnRate': 1.2,  # multiplier for bot turning rate at 100% speed
-                'botMaxTurnRate': 1.6666666666,  # multiplier for bot turning rate at 0% speed
-                'botArmor': 1.33  # multiplier of robot damage taken
+                'botMaxTurnRate': 1.6,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 0.93,  # multiplier of robot damage taken
+                'shellSpeed': 30,  # multiplier of distance traveled by shell per step
+                'explDamage': 0.237,
+                'explRadius': 1.1
+                },
+                
+            'sniper': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 1,  # multiplier for bot max speed
+                'botAccRate': 0.7,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 1,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 0.8,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 1.1,  # multiplier of robot damage taken
+                'shellSpeed': 3,  # multiplier of distance traveled by shell per step
+                'explDamage': 2.85,
+                'explRadius': 0.4
+                },
+                
+            'turtle': {
+                # Speeds and Rates of Change
+                'botMaxSpeed': 0.5,  # multiplier for bot max speed
+                'botAccRate': 0.15,  # multiplier for bot acceleration rate
+                'botMinTurnRate': 0.6,  # multiplier for bot turning rate at 100% speed
+                'botMaxTurnRate': 0.5,  # multiplier for bot turning rate at 0% speed
+                'botArmor': 0.83,  # multiplier of robot damage taken
+                'shellSpeed': 0.38,  # multiplier of distance traveled by shell per step
+                'explDamage': 2.8,
+                'explRadius': 1.6
                 }
             }
         }
@@ -138,7 +174,13 @@ class SrvData:
         'firedCount': 0,
         'shellDamage': 0,
         'winHealth': 0,
-        'winCount': 0
+        'winCount': 0,
+        'last': {
+            # Copies of last fire and scan requests. This data is not stored elsewhere
+            # and is useful for viewer to display.
+            'fireCanonRequest': {'direction': 0, 'distance': 10},
+            'scanRequest': {'startRadians': 0, 'endRadians': 0},
+            }
         }
 
     shells = {}
@@ -298,6 +340,28 @@ def sendToViwers(d):
 ########################################################
 # Game Logic
 ########################################################
+
+def getHitSeverity(d, b1, a, b2 = None):
+    '''
+    hitSeverity returns a number in range 0.0 to 1.0 if b2 is None and b1 is in default class.
+    hitSeverity returns a number in range 0.0 to 2.0 if b2 is a bot and both are in default class.
+    
+    'b1' is the bot who collided.
+    'a' is the angle from b1 towards the collision.
+    'b2' is the other bot that collied if this is a bot on bot collision.
+    '''
+
+    hitSeverity = b1['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', b1['class']) / \
+                          d.conf['botMaxSpeed'] * math.cos(b1['currentDirection'] - a)
+    if b2:
+        # This may reduce hitSeverity if b2 is moving away from b1 or
+        # increase hitSeverity if b2 moving towards b1.
+        hitSeverity += b2['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', b2['class']) / \
+                          d.conf['botMaxSpeed'] * math.cos(b2['currentDirection'] - a + math.pi)
+    if hitSeverity < 0:
+        hitSeverity = 0
+
+    return hitSeverity
 
 
 def findOverlapingBots(d, bots):
@@ -498,8 +562,8 @@ def step(d):
                 else:
                     # how much can we turn at the speed we are going?
                     turnRate = d.getClassValue('botMinTurnRate', bot['class']) \
-                        + ( d.getClassValue('botMaxTurnRate', bot['class']) \
-                        -   d.getClassValue('botMinTurnRate', bot['class']) ) \
+                        + (d.getClassValue('botMaxTurnRate', bot['class']) -
+                           d.getClassValue('botMinTurnRate', bot['class'])) \
                         * (1 - bot['currentSpeed'] / 100)
 
                     # if turn is negative and does not pass over 0 radians
@@ -535,14 +599,8 @@ def step(d):
                                         bot['currentDirection'],
                                         bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']))
 
-    '''
-    hitSeverity may be in range 0.0 to 2.0. hitSeverity == 0 means robot did not hit
-    anything this step. hitSeverity == 1 means d.conf['hitDamage'] should applied
-    to robot. For example, if a robot hits wall at full speed while moving directly towards
-    wall then hitSeverity = 1.0. If two robots hit each other while both are driving at
-    full speeds and directly towards each other then hitSeverity = 2.0.
-    '''
-    # set starting hitSeverity to 0 for all robots.
+    # set starting hitSeverity to 0 for all robots. hitSeverity == 0 means robot did not 
+    # hit anything this step.
     for src, bot in d.bots.items():
         bot['hitSeverity'] = 0.0
 
@@ -555,28 +613,21 @@ def step(d):
         for src, bot in d.bots.items():
             hitSeverity = 0
             if bot['x'] - d.conf['botRadius'] < 0:
-                # hit right side
-                bot['x'] = d.conf['botRadius'] + 1
-                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                              d.conf['botMaxSpeed'] * math.cos(min(math.pi / 2, abs(bot['currentDirection'] - \
-                              math.pi)))
-            if bot['x'] + d.conf['botRadius'] > d.conf['arenaSize']:
                 # hit left side
+                bot['x'] = d.conf['botRadius'] + 1
+                hitSeverity = getHitSeverity(d, bot, math.pi)
+            if bot['x'] + d.conf['botRadius'] > d.conf['arenaSize']:
+                # hit right side
                 bot['x'] = d.conf['arenaSize'] - d.conf['botRadius'] - 1
-                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                              d.conf['botMaxSpeed'] * math.cos(min(math.pi / 2, abs(bot['currentDirection'])))
+                hitSeverity = getHitSeverity(d, bot, 0)
             if bot['y'] - d.conf['botRadius'] < 0:
                 # hit bottom side
                 bot['y'] = d.conf['botRadius'] + 1
-                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                              d.conf['botMaxSpeed'] * math.cos(min(math.pi/2, abs(bot['currentDirection'] - \
-                              math.pi * 3 / 2)))
+                hitSeverity = getHitSeverity(d, bot, math.pi * 3 / 2)
             if bot['y'] + d.conf['botRadius'] > d.conf['arenaSize']:
                 # hit top side
                 bot['y'] = d.conf['arenaSize'] - d.conf['botRadius'] - 1
-                hitSeverity = bot['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                              d.conf['botMaxSpeed'] * math.cos(min(math.pi/2, abs(bot['currentDirection'] - \
-                              math.pi / 2)))
+                hitSeverity = getHitSeverity(d, bot, math.pi/2)
     
             if hitSeverity:
                 foundOverlap = True
@@ -595,8 +646,7 @@ def step(d):
             # move bot
             b['x'], b['y'] = nbmath.project(b['x'], b['y'], a, distance)
             # record damage
-            hitSeverity = b['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                          d.conf['botMaxSpeed'] * math.cos(min(math.pi / 2, abs(b['currentDirection'] - a + math.pi)))
+            hitSeverity = getHitSeverity(d, b, a + math.pi)
             b['hitSeverity'] = max(b['hitSeverity'], hitSeverity)
             # check for more bots overlapping
             overlap = findOverlapingBotsAndObstacles(d, d.bots)
@@ -616,11 +666,7 @@ def step(d):
             b1['x'], b1['y'] = nbmath.project(b1['x'], b1['y'], a + math.pi, distance)
             b2['x'], b2['y'] = nbmath.project(b2['x'], b2['y'], a, distance)
             # record damage
-            # find the angle between the direction vector and the vector towards the point of collision
-            hitSeverity = b1['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                          d.conf['botMaxSpeed'] * math.cos(b1['currentDirection'] - a) + \
-                          b2['currentSpeed'] / 100.0 * d.getClassValue('botMaxSpeed', bot['class']) / \
-                          d.conf['botMaxSpeed'] * math.cos(b2['currentDirection'] - a + math.pi)
+            hitSeverity = getHitSeverity(d, b1, a, b2)
             b1['hitSeverity'] = max(b1['hitSeverity'], hitSeverity)
             b2['hitSeverity'] = max(b2['hitSeverity'], hitSeverity)
             # check for more bots overlapping
@@ -629,7 +675,7 @@ def step(d):
     # give damage (only once this step) to bots that hit things. Also stop them.
     for src, bot in d.bots.items():
         if bot['hitSeverity']:
-            if not d.conf['advancedCollisions']:
+            if d.conf['simpleCollisions']:
                 bot['hitSeverity'] = 1
             bot['health'] = max(0, bot['health'] - bot['hitSeverity'] * d.conf['hitDamage'] * d.getClassValue('botArmor', bot['class']))
             bot['currentSpeed'] = 0
@@ -645,7 +691,7 @@ def step(d):
         oldy = shell['y']
 
         # move shell
-        distance = min(d.conf['shellSpeed'], shell['distanceRemaining'])
+        distance = min(d.getClassValue('shellSpeed', d.bots[src]['class']), shell['distanceRemaining'])
         shell['x'], shell['y'] = nbmath.project(shell['x'], shell['y'], shell['direction'], distance)
         shell['distanceRemaining'] -= distance
 
@@ -657,8 +703,8 @@ def step(d):
 
         # if did not hit an obstacle and shell's explosion would touch inside of arena
         if not shellHitObstacle and \
-           (shell['x'] > d.conf['explRadius'] * -1 and shell['x'] < d.conf['arenaSize'] + d.conf['explRadius'] and
-                shell['y'] > d.conf['explRadius'] * -1 and shell['y'] < d.conf['arenaSize'] + d.conf['explRadius']):
+           (shell['x'] > d.getClassValue('explRadius', d.bots[src]['class']) * -1 and shell['x'] < d.conf['arenaSize'] + d.getClassValue('explRadius', d.bots[src]['class']) and
+                shell['y'] > d.getClassValue('explRadius', d.bots[src]['class']) * -1 and shell['y'] < d.conf['arenaSize'] + d.getClassValue('explRadius', d.bots[src]['class'])):
 
             # if shell has reached it destination then explode.
             if shell['distanceRemaining'] <= 0:
@@ -666,8 +712,8 @@ def step(d):
                 for k, bot in d.bots.items():
                     if bot['health'] > 0:
                         distance = nbmath.distance(bot['x'], bot['y'], shell['x'], shell['y'])
-                        if distance < d.conf['explRadius']:
-                            damage = d.conf['explDamage'] * (1 - distance / d.conf['explRadius'])
+                        if distance < d.getClassValue('explRadius', d.bots[src]['class']):
+                            damage = d.getClassValue('explDamage', d.bots[src]['class']) * (1 - distance / d.getClassValue('explRadius', d.bots[src]['class']))
                             bot['health'] = max(0, bot['health'] - (damage * d.getClassValue('botArmor', bot['class'])))
                             # allow recording of inflicting damage that is greater than health of hit robot.
                             # also record damage to oneself.
@@ -739,6 +785,8 @@ def step(d):
 
 def logScoreBoard(d):
     now = time.time()
+    totalRecv = sum(d.srvSocket.recv.values())
+    totalSent = sum(d.srvSocket.sent.values())
     output = "\n\n                ------ Score Board ------" +\
         "\n               Tournament Time: " + '%.3f' % (now - d.state['tourStartTime']) + " secs." +\
         "\n                         Games: " + str(d.state['gameNumber']) +\
@@ -748,10 +796,10 @@ def logScoreBoard(d):
         "\n                      Run Time: " + '%.3f' % (time.time() - d.state['startTime']) + " secs." +\
         "\nTime Processing Robot Messages: " + '%.3f' % (d.state['msgTime']) + " secs." +\
         "\n  Time Sending Viewer Messages: " + '%.3f' % (d.state['viewerMsgTime']) + " secs." +\
-        "\n                   Messages In: " + str(d.srvSocket.recv) +\
-        "\n                  Messages Out: " + str(d.srvSocket.sent) +\
+        "\n                   Messages In: " + str(totalRecv) +\
+        "\n                  Messages Out: " + str(totalSent) +\
         "\n              Messages Dropped: " + str(d.state['dropCount']) +\
-        "\n             Messages / Second: " + '%.3f' % ((d.srvSocket.recv + d.srvSocket.recv) / float(time.time() - d.state['startTime'])) +\
+        "\n             Messages / Second: " + '%.3f' % ((totalRecv + totalSent) / float(time.time() - d.state['startTime'])) +\
         "\n         Time Processing Steps: " + '%.3f' % (d.state['stepTime']) + " secs." +\
         "\n                Steps / Second: " + '%.3f' % (d.state['serverSteps'] / float(max(1, time.time() - d.state['tourStartTime']))) +\
         "\n                 Time Sleeping: " + '%.3f' % (float(d.state['sleepTime'])) + " secs." +\
@@ -821,11 +869,15 @@ class Range(argparse.Action):
         
 
 def quit(signal=None, frame=None):
+    global d
+    log(d.srvSocket.getStats())
+    logScoreBoard(d)
     log("Quiting", "INFO")
     exit()
 
 
 def main():
+    global d  # d is global so quit() can access it.
     d = SrvData()
 
     random.seed()
@@ -862,7 +914,7 @@ def main():
     parser.add_argument('-shellspeed', metavar='int', dest='shellSpeed', type=int,
                         default=40, help='Distance traveled by shell per step.')
     parser.add_argument('-hitdamage', metavar='int', dest='hitDamage', type=int,
-                        default=1, help='Damage a robot takes from hitting wall or another bot.')
+                        default=10, help='Damage a robot takes from hitting wall or another bot.')
     parser.add_argument('-expldamage', metavar='int', dest='explDamage', type=int,
                         default=10, help='Damage bot takes from direct hit from shell.')
     parser.add_argument('-obstacles', metavar='int', dest='obstacles', type=int,
@@ -873,8 +925,8 @@ def main():
                         default=0, help='How many jam zones does the arena have.')
     parser.add_argument('-allowclasses', dest='allowClasses', action='store_true',
                         default=False, help='Allow robots to specify a class other than default.')
-    parser.add_argument('-advancedcollisions', dest='advancedCollisions', action='store_true',
-                        default=False, help='Uses the advanced collision system, affected by -hitdamage')
+    parser.add_argument('-simplecollisions', dest='simpleCollisions', action='store_true',
+                        default=False, help='Uses the simple collision system, damage taken is the same as -hitdamage')
     parser.add_argument('-startperms', dest='startPermutations', action='store_true',
                         default=False, help='Use all permutations of each set of random start locations.')
     parser.add_argument('-scanmaxdistance', metavar='int', dest='scanMaxDistance', type=int,
@@ -908,7 +960,7 @@ def main():
     d.conf['obstacles'] = mkObstacles(d, args.obstacles)
     d.conf['jamZones'] = mkJamZones(d, args.jamZones)
     d.conf['allowClasses'] = args.allowClasses
-    d.conf['advancedCollisions'] = args.advancedCollisions
+    d.conf['simpleCollisions'] = args.simpleCollisions
     d.conf['startPermutations'] = args.startPermutations
     d.conf['scanMaxDistance'] = args.scanMaxDistance
     d.conf['noViewers'] = args.noViewers
@@ -944,9 +996,8 @@ def main():
             if not d.state['tourStartTime']:
                 d.state['tourStartTime'] = time.time()
 
-            logScoreBoard(d)
-
             if d.conf['gamesToPlay'] != d.state['gameNumber']:
+                logScoreBoard(d)
                 initGame(d)
             else:
                 log("All games have been played.")
