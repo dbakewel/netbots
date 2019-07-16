@@ -64,14 +64,21 @@ class Robot(ArenaObject):
 
 class Shell(ArenaObject):
     def __init__(self,srvConf):
-        super().__init__(srvConf)
+        super().__init__(srvConf, Point())
         self.srvConf = srvConf
         self.canMove = True
 
 class Explosion(ArenaObject):
+    def __init__(self,srvConf):
+        super().__init__(srvConf, Circle())
+        self.canMove = False
 
 
 class Obstacle(ArenaObject):
+    def __init__(self,srvConf):
+        super().__init__(srvConf, Circle())
+        self.canMove = False
+
     def step(self):
         pass
 
