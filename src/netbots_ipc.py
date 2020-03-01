@@ -1,5 +1,4 @@
 import socket
-import umsgpack
 import random
 import time
 import re
@@ -7,6 +6,12 @@ import math
 import argparse
 
 from netbots_log import log
+
+try:
+    import msgpack as umsgpack
+except:
+    import umsgpack
+    log("Using pure python msgpack. Install binary msgpack for better performance.", "WARNING")
 
 """
 **About Messages**
