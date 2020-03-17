@@ -174,6 +174,7 @@ class SrvData:
         'points': 0,
         'firedCount': 0,
         'shellDamage': 0,
+        'missedSteps': 0,
         'winHealth': 0,
         'winCount': 0,
         'last': {
@@ -284,8 +285,6 @@ def recvReplyMsgs(d):
 
     botMsgCount = {}
     for msg, ip, port in msgQ:
-        if dropMessage(d):
-            continue
 
         src = nbipc.formatIpPort(ip, port)
 
@@ -295,6 +294,9 @@ def recvReplyMsgs(d):
         else:
             botMsgCount[src] = 1
         if botMsgCount[src] > d.conf['botMsgsPerStep']:
+            continue
+        
+        if dropMessage(d):
             continue
 
         reply = processMsg(d, msg, src)
@@ -306,8 +308,11 @@ def recvReplyMsgs(d):
             except Exception as e:
                 log(str(e), "ERROR")
 
+    for src in d.bots:
+        if src not in d.botMsgCount:
+            d.bots[src]['missedSteps'] += 1
+
     d.state['msgTime'] += time.perf_counter() - startTime
-    log("Msgs Processed per Bot this step: " + str(botMsgCount), "DEBUG")
 
 
 def sendToViwers(d):
@@ -843,7 +848,8 @@ def logScoreBoard(d):
             f"  {bot['firedCount']:>7}" +\
             f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" + \
             f"  {float(bot['shellDamage']):>10.2f}" + \
-            f"  {src:<21}"
+            f"  {src:<21}" +\
+            f"  {bot['missedSteps']:>6}"
 
     output += "\n ------------------------------------------------------------------------------------------------------------------\n\n"
 
