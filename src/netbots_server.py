@@ -71,7 +71,8 @@ class SrvData:
 
         # Misc
         'keepExplosionSteps': 10,  # Number of steps to keep old explosions in explosion dict (only useful to viewers).
-        
+        'maxSecsToJoin': 300,  # Number of secs server will wait for botsInGame bots to join before timeout and quit.
+
         #Robot Classes (values below override what's above for robots in that class)
         'allowClasses': False,
         #Only fields listed in classFields are allowed to be overwritten by classes.
@@ -933,6 +934,8 @@ def main():
                         default=1415, help='Maximum distance a scan can detect a robot.')
     parser.add_argument('-noviewers', dest='noViewers', action='store_true',
                         default=False, help='Do not allow viewers.')
+    parser.add_argument('-maxsecstojoin', metavar='int', dest='maxSecsToJoin', type=int,
+                        default=300, help='Max seconds server will wait for all bots to join before quiting.')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -964,6 +967,7 @@ def main():
     d.conf['startPermutations'] = args.startPermutations
     d.conf['scanMaxDistance'] = args.scanMaxDistance
     d.conf['noViewers'] = args.noViewers
+    d.conf['maxSecsToJoin'] = args.maxSecsToJoin
 
     mkStartLocations(d)
 
@@ -1002,6 +1006,9 @@ def main():
             else:
                 log("All games have been played.")
                 quit()
+        elif d.conf['maxSecsToJoin'] < float(time.time() - d.state['startTime']): 
+            log("Not enough bots joined game before max seconds to join ( " + d.conf['maxSecsToJoin'] + " sec). Exiting.", "ERROR")
+            exit()
 
         recvReplyMsgs(d)
 
