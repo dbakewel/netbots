@@ -92,7 +92,7 @@ def quit(signal=None, frame=None):
     exit()
 
 
-def main():
+def main(argv):
     global botSocket  # This is global so quit() can print stats in botSocket
     global robotName
 
@@ -109,7 +109,8 @@ def main():
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
                         default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
-    args = parser.parse_args()
+    argv.pop(0) # remove command from from argv.
+    args = parser.parse_args(args=argv)
     setLogLevel(args.debug, args.verbose)
 
     try:
@@ -133,4 +134,4 @@ def main():
 if __name__ == "__main__":
     # execute only if run as a script
     signal.signal(signal.SIGINT, quit)
-    main()
+    main(sys.argv)
