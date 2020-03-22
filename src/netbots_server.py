@@ -11,6 +11,7 @@ from netbots_log import setLogLevel
 import netbots_ipc as nbipc
 import netbots_srvmsghl as nbmsghl
 import netbots_math as nbmath
+import netbots_thread as nbthread
 
 ########################################################
 # Server Data
@@ -942,6 +943,10 @@ def main():
                         default=False, help='Do not allow viewers.')
     parser.add_argument('-maxsecstojoin', metavar='int', dest='maxSecsToJoin', type=int,
                         default=300, help='Max seconds server will wait for all bots to join before quiting.')
+    parser.add_argument('-botdir', dest='botDir', type=str,
+                        default="robots", help='Directory containing bot modules.')
+    parser.add_argument('-startbots', dest='startBots', type=str, nargs='*',
+                        help='Bot modules for server to start as threads.')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -988,6 +993,9 @@ def main():
     except Exception as e:
         log(str(e), "FAILURE")
         quit()
+
+    # Start robot threads
+    nbthread.startBotThreads(args.botDir, args.startBots, args.serverPort)
 
     nextStepAt = time.perf_counter() + d.conf['stepSec']
     while True:
