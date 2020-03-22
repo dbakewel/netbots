@@ -1,3 +1,4 @@
+import sys
 import argparse
 import time
 import signal
@@ -7,7 +8,7 @@ import math
 
 from netbots_log import log
 from netbots_log import setLogLevel
-from netbots_server import SrvData
+from netbots_srvdata import SrvData
 import netbots_ipc as nbipc
 import netbots_math as nbmath
 
@@ -425,7 +426,7 @@ def quit(signal=None, frame=None):
     exit()
 
 
-def main():
+def main(argv):
     global d
     
     d = ViewerData()
@@ -447,7 +448,8 @@ def main():
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
                         default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
-    args = parser.parse_args()
+    argv.pop(0) # remove command from from argv.
+    args = parser.parse_args(args=argv)
     setLogLevel(args.debug, args.verbose)
     d.srvIP = args.serverIP
     d.srvPort = args.serverPort
@@ -474,4 +476,4 @@ def main():
 if __name__ == "__main__":
     # execute only if run as a script
     signal.signal(signal.SIGINT, quit)
-    main()
+    main(sys.argv)

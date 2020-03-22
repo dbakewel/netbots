@@ -1,7 +1,9 @@
 
 import sys
 import threading
-import importlib      
+import importlib
+
+from netbots_viewer import main as viewerMain     
 
 from netbots_log import log
 
@@ -19,7 +21,7 @@ def startBotThreads(botDir, startBots, serverPort):
     sys.path.insert(0, botDir)
 
     threads = list()
-    port = 20020
+    port = 20021
     for script in startBots:
         log("Creating thread for " + script, "INFO")
         t = threading.Thread(target=botThread, name=script + "-" + str(port), 
@@ -28,3 +30,11 @@ def startBotThreads(botDir, startBots, serverPort):
         t.start()
         port += 1
     return threads
+
+def startViewerThread(serverPort):
+    port = 20020
+    log("Creating thread for viewer.", "INFO")
+    t = threading.Thread(target=viewerMain, name="viewer" + "-" + str(port), 
+        args=(['"viewer"', "-p", str(port), "-sp", str(serverPort)],), daemon=True)
+    t.start()
+    return t
