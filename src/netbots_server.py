@@ -943,6 +943,8 @@ def main():
                         default=False, help='Do not allow viewers.')
     parser.add_argument('-maxsecstojoin', metavar='int', dest='maxSecsToJoin', type=int,
                         default=300, help='Max seconds server will wait for all bots to join before quiting.')
+    parser.add_argument('-sdmipc', dest='sdmipc', action='store_true',
+                        default=False, help='Use shared memory IPC.')
     parser.add_argument('-botdir', dest='botDir', type=str,
                         default="robots", help='Directory containing bot modules.')
     parser.add_argument('-startbots', dest='startBots', type=str, nargs='*',
@@ -987,6 +989,9 @@ def main():
     log("Argument List:" + str(sys.argv))
 
     log("Server Configuration: " + str(d.conf), "VERBOSE")
+
+    if args.sdmipc: #if we are using shared memory IPC
+        pass
 
     try:
         d.srvSocket = nbipc.NetBotSocket(args.serverIP, args.serverPort)
