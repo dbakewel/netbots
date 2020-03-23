@@ -1,1 +1,1 @@
-from netbots_ipc_ip import *
+from netbots_ipc_sdm import *
