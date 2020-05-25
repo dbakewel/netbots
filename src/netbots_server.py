@@ -5,6 +5,7 @@ import time
 import random
 import math
 import itertools
+import json
 
 from netbots_log import log
 from netbots_log import setLogLevel
@@ -139,7 +140,7 @@ class SrvData:
         }
 
     state = {
-        # Dynamic vars
+        # Dynamic vars (Note, these are not shared with robots so we also store server only conf here.)
         'gameNumber': 0,
         'gameStep': 0,
         'dropNext': 10,  # Drop the next message in N (count down)
@@ -153,7 +154,11 @@ class SrvData:
         'sleepTime': 0,
         'sleepCount': 0,
         'longStepCount': 0,
-        'tourStartTime': False
+        'tourStartTime': False,
+
+        # Server only conf which we don't want to share with robots
+        'onlyLastSb': False,  # Only print the scoreboard when the server quits, rather than after every game.
+        'jsonScoreboard': False,  # Save json formatted server data to filename before quiting.
         }
 
     starts = []  # [ [locIndex, locIndex, ...], [locIndex, locIndex, ...], ...]
@@ -789,11 +794,11 @@ def step(d):
 # Stats and Points Logging
 ########################################################
 
-def logScoreBoard(d):
+def logScoreboard(d):
     now = time.time()
     totalRecv = sum(d.srvSocket.recv.values())
     totalSent = sum(d.srvSocket.sent.values())
-    output = "\n\n                ------ Score Board ------" +\
+    output = "\n\n                  ------ Scoreboard ------" +\
         "\n               Tournament Time: " + '%.3f' % (now - d.state['tourStartTime']) + " secs." +\
         "\n                         Games: " + str(d.state['gameNumber']) +\
         "\n             Average Game Time: " + '%.3f' % ((now - d.state['tourStartTime']) / max(1, d.state['gameNumber'])) + " secs." +\
@@ -855,6 +860,16 @@ def logScoreBoard(d):
 
     log(output)
 
+def jsonScoreboard(d):
+    if d.state['jsonScoreboard']:
+        d.state['tourEndTime'] = time.time()
+        d.state['tourTime'] = d.state['tourEndTime'] - d.state['tourStartTime']
+        d.state['longStepPercent'] = float(d.state['longStepCount']) / float(max(1,d.state['serverSteps'])) * 100.0
+        with open(d.state['jsonScoreboard'],"w") as f:
+            # hide jsonScoreboard from stored result so we don't expose file system structure
+            d.state['jsonScoreboard'] = "Filename Hidden" 
+            f.write(json.dumps({'conf': d.conf,'state': d.state, 'bots': d.bots}))
+
 ########################################################
 # Main Loop
 ########################################################
@@ -878,7 +893,8 @@ class Range(argparse.Action):
 def quit(signal=None, frame=None):
     global d
     log(d.srvSocket.getStats())
-    logScoreBoard(d)
+    logScoreboard(d)
+    jsonScoreboard(d)
     log("Quiting", "INFO")
     exit()
 
@@ -942,6 +958,10 @@ def main():
                         default=False, help='Do not allow viewers.')
     parser.add_argument('-maxsecstojoin', metavar='int', dest='maxSecsToJoin', type=int,
                         default=300, help='Max seconds server will wait for all bots to join before quiting.')
+    parser.add_argument('-onlylastsb', dest='onlyLastSb', action='store_true',
+                        default=False, help='Only print the scoreboard when the server quits.')
+    parser.add_argument('-jsonsb', metavar='filename', dest='jsonScoreboard', type=str,
+                        default=False, help='Save json formatted server data to filename before quiting.')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -974,6 +994,8 @@ def main():
     d.conf['scanMaxDistance'] = args.scanMaxDistance
     d.conf['noViewers'] = args.noViewers
     d.conf['maxSecsToJoin'] = args.maxSecsToJoin
+    d.state['onlyLastSb'] = args.onlyLastSb
+    d.state['jsonScoreboard'] = args.jsonScoreboard
 
     mkStartLocations(d)
 
@@ -1007,7 +1029,8 @@ def main():
                 d.state['tourStartTime'] = time.time()
 
             if d.conf['gamesToPlay'] != d.state['gameNumber']:
-                logScoreBoard(d)
+                if not d.state['onlyLastSb']:
+                    logScoreboard(d)
                 initGame(d)
             else:
                 log("All games have been played.")

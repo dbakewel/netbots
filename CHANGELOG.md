@@ -67,7 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] - 2019-04-25
 ### Added
-- Added Total Damage inflicted to server score board. This is the damage that explosions from a robot's shells have had on all robots, including the robot that fired the shell.
+- Added Total Damage inflicted to server scoreboard. This is the damage that explosions from a robot's shells have had on all robots, including the robot that fired the shell.
 
 ### Changed
 - Fixed bug where alive robots were colliding with dead robots. Dead robots should not cause collisions.
@@ -79,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2019-04-19
 ### Added
-- More stats have been added to server score board.
+- More stats have been added to server scoreboard.
 - Added this CHANGELOG.md
 
 ### Changed
