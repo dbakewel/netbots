@@ -7,11 +7,14 @@ import argparse
 
 from netbots_log import log
 
-try:
-    import msgpack as umsgpack
-except:
-    import umsgpack
-    log("Using pure python msgpack. Install binary msgpack for better performance.", "WARNING")
+import umsgpack
+# The code below breaks the netbots viewer. Only enable for better performance when no viewer will be used.
+#try:
+#    import msgpack as umsgpack
+#    log("Using binary python msgpack."
+#except:
+#    import umsgpack
+#    log("Using pure python msgpack. Install binary msgpack for better performance.", "WARNING")
 
 """
 **About Messages**
