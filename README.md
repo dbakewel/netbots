@@ -11,10 +11,10 @@ The image below is the NetBots viewer. The filled circles are robots and the unf
 [![](images/basicgame.png)](http://www.youtube.com/watch?v=y2_1gFQjgCo "NetBots Demo Video")
 Click image to watch youtube video.
 
-Below is a sample score board, which is output after each game by the NetBots server.
+Below is a sample scoreboard, which is output after each game by the NetBots server.
 ```
 
-                ------ Score Board ------
+                  ------ Scoreboard ------
                Tournament Time: 1140.929 secs.
                          Games: 1000
              Average Game Time: 1.141 secs.
