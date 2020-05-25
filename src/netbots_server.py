@@ -314,7 +314,7 @@ def recvReplyMsgs(d):
                 log(str(e), "ERROR")
 
     for src in d.bots:
-        if src not in d.botMsgCount:
+        if src not in botMsgCount:
             d.bots[src]['missedSteps'] += 1
 
     d.state['msgTime'] += time.perf_counter() - startTime
@@ -388,10 +388,10 @@ def findOverlapingBots(d, bots):
 
     for i in range(0, len(keys) - 1):
         boti = bots[keys[i]]
-        if 'health' not in boti or boti['health'] is not 0:
+        if 'health' not in boti or boti['health'] != 0:
             for j in range(i + 1, len(keys)):
                 botj = bots[keys[j]]
-                if 'health' not in botj or botj['health'] is not 0:
+                if 'health' not in botj or botj['health'] != 0:
                     if nbmath.distance(boti['x'], boti['y'], botj['x'], botj['y']) <= d.conf['botRadius'] * 2:
                         return [keys[i], keys[j]]
 
@@ -412,7 +412,7 @@ def findOverlapingBotsAndObstacles(d, bots):
 
     for k in keys:
         bot = bots[k]
-        if 'health' not in bot or bot['health'] is not 0:
+        if 'health' not in bot or bot['health'] != 0:
             for obstacle in d.conf['obstacles']:
                 if nbmath.distance(bot['x'], bot['y'], obstacle['x'], obstacle['y']) <= \
                         d.conf['botRadius'] + obstacle['radius']:
@@ -509,13 +509,14 @@ def mkStartLocations(d):
 
 
 def initGame(d):
-    log("Starting New Game")
     """
     reset game state
     """
     d.state['gameNumber'] += 1
-    d.state['gameStep'] = 0
+    log("Starting Game " + str(d.state['gameNumber']))
 
+    d.state['gameStep'] = 0
+    
     """
     for each bot
         reset health 100
