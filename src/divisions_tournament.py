@@ -162,6 +162,13 @@ def main():
     outputDir = args.outputDir
     robotsDir = args.robotsDir
     setLogLevel(args.debug, args.verbose)
+
+    if os.path.isdir(outputDir):
+        log("Using existing output directory: " + outputDir)
+    else:
+        os.mkdir(outputDir)
+        log("Created output directory: " + outputDir)
+    
     setLogFile(os.path.join(outputDir,"output.txt"))
     resultsfilename = os.path.join(outputDir,"results.txt")
 
@@ -182,12 +189,6 @@ def main():
     if len(ports) != 0:
         log("Less than 16 robots found in robots dir.","ERROR")
         quit()
-
-    if os.path.isdir(outputDir):
-        log("Using existing output directory: " + outputDir)
-    else:
-        os.mkdir(outputDir)
-        log("Created output directory: " + outputDir)
 
     # Put robots into initial 4 divisions, 4 robots in each. divisions contains only keys to the bots dict. 
     divisions = [[],[],[],[]]
