@@ -867,9 +867,7 @@ def jsonScoreboard(d):
         d.state['tourEndTime'] = time.time()
         d.state['tourTime'] = d.state['tourEndTime'] - d.state['tourStartTime']
         d.state['longStepPercent'] = float(d.state['longStepCount']) / float(max(1,d.state['serverSteps'])) * 100.0
-        with open(d.state['jsonScoreboard'],"w") as f:
-            # hide jsonScoreboard from stored result so we don't expose file system structure
-            d.state['jsonScoreboard'] = "Filename Hidden" 
+        with open(d.state['jsonScoreboard'],"w") as f: 
             f.write(json.dumps({'conf': d.conf,'state': d.state, 'bots': d.bots}))
 
 ########################################################
@@ -896,7 +894,6 @@ def quit(signal=None, frame=None):
     global d
     log(d.srvSocket.getStats())
     logScoreboard(d)
-    jsonScoreboard(d)
     log("Quiting", "INFO")
     exit()
 
@@ -1036,6 +1033,7 @@ def main():
                 initGame(d)
             else:
                 log("All games have been played.")
+                jsonScoreboard(d)
                 quit()
         elif d.conf['maxSecsToJoin'] < float(time.time() - d.state['startTime']): 
             log("Not enough bots joined game before max seconds to join ( " + d.conf['maxSecsToJoin'] + " sec). Exiting.", "ERROR")
