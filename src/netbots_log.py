@@ -6,6 +6,7 @@ from datetime import datetime
 # global printing of debug and info log level messages on/off
 logDebug = False
 logVerbose = False
+logFile = False
 
 
 def setLogLevel(debug=False, verbose=False):
@@ -21,6 +22,16 @@ def setLogLevel(debug=False, verbose=False):
         verbose = True
     logVerbose = verbose
     log("DEBUG logging = " + str(logDebug) + ". VERBOSE logging = " + str(logVerbose), "INFO")
+
+def setLogFile(filename=False):
+    """
+    Turn writing to file on or off. Off by default.
+    """
+
+    global logFile
+
+    logFile = filename
+    log("logFile set to " + str(logFile), "INFO")
 
 
 def log(msg, level="INFO"):
@@ -38,7 +49,7 @@ def log(msg, level="INFO"):
 
     """
 
-    global logDebug, logVerbose
+    global logDebug, logVerbose, logFile
 
     if level == "DEBUG" and logDebug == False:
         return
@@ -63,4 +74,10 @@ def log(msg, level="INFO"):
 
     time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
-    print(level + ' ' + str(time) + ' ' + str(modulename) + '.' + str(function) + ': ' + str(msg))
+    output = level + ' ' + str(time) + ' ' + str(modulename) + '.' + str(function) + ': ' + str(msg)
+
+    print(output)
+
+    if logFile:
+        with open(logFile,"a+") as f: 
+            f.write(output + "\n")
