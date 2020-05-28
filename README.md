@@ -14,10 +14,10 @@ The image below is the NetBots viewer. The filled circles are robots and the unf
 
 **Scoreboard**
 
-Below is a sample score board, which is output after each game by the NetBots server.
+Below is a sample scoreboard, which is output after each game by the NetBots server.
 ```
 
-                ------ Score Board ------
+                  ------ Scoreboard ------
                Tournament Time: 1140.929 secs.
                          Games: 1000
              Average Game Time: 1.141 secs.
@@ -160,8 +160,9 @@ usage: netbots_server.py [-h] [-ip Server_IP] [-p Server_Port]
                          [-hitdamage int] [-expldamage int] [-obstacles int]
                          [-obstacleradius int] [-jamzones int] [-allowclasses]
                          [-simplecollisions] [-startperms]
-                         [-scanmaxdistance int] [-noviewers] [-debug]
-                         [-verbose]
+                         [-scanmaxdistance int] [-noviewers]
+                         [-maxsecstojoin int] [-onlylastsb] [-jsonsb filename]
+                         [-debug] [-verbose]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -202,6 +203,12 @@ optional arguments:
   -scanmaxdistance int  Maximum distance a scan can detect a robot. (default:
                         1415)
   -noviewers            Do not allow viewers. (default: False)
+  -maxsecstojoin int    Max seconds server will wait for all bots to join
+                        before quiting. (default: 300)
+  -onlylastsb           Only print the scoreboard when the server quits.
+                        (default: False)
+  -jsonsb filename      Save json formatted server data to filename before
+                        quiting. (default: False)
   -debug                Print DEBUG level log messages. (default: False)
   -verbose              Print VERBOSE level log messages. Note, -debug
                         includes -verbose. (default: False)
@@ -448,6 +455,11 @@ level is of type str and should be one of DEBUG, VERBOSE, INFO, WARNING, ERROR, 
 ### setLogLevel(debug=False, verbose=False)
 
 Turn DEBUG and VERBOSE printing on or off. Both are off by default. Note, debug = True will set verbose = True.
+
+
+### setLogFile(filename=False):
+
+Turn writing to file on or off. Off by default.
 
 
 # netbots_math

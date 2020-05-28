@@ -5,6 +5,7 @@ import time
 import random
 import math
 import itertools
+import json
 
 from netbots_log import log
 from netbots_log import setLogLevel
@@ -23,7 +24,7 @@ class SrvData:
     conf = {
         # Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
-        'serverVersion': "2.0.0",
+        'serverVersion': "2.1.0",
 
         # Game and Tournament
         'botsInGame': 4,  # Number of bots required to join before game can start.
@@ -71,7 +72,8 @@ class SrvData:
 
         # Misc
         'keepExplosionSteps': 10,  # Number of steps to keep old explosions in explosion dict (only useful to viewers).
-        
+        'maxSecsToJoin': 300,  # Number of secs server will wait for botsInGame bots to join before timeout and quit.
+
         #Robot Classes (values below override what's above for robots in that class)
         'allowClasses': False,
         #Only fields listed in classFields are allowed to be overwritten by classes.
@@ -138,7 +140,7 @@ class SrvData:
         }
 
     state = {
-        # Dynamic vars
+        # Dynamic vars (Note, these are not shared with robots so we also store server only conf here.)
         'gameNumber': 0,
         'gameStep': 0,
         'dropNext': 10,  # Drop the next message in N (count down)
@@ -152,7 +154,11 @@ class SrvData:
         'sleepTime': 0,
         'sleepCount': 0,
         'longStepCount': 0,
-        'tourStartTime': False
+        'tourStartTime': False,
+
+        # Server only conf which we don't want to share with robots
+        'onlyLastSb': False,  # Only print the scoreboard when the server quits, rather than after every game.
+        'jsonScoreboard': False,  # Save json formatted server data to filename before quiting.
         }
 
     starts = []  # [ [locIndex, locIndex, ...], [locIndex, locIndex, ...], ...]
@@ -173,6 +179,7 @@ class SrvData:
         'points': 0,
         'firedCount': 0,
         'shellDamage': 0,
+        'missedSteps': 0,
         'winHealth': 0,
         'winCount': 0,
         'last': {
@@ -283,8 +290,6 @@ def recvReplyMsgs(d):
 
     botMsgCount = {}
     for msg, ip, port in msgQ:
-        if dropMessage(d):
-            continue
 
         src = nbipc.formatIpPort(ip, port)
 
@@ -294,6 +299,9 @@ def recvReplyMsgs(d):
         else:
             botMsgCount[src] = 1
         if botMsgCount[src] > d.conf['botMsgsPerStep']:
+            continue
+        
+        if dropMessage(d):
             continue
 
         reply = processMsg(d, msg, src)
@@ -305,8 +313,11 @@ def recvReplyMsgs(d):
             except Exception as e:
                 log(str(e), "ERROR")
 
+    for src in d.bots:
+        if src not in botMsgCount:
+            d.bots[src]['missedSteps'] += 1
+
     d.state['msgTime'] += time.perf_counter() - startTime
-    log("Msgs Processed per Bot this step: " + str(botMsgCount), "DEBUG")
 
 
 def sendToViwers(d):
@@ -377,10 +388,10 @@ def findOverlapingBots(d, bots):
 
     for i in range(0, len(keys) - 1):
         boti = bots[keys[i]]
-        if 'health' not in boti or boti['health'] is not 0:
+        if 'health' not in boti or boti['health'] != 0:
             for j in range(i + 1, len(keys)):
                 botj = bots[keys[j]]
-                if 'health' not in botj or botj['health'] is not 0:
+                if 'health' not in botj or botj['health'] != 0:
                     if nbmath.distance(boti['x'], boti['y'], botj['x'], botj['y']) <= d.conf['botRadius'] * 2:
                         return [keys[i], keys[j]]
 
@@ -401,7 +412,7 @@ def findOverlapingBotsAndObstacles(d, bots):
 
     for k in keys:
         bot = bots[k]
-        if 'health' not in bot or bot['health'] is not 0:
+        if 'health' not in bot or bot['health'] != 0:
             for obstacle in d.conf['obstacles']:
                 if nbmath.distance(bot['x'], bot['y'], obstacle['x'], obstacle['y']) <= \
                         d.conf['botRadius'] + obstacle['radius']:
@@ -498,13 +509,14 @@ def mkStartLocations(d):
 
 
 def initGame(d):
-    log("Starting New Game")
     """
     reset game state
     """
     d.state['gameNumber'] += 1
-    d.state['gameStep'] = 0
+    log("Starting Game " + str(d.state['gameNumber']))
 
+    d.state['gameStep'] = 0
+    
     """
     for each bot
         reset health 100
@@ -783,11 +795,11 @@ def step(d):
 # Stats and Points Logging
 ########################################################
 
-def logScoreBoard(d):
+def logScoreboard(d):
     now = time.time()
     totalRecv = sum(d.srvSocket.recv.values())
     totalSent = sum(d.srvSocket.sent.values())
-    output = "\n\n                ------ Score Board ------" +\
+    output = "\n\n                  ------ Scoreboard ------" +\
         "\n               Tournament Time: " + '%.3f' % (now - d.state['tourStartTime']) + " secs." +\
         "\n                         Games: " + str(d.state['gameNumber']) +\
         "\n             Average Game Time: " + '%.3f' % ((now - d.state['tourStartTime']) / max(1, d.state['gameNumber'])) + " secs." +\
@@ -820,8 +832,9 @@ def logScoreBoard(d):
         f"  {'Count':>7}" +\
         f"  {'AvgDamage':>10}" +\
         f"  {'TotDamage':>10}" +\
+        f"  {'Missteps':>10}" +\
         f"  {'IP:Port':<21}" +\
-        "\n ------------------------------------------------------------------------------------------------------------------"
+        "\n ----------------------------------------------------------------------------------------------------------------------------"
 
     botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'], reverse=True)
 
@@ -840,13 +853,22 @@ def logScoreBoard(d):
             f"  {bot['winCount']:>7}" +\
             f"  {float(bot['winHealth']) / max(1,bot['winCount']):>10.2f}" +\
             f"  {bot['firedCount']:>7}" +\
-            f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" + \
-            f"  {float(bot['shellDamage']):>10.2f}" + \
+            f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" +\
+            f"  {float(bot['shellDamage']):>10.2f}" +\
+            f"  {bot['missedSteps']:>10}" +\
             f"  {src:<21}"
 
-    output += "\n ------------------------------------------------------------------------------------------------------------------\n\n"
+    output += "\n ----------------------------------------------------------------------------------------------------------------------------\n\n"
 
     log(output)
+
+def jsonScoreboard(d):
+    if d.state['jsonScoreboard']:
+        d.state['tourEndTime'] = time.time()
+        d.state['tourTime'] = d.state['tourEndTime'] - d.state['tourStartTime']
+        d.state['longStepPercent'] = float(d.state['longStepCount']) / float(max(1,d.state['serverSteps'])) * 100.0
+        with open(d.state['jsonScoreboard'],"w") as f: 
+            f.write(json.dumps({'conf': d.conf,'state': d.state, 'bots': d.bots}))
 
 ########################################################
 # Main Loop
@@ -871,7 +893,7 @@ class Range(argparse.Action):
 def quit(signal=None, frame=None):
     global d
     log(d.srvSocket.getStats())
-    logScoreBoard(d)
+    logScoreboard(d)
     log("Quiting", "INFO")
     exit()
 
@@ -933,6 +955,12 @@ def main():
                         default=1415, help='Maximum distance a scan can detect a robot.')
     parser.add_argument('-noviewers', dest='noViewers', action='store_true',
                         default=False, help='Do not allow viewers.')
+    parser.add_argument('-maxsecstojoin', metavar='int', dest='maxSecsToJoin', type=int,
+                        default=300, help='Max seconds server will wait for all bots to join before quiting.')
+    parser.add_argument('-onlylastsb', dest='onlyLastSb', action='store_true',
+                        default=False, help='Only print the scoreboard when the server quits.')
+    parser.add_argument('-jsonsb', metavar='filename', dest='jsonScoreboard', type=str,
+                        default=False, help='Save json formatted server data to filename before quiting.')
     parser.add_argument('-debug', dest='debug', action='store_true',
                         default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true',
@@ -964,6 +992,9 @@ def main():
     d.conf['startPermutations'] = args.startPermutations
     d.conf['scanMaxDistance'] = args.scanMaxDistance
     d.conf['noViewers'] = args.noViewers
+    d.conf['maxSecsToJoin'] = args.maxSecsToJoin
+    d.state['onlyLastSb'] = args.onlyLastSb
+    d.state['jsonScoreboard'] = args.jsonScoreboard
 
     mkStartLocations(d)
 
@@ -997,11 +1028,16 @@ def main():
                 d.state['tourStartTime'] = time.time()
 
             if d.conf['gamesToPlay'] != d.state['gameNumber']:
-                logScoreBoard(d)
+                if not d.state['onlyLastSb']:
+                    logScoreboard(d)
                 initGame(d)
             else:
                 log("All games have been played.")
+                jsonScoreboard(d)
                 quit()
+        elif d.conf['maxSecsToJoin'] < float(time.time() - d.state['startTime']): 
+            log("Not enough bots joined game before max seconds to join ( " + d.conf['maxSecsToJoin'] + " sec). Exiting.", "ERROR")
+            exit()
 
         recvReplyMsgs(d)
 
