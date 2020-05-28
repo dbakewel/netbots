@@ -18,13 +18,15 @@ from netbots_log import log
 from netbots_log import setLogLevel
 from netbots_log import setLogFile
 
-maxRound = 4  # first round is 0 so "maxRound = 7" would run 8 rounds.
+maxRound = 7  # first round is 0 so "maxRound = 7" would run 8 rounds.
+botsMax = 64
+botsInDivision = 4  # This cannot be changed without significant changes to the code below.
 
 pythoncmd = ['python3']
 srvoptions = [
     os.path.join('src','netbots_server.py'),
     '-p','20000',
-    '-bots', '4', 
+    '-bots', str(botsInDivision), 
     '-games', '1000',
     '-stepsec', '0.001',
     '-stepmax','5000',
@@ -77,7 +79,7 @@ def botsToString(divisions):
     return(output)
 
 
-def rundivision(divisionDir, divisionBots):
+def rundivision(divisionDir, botkeys):
     global bots
 
     log("Running Division: " + divisionDir)
@@ -86,7 +88,7 @@ def rundivision(divisionDir, divisionBots):
     srvProc = startserver(divisionDir)
 
     botProcs = []
-    for botkey in divisionBots:
+    for botkey in botkeys:
         botProcs.append(startbot(divisionDir, botkey))
 
     time.sleep(2)
@@ -132,11 +134,8 @@ def rundivision(divisionDir, divisionBots):
         with open(jsonFile) as json_file:
             results = json.load(json_file)
         botSort = sorted(results['bots'], key=lambda b: results['bots'][b]['points'], reverse=True)
-        divisionBots[0] = botSort[0]
-        divisionBots[1] = botSort[1]
-        divisionBots[2] = botSort[2]
-        divisionBots[3] = botSort[3]
-
+        for i in range(len(botSort)):
+            botkeys[i] = botSort[i]
     else:
         log("Server did not produce json file: " + jsonFile, "FAILURE")
         quit()
@@ -148,7 +147,7 @@ def quit(signal=None, frame=None):
 
 
 def main():
-    global outputDir, robotsDir, bots
+    global outputDir, robotsDir, bots, botsMax, botsInDivision
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-robots', metavar='dir', dest='robotsDir', type=str,
@@ -173,7 +172,7 @@ def main():
     resultsfilename = os.path.join(outputDir,"results.txt")
 
     # pick random ports for robots. These port numbers will be assigned to a robot for the entire tournament.
-    ports = random.sample(range(20100,20199),16)
+    ports = random.sample(range(20100,20199), botsMax)
 
     # Read robot filenames and assign port.
     bots = {}
@@ -182,31 +181,41 @@ def main():
             try:
                 port = ports.pop()
             except:
-                log("Only 16 robots can be in robots dir.","ERROR")
+                log("Only " + botsMax + " robots can be in robots dir.","FAILURE")
                 quit()
             log("Adding bot " + file + " at port " + str(port))
             bots['127.0.0.1:' + str(port)] = {'port': port, 'file': file}
-    if len(ports) != 0:
-        log("Less than 16 robots found in robots dir.","ERROR")
-        quit()
 
-    # Put robots into initial 4 divisions, 4 robots in each. divisions contains only keys to the bots dict. 
-    divisions = [[],[],[],[]]
+    if len(bots) % botsInDivision != 0:
+        log("Number of bots does not divide evenly into divisions, len(bots) % botsInDivision must equal 0: " + \
+           f" {len(bots)} % {botsInDivision} == {len(bots) % botsInDivision}","FAILURE")
+        quit()
+    divisionsTotal = int(len(bots) / botsInDivision)
+    log(f"Creating {divisionsTotal} divisions with {botsInDivision} bots in each.")
+
+    # Put robots randomly into divisionsTotal divisions, botsInDivision robots in each.
+    # divisions contains only keys to the bots dict. 
+    divisions = []
+    for i in range(divisionsTotal):
+        divisions.append([])
+
     next = 0
     for k in bots.keys():
-        divisions[next % 4].append(k)
+        divisions[next % divisionsTotal].append(k)
         next += 1
     log(botsToString(divisions), "VERBOSE")
 
     round = -1
-    while round < maxRound:
+    lastRoundResult = ""
+    while round < maxRound and lastRoundResult != str(divisions):
         round += 1
+        lastRoundResult = str(divisions)
 
         roundDir = os.path.join(outputDir,"round-" + str(round))
         os.mkdir(roundDir)
 
         # Run each division and put robots in division in order of points.
-        for divisionNumber in range(4):
+        for divisionNumber in range(divisionsTotal):
             divisionDir = os.path.join(roundDir, "division-" + str(divisionNumber))
             rundivision(divisionDir, divisions[divisionNumber])
 
@@ -220,10 +229,10 @@ def main():
                  "              Name      Points     %    Count   AvgHealth    Count   AvgDamage   TotDamage    Missteps  IP:Port\n" + \
                  " ----------------------------------------------------------------------------------------------------------------------------\n"
 
-        for divisionNumber in range(4):
+        for divisionNumber in range(divisionsTotal):
             output += "DIVISION " + str(divisionNumber)
             roundoutput = os.path.join(roundDir, "division-" + str(divisionNumber), "server.output.txt")
-            p = subprocess.Popen(["grep", "-m1", "-A", "4", "\------------------", roundoutput], stdout=subprocess.PIPE, stderr=sys.stdout.buffer)
+            p = subprocess.Popen(["grep", "-m1", "-A", str(botsInDivision), "\------------------", roundoutput], stdout=subprocess.PIPE, stderr=sys.stdout.buffer)
             tmp = p.stdout.read().decode("utf-8")
             output += re.sub(r'---*','',tmp)
             output += "\n"
@@ -233,28 +242,25 @@ def main():
         log("Results written to " + resultsfilename)
 
         # Run Cross Divisions if this is not the last round. This is how bots can move between divisions.
-        if round < maxRound:
+        if round < maxRound and divisionsTotal > 1:
             # top 2 robots in first division and last 2 robots in last division do not move
             # Put remaining bots into cross divisions to see if they move between divisions
-            crossDivisions = [[
-                    divisions[0][2],
-                    divisions[0][3],
-                    divisions[1][0],
-                    divisions[1][1]],[
-                    divisions[1][2],
-                    divisions[1][3],
-                    divisions[2][0],
-                    divisions[2][1]],[
-                    divisions[2][2],
-                    divisions[2][3],
-                    divisions[3][0],
-                    divisions[3][1]]]
+            # !!! ASSUMES botsInDivition == 4
+            crossDivisions = []
+            for divisionNumber in range(divisionsTotal-1):
+                crossDivisions.append([
+                    divisions[divisionNumber][2],
+                    divisions[divisionNumber][3],
+                    divisions[divisionNumber+1][0],
+                    divisions[divisionNumber+1][1]
+                   ])
 
-            for divisionNumber in range(3):
-                divisionDir = os.path.join(roundDir, "crossdivision-" + str(divisionNumber))
+            for divisionNumber in range(divisionsTotal-1):
+                divisionDir = os.path.join(roundDir, "crossdivision-" + str(divisionNumber) + "x" + str(divisionNumber+1))
                 rundivision(divisionDir, crossDivisions[divisionNumber])
 
-            for b in range(3):
+            for b in range(divisionsTotal-1):
+                # !!! ASSUMES botsInDivition == 4
                 # Put top 2 robots from second chance divisions into upper divisions
                 divisions[b][2] = crossDivisions[b][0]
                 divisions[b][3] = crossDivisions[b][1]
@@ -263,6 +269,12 @@ def main():
                 divisions[b+1][1] = crossDivisions[b][3]
 
             log(botsToString(divisions), "VERBOSE")
+
+    if round == maxRound:
+        log(f"Quiting because max rounds ({maxRound + 1}) completed.")
+
+    if lastRoundResult == str(divisions):
+        log("Quiteing because no change in results of last two rounds.")
 
     quit()
 
