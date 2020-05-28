@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0] - 2020-05-27
+## [2.1.0] - 2020-05-27
 ### Added
 - Added Division Tournament runner which can run tournaments with a multiple of 4 robots, up to 64. (4, 8, ..., 64), only on Linux. No documentation has been created yet. For now see code or ask a question on GitHub for help.
 - Added server options for: json output (-jsonsb); suppress the output of all but the last scoreboard (-onlylastsb); maximum time server will wait for robots to join game (-maxsecstojoin). These were needed to support divisional tournaments.
@@ -102,7 +102,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0] - 2019-04-16
 - Beta release.
 
-[Unreleased]: https://github.com/dbakewel/netbots/compare/2.0.0...HEAD
+[Unreleased]: https://github.com/dbakewel/netbots/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/dbakewel/netbots/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/dbakewel/netbots/compare/1.4.0...2.0.0
 [1.4.0]: https://github.com/dbakewel/netbots/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/dbakewel/netbots/compare/1.2.0...1.3.0
