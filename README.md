@@ -8,8 +8,11 @@ NetBots is inspired by [RobotWar](https://en.wikipedia.org/wiki/RobotWar) from t
 
 The image below is the NetBots viewer. The filled circles are robots and the unfilled circle is an explosion.
 
-[![](images/basicgame.png)](http://www.youtube.com/watch?v=y2_1gFQjgCo "NetBots Demo Video")
-Click image to watch youtube video.
+**Viewer**
+
+<img src="images/basicgame.png" width="80%">
+
+**Scoreboard**
 
 Below is a sample scoreboard, which is output after each game by the NetBots server.
 ```
@@ -41,6 +44,10 @@ Below is a sample scoreboard, which is output after each game by the NetBots ser
              Oscar        3418  20.2      141       35.94    21832        3.33    72758.46  127.0.0.1:20189      
  ------------------------------------------------------------------------------------------------------------------
 ```
+
+**Demo Video**
+
+[![NetBots Demo Video](https://img.youtube.com/vi/y2_1gFQjgCo/0.jpg)](https://www.youtube.com/watch?v=y2_1gFQjgCo)
 
 ### How is NetBots different?
 
@@ -239,6 +246,12 @@ The best way to write your own robot is to start with a demo robot. There are fi
 ## Storing Your Robot
 
 The NetBots git repository is set up to ignore the netbots/myrobots/ directory (see .gitignore). This allows you to clone netbots onto your local computer and then create a new git repository in netbots/myrobots/ for your own work. Please remember to keep your work in a private repository. Sharing your robots publicly is discouraged so netbots will continue to be a useful learning tool for new players.
+
+## Concepts to Make a Better Robot
+
+The video below is for players who want to take their robot to the next level. It covers concepts to build a winning robot. The video assumes you have already read the manual and created a simple robot.
+
+[![NetBots Concepts](https://img.youtube.com/vi/pZ3WV-WPYlY/0.jpg)](https://www.youtube.com/watch?v=pZ3WV-WPYlY)
 
 # Game Mechanics
 
