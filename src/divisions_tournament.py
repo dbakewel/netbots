@@ -18,7 +18,6 @@ from netbots_log import log
 from netbots_log import setLogLevel
 from netbots_log import setLogFile
 
-maxRound = 7  # first round is 0 so "maxRound = 7" would run 8 rounds.
 botsMax = 64
 botsInDivision = 4  # This cannot be changed without significant changes to the code below.
 
@@ -205,6 +204,9 @@ def main():
         next += 1
     log(botsToString(divisions), "VERBOSE")
 
+    maxRound = divisionsTotal*2-1  # first round is 0 so "maxRound = 7" would run 8 rounds.
+    log(f"Max rounds set to {maxRound+1}.")
+
     round = -1
     lastRoundResult = ""
     while round < maxRound and lastRoundResult != str(divisions):
@@ -241,8 +243,10 @@ def main():
             f.write(output)
         log("Results written to " + resultsfilename)
 
-        # Run Cross Divisions if this is not the last round. This is how bots can move between divisions.
-        if round < maxRound and divisionsTotal > 1:
+        # Run Cross Divisions if there is more than one division
+        # and stop conditions have not been met. 
+        # This is how bots move between divisions.
+        if divisionsTotal > 1 and round < maxRound and lastRoundResult != str(divisions):
             # top 2 robots in first division and last 2 robots in last division do not move
             # Put remaining bots into cross divisions to see if they move between divisions
             # !!! ASSUMES botsInDivition == 4
@@ -274,7 +278,7 @@ def main():
         log(f"Quiting because max rounds ({maxRound + 1}) completed.")
 
     if lastRoundResult == str(divisions):
-        log("Quiteing because no change in results of last two rounds.")
+        log("Quiting because no change in results of last two rounds.")
 
     quit()
 
