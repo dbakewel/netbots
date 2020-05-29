@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2020-05-29
+### Changed
+- Fixed bug in stop conditions of divisions_tournament.py.
+
 ## [2.1.1] - 2020-05-28
 ### Changed
 - Made binary msgpack the default if installed. Updated docs on how to increase NetBots performance with binary msgpack.
@@ -107,7 +111,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0] - 2019-04-16
 - Beta release.
 
-[Unreleased]: https://github.com/dbakewel/netbots/compare/2.1.1...HEAD
+[Unreleased]: https://github.com/dbakewel/netbots/compare/2.1.2...HEAD
+[2.1.2]: https://github.com/dbakewel/netbots/compare/2.1.1...2.1.2
 [2.1.1]: https://github.com/dbakewel/netbots/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/dbakewel/netbots/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/dbakewel/netbots/compare/1.4.0...2.0.0
