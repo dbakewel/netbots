@@ -111,6 +111,25 @@ For example, to run a 1000 game tournament at 5 times faster (0.01 sec/step or 1
 python netbots_server -games 1000 -stepsec 0.01 -stepmax 2000
 ```
 
+## Increasing Netbots Performance
+
+Running tournaments can take a long time. One way to speed up tournaments is to increase the steps per second however this may be limited by hardware. Significant performance increases can be found by installing the binary msgpack package for python. Msgpack is used to encode and decode messages between the robots and server. Running at 2000 steps/second (-stepsec 0.0005) should be possible if: modern hardware is used, binary msgpack is installed, the server and all bots are running on localhost (127.0.0.1), and no viewer is connected. 
+
+To install binary msgpack on Windows use:
+```
+py -3 -m pip install msgpack-python
+```
+
+To install binary msgpack on Linux use:
+```
+pip3 install msgpack-python
+```
+
+To ensure the binary msgpack is being used, look for a log when the server and bots start up:
+```
+INFO 2020-05-28 23:11:13.115 netbots_ipc.<module>: Using binary python msgpack.
+```
+
 ## Running on Separate Computers
 
 By default NetBots only listens on localhost 127.0.0.1 which does not allow messages to be sent or received between computers. To listen on all network interfaces, and allow messages from other computers, use ```-ip 0.0.0.0```. 
