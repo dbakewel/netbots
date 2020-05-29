@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2020-05-28
+### Changed
+- Made binary msgpack the default if installed. Updated docs on how to increase NetBots performance with binary msgpack.
+- Updated README docs for divisions_tournament.py use on Linux.
+
 ## [2.1.0] - 2020-05-27
 ### Added
 - Added Division Tournament runner which can run tournaments with a multiple of 4 robots, up to 64. (4, 8, ..., 64), only on Linux. No documentation has been created yet. For now see code or ask a question on GitHub for help.
@@ -102,7 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0] - 2019-04-16
 - Beta release.
 
-[Unreleased]: https://github.com/dbakewel/netbots/compare/2.1.0...HEAD
+[Unreleased]: https://github.com/dbakewel/netbots/compare/2.1.1...HEAD
+[2.1.1]: https://github.com/dbakewel/netbots/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/dbakewel/netbots/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/dbakewel/netbots/compare/1.4.0...2.0.0
 [1.4.0]: https://github.com/dbakewel/netbots/compare/1.3.0...1.4.0
