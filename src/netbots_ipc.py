@@ -7,14 +7,12 @@ import argparse
 
 from netbots_log import log
 
-import umsgpack
-# The code below breaks the netbots viewer. Only enable for better performance when no viewer will be used.
-#try:
-#    import msgpack as umsgpack
-#    log("Using binary python msgpack."
-#except:
-#    import umsgpack
-#    log("Using pure python msgpack. Install binary msgpack for better performance.", "WARNING")
+try:
+    import msgpack as umsgpack
+    log("Using binary python msgpack.")
+except:
+    import umsgpack
+    log("Using pure python msgpack. Install binary msgpack for better performance.", "WARNING")
 
 """
 **About Messages**
@@ -296,10 +294,10 @@ class NetBotSocket:
         self.destinationPort = destinationPort
 
     def serialize(self, msg):
-        return umsgpack.packb(msg)
+        return umsgpack.packb(msg, use_bin_type=True)
 
     def deserialize(self, b):
-        return umsgpack.unpackb(b)
+        return umsgpack.unpackb(b, raw=False)
 
     def sendMessage(self, msg, destinationIP=None, destinationPort=None, packedAndChecked=False):
         """
