@@ -146,7 +146,7 @@ def quit(signal=None, frame=None):
 
 
 def main():
-    global outputDir, robotsDir, bots, botsMax, botsInDivision
+    global outputDir, robotsDir, bots, botsMax, botsInDivision, srvoptions
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-robots', metavar='dir', dest='robotsDir', type=str,
@@ -169,6 +169,8 @@ def main():
     
     setLogFile(os.path.join(outputDir,"output.txt"))
     resultsfilename = os.path.join(outputDir,"results.txt")
+
+    log("Server options: " + str(srvoptions))
 
     # pick random ports for robots. These port numbers will be assigned to a robot for the entire tournament.
     ports = random.sample(range(20100,20199), botsMax)
@@ -215,38 +217,11 @@ def main():
 
         roundDir = os.path.join(outputDir,"round-" + str(round))
         os.mkdir(roundDir)
-
-        # Run each division and put robots in division in order of points.
-        for divisionNumber in range(divisionsTotal):
-            divisionDir = os.path.join(roundDir, "division-" + str(divisionNumber))
-            rundivision(divisionDir, divisions[divisionNumber])
-
-        log(botsToString(divisions), "VERBOSE")
-
-        # Output Results
-        output = "\n" + \
-                 "                                           RESULTS AFTER " + str(round+1) + " ROUNDS" + \
-                 "\n\n" + \
-                 "                    ---- Score -----  ------ Wins -------  --------- CanonFired ----------\n" + \
-                 "              Name      Points     %    Count   AvgHealth    Count   AvgDamage   TotDamage    Missteps  IP:Port\n" + \
-                 " ----------------------------------------------------------------------------------------------------------------------------\n"
-
-        for divisionNumber in range(divisionsTotal):
-            output += "DIVISION " + str(divisionNumber)
-            roundoutput = os.path.join(roundDir, "division-" + str(divisionNumber), "server.output.txt")
-            p = subprocess.Popen(["grep", "-m1", "-A", str(botsInDivision), "\------------------", roundoutput], stdout=subprocess.PIPE, stderr=sys.stdout.buffer)
-            tmp = p.stdout.read().decode("utf-8")
-            output += re.sub(r'---*','',tmp)
-            output += "\n"
-
-        with open(resultsfilename,"a+") as f: 
-            f.write(output)
-        log("Results written to " + resultsfilename)
-
+        
         # Run Cross Divisions if there is more than one division
-        # and stop conditions have not been met. 
-        # This is how bots move between divisions.
-        if divisionsTotal > 1 and round < maxRound and lastRoundResult != str(divisions):
+        # and this is not the first round (0).
+        # This is how robots move between divisions.
+        if divisionsTotal > 1 and round != 0:
             # top 2 robots in first division and last 2 robots in last division do not move
             # Put remaining bots into cross divisions to see if they move between divisions
             # !!! ASSUMES botsInDivition == 4
@@ -273,6 +248,33 @@ def main():
                 divisions[b+1][1] = crossDivisions[b][3]
 
             log(botsToString(divisions), "VERBOSE")
+
+        # Run each division and put robots in division in order of points.
+        for divisionNumber in range(divisionsTotal):
+            divisionDir = os.path.join(roundDir, "division-" + str(divisionNumber))
+            rundivision(divisionDir, divisions[divisionNumber])
+
+        log(botsToString(divisions), "VERBOSE")
+
+        # Output Results
+        output = "\n" + \
+                 "                                           RESULTS AFTER " + str(round+1) + " ROUNDS" + \
+                 "\n\n" + \
+                 "                    ---- Score -----  ------ Wins -------  --------- CanonFired ----------\n" + \
+                 "              Name      Points     %    Count   AvgHealth    Count   AvgDamage   TotDamage   MS%  IP:Port\n" + \
+                 " ------------------------------------------------------------------------------------------------------------------\n"
+
+        for divisionNumber in range(divisionsTotal):
+            output += "DIVISION " + str(divisionNumber)
+            roundoutput = os.path.join(roundDir, "division-" + str(divisionNumber), "server.output.txt")
+            p = subprocess.Popen(["grep", "-m1", "-A", str(botsInDivision), "\------------------", roundoutput], stdout=subprocess.PIPE, stderr=sys.stdout.buffer)
+            tmp = p.stdout.read().decode("utf-8")
+            output += re.sub(r'---*','',tmp)
+            output += "\n"
+
+        with open(resultsfilename,"a+") as f: 
+            f.write(output)
+        log("Results written to " + resultsfilename)
 
     if round == maxRound:
         log(f"Quiting because max rounds ({maxRound + 1}) completed.")
