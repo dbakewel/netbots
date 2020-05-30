@@ -51,7 +51,7 @@ def startserver(divisionDir):
     fd.append(f)
     cmdline = pythoncmd + srvoptions + [os.path.join(divisionDir,"results.json")]
     log(cmdline, "DEBUG")
-    p = subprocess.Popen(cmdline, stdout=f, stderr=sys.stdout.buffer)
+    p = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
     return p
 
 
@@ -62,7 +62,7 @@ def startbot(divisionDir, botkey):
     fd.append(f)
     cmdline = pythoncmd + [os.path.join(robotsDir, bot['file']), '-p', str(bot['port']),'-sp','20000']
     log(cmdline, "DEBUG")
-    p = subprocess.Popen(cmdline, stdout=f, stderr=sys.stdout.buffer)
+    p = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
     return p
 
 
