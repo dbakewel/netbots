@@ -24,7 +24,7 @@ class SrvData:
     conf = {
         # Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
-        'serverVersion': "2.1.2",
+        'serverVersion': "2.1.3",
 
         # Game and Tournament
         'botsInGame': 4,  # Number of bots required to join before game can start.
@@ -832,9 +832,9 @@ def logScoreboard(d):
         f"  {'Count':>7}" +\
         f"  {'AvgDamage':>10}" +\
         f"  {'TotDamage':>10}" +\
-        f"  {'Missteps':>10}" +\
+        f"  {'MS%':>4}" +\
         f"  {'IP:Port':<21}" +\
-        "\n ----------------------------------------------------------------------------------------------------------------------------"
+        "\n ------------------------------------------------------------------------------------------------------------------"
 
     botSort = sorted(d.bots, key=lambda b: d.bots[b]['points'], reverse=True)
 
@@ -855,10 +855,10 @@ def logScoreboard(d):
             f"  {bot['firedCount']:>7}" +\
             f"  {float(bot['shellDamage']) / max(1,bot['firedCount']):>10.2f}" +\
             f"  {float(bot['shellDamage']):>10.2f}" +\
-            f"  {bot['missedSteps']:>10}" +\
+            f"  {float(bot['missedSteps'])/max(1,d.state['serverSteps'])*100.0:>4.1f}" +\
             f"  {src:<21}"
 
-    output += "\n ----------------------------------------------------------------------------------------------------------------------------\n\n"
+    output += "\n ------------------------------------------------------------------------------------------------------------------\n\n"
 
     log(output)
 
