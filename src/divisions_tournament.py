@@ -29,6 +29,7 @@ srvoptions = [
     '-games', '1000',
     '-stepsec', '0.001',
     '-stepmax','5000',
+    '-maxsecstojoin', '10',
     '-startperms',
     '-noviewers',
     '-onlylastsb',
@@ -96,21 +97,12 @@ def rundivision(divisionDir, botkeys):
     botDead = False
     for bot in botProcs:
         if bot.poll() != None:
-            botDead = True
+            log("A bot crashed shortly after being run. {}".format(bot.args), "ERROR")
 
-    if botDead == False:
-        #wait for server to quit
-        srvProc.wait()
-    else:
-        log("BOT DIED EARLY!!!", "ERROR")
-        if srvProc.poll() == None:
-            os.kill(srvProc.pid, signal.SIGINT)
-        time.sleep(1)
-        if srvProc.poll() == None:
-            log("Needed to terminate server.", "WARNING")
-            srvProc.terminate()
+    # wait for server to quit, either because all games are done or not enough robots joined to start playing
+    srvProc.wait()
 
-    #try to kill bots nicely
+    #try to kill bots nicely, some bots will already have quit because they detected that server quit.
     for bot in botProcs:
         if bot.poll() == None:
             os.kill(bot.pid, signal.SIGINT)
@@ -120,7 +112,7 @@ def rundivision(divisionDir, botkeys):
     #kill all robots
     for bot in botProcs:
         if bot.poll() == None:
-            log("Needed to terminate bot.", "WARNIGN")
+            log("Needed to terminate bot.", "WARNING")
             bot.terminate()
 
     time.sleep(2)
@@ -132,12 +124,26 @@ def rundivision(divisionDir, botkeys):
     if os.path.isfile(jsonFile):
         with open(jsonFile) as json_file:
             results = json.load(json_file)
+
+        #find any bots that did not join the game
+        missing = []
+        for botkey in botkeys:
+            if botkey not in results['bots']:
+                log("Bot missing from results probably because it did not join game: " + botkey, "WARNING")
+                missing.append(botkey)
+
+        if len(results['bots']) + len(missing) != len(botkeys):
+            log("Results and Missing bots do not equal bots in game.", "FAILURE")
+            quit()
+
+        #Add robots to resutls in order of points, missing at end.
         botSort = sorted(results['bots'], key=lambda b: results['bots'][b]['points'], reverse=True)
         for i in range(len(botSort)):
             botkeys[i] = botSort[i]
+        for i in range(i+1, len(botkeys)): # loop will not run if i+1 == len(botkeys)
+            botkeys[i] = missing.pop()
     else:
-        log("Server did not produce json file: " + jsonFile, "FAILURE")
-        quit()
+        log("Server did not produce json file: " + jsonFile + ". Can't update results!", "ERROR")
 
 
 def quit(signal=None, frame=None):
