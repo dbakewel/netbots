@@ -1036,8 +1036,13 @@ def main():
                 jsonScoreboard(d)
                 quit()
         elif d.conf['maxSecsToJoin'] < float(time.time() - d.state['startTime']): 
-            log("Not enough bots joined game before max seconds to join ( " + d.conf['maxSecsToJoin'] + " sec). Exiting.", "ERROR")
-            exit()
+            log("Not enough bots joined game before max seconds to join (" + str(d.conf['maxSecsToJoin']) + " secs).", "ERROR")
+            if len(d.bots) >= 2:
+                d.conf['botsInGame'] = len(d.bots)
+                log("Starting game with only " + str(d.conf['botsInGame']) + " bots.", "WARNING")
+            else:
+                log("Cannot start game with less than 2 bots. Exiting.", "FAILURE")
+                quit()
 
         recvReplyMsgs(d)
 
