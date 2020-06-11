@@ -313,9 +313,10 @@ def recvReplyMsgs(d):
             except Exception as e:
                 log(str(e), "ERROR")
 
-    for src in d.bots:
-        if src not in botMsgCount:
-            d.bots[src]['missedSteps'] += 1
+    if d.state['gameNumber'] > 0: # Don't count missed steps while waiting for bots to join.
+        for src in d.bots:
+            if src not in botMsgCount:
+                d.bots[src]['missedSteps'] += 1
 
     d.state['msgTime'] += time.perf_counter() - startTime
 
