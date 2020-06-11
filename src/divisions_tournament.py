@@ -159,6 +159,8 @@ def main():
                         required=True, help='Directory containing only robots to use in tournaments. Must be exactly one level under netbots base dir and given relative to netbots base dir (eg. myrobots).')
     parser.add_argument('-output', metavar='dir', dest='outputDir', type=str,
                         required=True, help='Full directory path to send output. Directory should exist and be empty. (eg. /tmp/tournament.2020-50-02-11:37:23)')
+    parser.add_argument('-copy', dest='copy', action='store_true', default=False, help='Copy robots dir to output dir.')
+    parser.add_argument('-md5sum', dest='md5sum', action='store_true', default=False, help='Print MD5sum for each robot.')
     parser.add_argument('-debug', dest='debug', action='store_true', default=False, help='Print DEBUG level log messages.')
     parser.add_argument('-verbose', dest='verbose', action='store_true', default=False, help='Print VERBOSE level log messages. Note, -debug includes -verbose.')
     
@@ -192,11 +194,19 @@ def main():
                 quit()
             log("Adding bot " + file + " at port " + str(port))
             bots['127.0.0.1:' + str(port)] = {'port': port, 'file': file}
+        if args.md5sum:
+            p = subprocess.Popen(["md5sum",os.path.join(robotsDir, file)], stdout=subprocess.PIPE, stderr=sys.stdout.buffer)
+            log("md5sum " + p.stdout.read().decode("utf-8").rstrip())
 
     if len(bots) % botsInDivision != 0:
         log("Number of bots does not divide evenly into divisions, len(bots) % botsInDivision must equal 0: " + \
            f" {len(bots)} % {botsInDivision} == {len(bots) % botsInDivision}","FAILURE")
         quit()
+
+    if args.copy:
+        p = subprocess.Popen(["cp", "-r", robotsDir, os.path.join(outputDir, "robots")], stdout=subprocess.PIPE, stderr=sys.stdout.buffer)
+        log("Robots copied to " + os.path.join(outputDir, "robots") + p.stdout.read().decode("utf-8").rstrip())
+
     divisionsTotal = int(len(bots) / botsInDivision)
     log(f"Creating {divisionsTotal} divisions with {botsInDivision} bots in each.")
 
