@@ -8,6 +8,7 @@ import argparse
 import platform
 import json
 import re
+import threading
 
 #include the netbot src directory in sys.path so we can import modules from it.
 filepath = os.path.dirname(os.path.abspath(__file__))
@@ -18,78 +19,46 @@ from netbots_log import log
 from netbots_log import setLogLevel
 from netbots_log import setLogFile
 
+serverMax = 2  # Max number of netbots servers to run at once.
 botsMax = 64
 botsInDivision = 4  # This cannot be changed without significant changes to the code below.
 
-pythoncmd = ['python3']
-srvoptions = [
-    os.path.join('src','netbots_server.py'),
-    '-p','20000',
-    '-bots', str(botsInDivision), 
-    '-games', '1000',
-    '-stepsec', '0.001',
-    '-stepmax','5000',
-    '-maxsecstojoin', '10',
-    '-startperms',
-    '-noviewers',
-    '-onlylastsb',
-    '-jsonsb'
-    ]
+def rundivision(bots, divisionDir, robotsDir, botkeys, serverPort):
+    pythoncmd = ['python3']
+    srvoptions = [
+        os.path.join('src','netbots_server.py'),
+        '-p',serverPort,
+        '-bots', str(botsInDivision), 
+        '-games', '1000',
+        '-stepsec', '0.001',
+        '-stepmax','5000',
+        '-maxsecstojoin', '10',
+        '-startperms',
+        '-noviewers',
+        '-onlylastsb',
+        '-jsonsb'
+        ]
 
-
-fd = []
-def closeFiles():
-    global fd
-    for f in fd:
-        f.flush()
-        f.close()
     fd = []
-
-
-def startserver(divisionDir):
-    global fd
-    f = open(os.path.join(divisionDir,"server.output.txt"), "w")
-    fd.append(f)
-    cmdline = pythoncmd + srvoptions + [os.path.join(divisionDir,"results.json")]
-    log(cmdline, "DEBUG")
-    p = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
-    return p
-
-
-def startbot(divisionDir, botkey):
-    global fd, robotsDir, bots
-    bot = bots[botkey]
-    f = open(os.path.join(divisionDir, bot['file'] + ".output.txt"), "w")
-    fd.append(f)
-    cmdline = pythoncmd + [os.path.join(robotsDir, bot['file']), '-p', str(bot['port']),'-sp','20000']
-    log(cmdline, "DEBUG")
-    p = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
-    return p
-
-
-def botsToString(divisions):
-    global bots
-    output = "\n\nCurrent Rankings\n"
-    div = 0
-    for keys in divisions:
-        output += "\nDivision " + str(div) + "\n"
-        for k in keys:
-            output += str(bots[k]['port']) + " " + bots[k]['file'] + "\n"
-        div += 1
-    return(output)
-
-
-def rundivision(divisionDir, botkeys):
-    global bots
 
     log("Running Division: " + divisionDir)
     os.mkdir(divisionDir)
 
-    srvProc = startserver(divisionDir)
+    f = open(os.path.join(divisionDir,"server.output.txt"), "w")
+    fd.append(f)
+    cmdline = pythoncmd + srvoptions + [os.path.join(divisionDir,"results.json")]
+    log(cmdline, "VERBOSE")
+    srvProc = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
 
     botProcs = []
     for botkey in botkeys:
-        botProcs.append(startbot(divisionDir, botkey))
+        bot = bots[botkey]
+        f = open(os.path.join(divisionDir, bot['file'] + ".output.txt"), "w")
+        fd.append(f)
+        cmdline = pythoncmd + [os.path.join(robotsDir, bot['file']), '-p', str(bot['port']),'-sp','20000']
+        log(cmdline, "VERBOSE")
+        p = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
+        botProcs.append(p)
 
     time.sleep(2)
 
@@ -117,7 +86,10 @@ def rundivision(divisionDir, botkeys):
 
     time.sleep(2)
 
-    closeFiles()
+    for f in fd:
+        f.flush()
+        f.close()
+    fd = []
 
     # if results.json has been created then load results else log error.
     jsonFile = os.path.join(divisionDir,"results.json")
@@ -152,7 +124,7 @@ def quit(signal=None, frame=None):
 
 
 def main():
-    global outputDir, robotsDir, bots, botsMax, botsInDivision, srvoptions
+    global bots, botsMax, botsInDivision, serverMax
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-robots', metavar='dir', dest='robotsDir', type=str,
@@ -177,8 +149,6 @@ def main():
     
     setLogFile(os.path.join(outputDir,"output.txt"))
     resultsfilename = os.path.join(outputDir,"results.txt")
-
-    log("Server options: " + str(srvoptions))
 
     # pick random ports for robots. These port numbers will be assigned to a robot for the entire tournament.
     ports = random.sample(range(20100,20199), botsMax)
@@ -220,7 +190,6 @@ def main():
     for k in bots.keys():
         divisions[next % divisionsTotal].append(k)
         next += 1
-    log(botsToString(divisions), "VERBOSE")
 
     maxRound = divisionsTotal*2-1  # first round is 0 so "maxRound = 7" would run 8 rounds.
     log(f"Max rounds set to {maxRound+1}.")
@@ -250,9 +219,21 @@ def main():
                     divisions[divisionNumber+1][1]
                    ])
 
+            serverPort = 20000
             for divisionNumber in range(divisionsTotal-1):
+                # if serverMax server threads are already running then wait for one to finish
+                while threading.active_count() - 1 == serverMax:
+                    sleep(1)
+                # Start running a new division
                 divisionDir = os.path.join(roundDir, "crossdivision-" + str(divisionNumber) + "x" + str(divisionNumber+1))
-                rundivision(divisionDir, crossDivisions[divisionNumber])
+                t = threading.Thread(target=rundivision, 
+                    args=(bots, divisionDir, robotsDir, crossDivisions[divisionNumber], serverPort), 
+                    daemon=True)
+                t.start()
+                serverPort += 1
+            # Wait for all threads to finish.
+            while threading.active_count() > 1:
+                sleep(1)
 
             for b in range(divisionsTotal-1):
                 # !!! ASSUMES botsInDivition == 4
@@ -263,14 +244,22 @@ def main():
                 divisions[b+1][0] = crossDivisions[b][2]
                 divisions[b+1][1] = crossDivisions[b][3]
 
-            log(botsToString(divisions), "VERBOSE")
-
         # Run each division and put robots in division in order of points.
+        serverPort = 20000
         for divisionNumber in range(divisionsTotal):
+            # if serverMax server threads are already running then wait for one to finish
+            while threading.active_count() - 1 == serverMax:
+                sleep(1)
+            # Start running a new division
             divisionDir = os.path.join(roundDir, "division-" + str(divisionNumber))
-            rundivision(divisionDir, divisions[divisionNumber])
-
-        log(botsToString(divisions), "VERBOSE")
+            t = threading.Thread(target=rundivision, 
+                args=(bots, divisionDir, robotsDir, divisions[divisionNumber], serverPort), 
+                daemon=True)
+            t.start()
+            serverPort += 1
+        # Wait for all threads to finish.
+        while threading.active_count() > 1:
+            sleep(1)
 
         # Output Results
         output = "\n" + \
