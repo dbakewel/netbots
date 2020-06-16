@@ -19,7 +19,7 @@ from netbots_log import log
 from netbots_log import setLogLevel
 from netbots_log import setLogFile
 
-serverMax = 2  # Max number of netbots servers to run at once.
+serverMax = 3  # Max number of netbots servers to run at once.
 botsMax = 64
 botsInDivision = 4  # This cannot be changed without significant changes to the code below.
 
@@ -27,7 +27,7 @@ def rundivision(bots, divisionDir, robotsDir, botkeys, serverPort):
     pythoncmd = ['python3']
     srvoptions = [
         os.path.join('src','netbots_server.py'),
-        '-p',serverPort,
+        '-p', str(serverPort),
         '-bots', str(botsInDivision), 
         '-games', '1000',
         '-stepsec', '0.001',
@@ -55,7 +55,7 @@ def rundivision(bots, divisionDir, robotsDir, botkeys, serverPort):
         bot = bots[botkey]
         f = open(os.path.join(divisionDir, bot['file'] + ".output.txt"), "w")
         fd.append(f)
-        cmdline = pythoncmd + [os.path.join(robotsDir, bot['file']), '-p', str(bot['port']),'-sp','20000']
+        cmdline = pythoncmd + [os.path.join(robotsDir, bot['file']), '-p', str(bot['port']),'-sp', str(serverPort)]
         log(cmdline, "VERBOSE")
         p = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
         botProcs.append(p)
@@ -200,6 +200,8 @@ def main():
         round += 1
         lastRoundResult = str(divisions)
 
+        log("Starting Round " + str(round))
+
         roundDir = os.path.join(outputDir,"round-" + str(round))
         os.mkdir(roundDir)
         
@@ -223,7 +225,7 @@ def main():
             for divisionNumber in range(divisionsTotal-1):
                 # if serverMax server threads are already running then wait for one to finish
                 while threading.active_count() - 1 == serverMax:
-                    sleep(1)
+                    time.sleep(10)
                 # Start running a new division
                 divisionDir = os.path.join(roundDir, "crossdivision-" + str(divisionNumber) + "x" + str(divisionNumber+1))
                 t = threading.Thread(target=rundivision, 
@@ -233,7 +235,7 @@ def main():
                 serverPort += 1
             # Wait for all threads to finish.
             while threading.active_count() > 1:
-                sleep(1)
+                time.sleep(1)
 
             for b in range(divisionsTotal-1):
                 # !!! ASSUMES botsInDivition == 4
@@ -249,7 +251,7 @@ def main():
         for divisionNumber in range(divisionsTotal):
             # if serverMax server threads are already running then wait for one to finish
             while threading.active_count() - 1 == serverMax:
-                sleep(1)
+                time.sleep(1)
             # Start running a new division
             divisionDir = os.path.join(roundDir, "division-" + str(divisionNumber))
             t = threading.Thread(target=rundivision, 
@@ -259,7 +261,7 @@ def main():
             serverPort += 1
         # Wait for all threads to finish.
         while threading.active_count() > 1:
-            sleep(1)
+            time.sleep(1)
 
         # Output Results
         output = "\n" + \
