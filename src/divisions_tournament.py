@@ -23,7 +23,7 @@ serverMax = 3  # Max number of netbots servers to run at once.
 botsMax = 64
 botsInDivision = 4  # This cannot be changed without significant changes to the code below.
 
-def rundivision(bots, divisionDir, robotsDir, botkeys, serverPort):
+def rundivision(bots, divisionNumber, divisionDir, robotsDir, botkeys, serverPort):
     pythoncmd = ['python3']
     srvoptions = [
         os.path.join('src','netbots_server.py'),
@@ -41,13 +41,13 @@ def rundivision(bots, divisionDir, robotsDir, botkeys, serverPort):
 
     fd = []
 
-    log("Running Division: " + divisionDir)
+    log("Running Division: " + str(divisionNumber))
     os.mkdir(divisionDir)
 
     f = open(os.path.join(divisionDir,"server.output.txt"), "w")
     fd.append(f)
     cmdline = pythoncmd + srvoptions + [os.path.join(divisionDir,"results.json")]
-    log(cmdline, "VERBOSE")
+    log("D" + str(divisionNumber) + ": " + cmdline, "VERBOSE")
     srvProc = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
 
     botProcs = []
@@ -56,7 +56,7 @@ def rundivision(bots, divisionDir, robotsDir, botkeys, serverPort):
         f = open(os.path.join(divisionDir, bot['file'] + ".output.txt"), "w")
         fd.append(f)
         cmdline = pythoncmd + [os.path.join(robotsDir, bot['file']), '-p', str(bot['port']),'-sp', str(serverPort)]
-        log(cmdline, "VERBOSE")
+        log("D" + str(divisionNumber) + ": " + cmdline, "VERBOSE")
         p = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
         botProcs.append(p)
 
@@ -66,7 +66,7 @@ def rundivision(bots, divisionDir, robotsDir, botkeys, serverPort):
     botDead = False
     for bot in botProcs:
         if bot.poll() != None:
-            log("A bot crashed shortly after being run. {}".format(bot.args), "ERROR")
+            log("D" + str(divisionNumber) + ": " + "A bot crashed shortly after being run. {}".format(bot.args), "ERROR")
 
     # wait for server to quit, either because all games are done or not enough robots joined to start playing
     srvProc.wait()
@@ -81,7 +81,7 @@ def rundivision(bots, divisionDir, robotsDir, botkeys, serverPort):
     #kill all robots
     for bot in botProcs:
         if bot.poll() == None:
-            log("Needed to terminate bot.", "WARNING")
+            log("D" + str(divisionNumber) + ": " + "Needed to terminate bot.", "WARNING")
             bot.terminate()
 
     time.sleep(2)
@@ -101,11 +101,11 @@ def rundivision(bots, divisionDir, robotsDir, botkeys, serverPort):
         missing = []
         for botkey in botkeys:
             if botkey not in results['bots']:
-                log("Bot missing from results probably because it did not join game: " + botkey, "WARNING")
+                log("D" + str(divisionNumber) + ": " + "Bot missing from results probably because it did not join game: " + botkey, "WARNING")
                 missing.append(botkey)
 
         if len(results['bots']) + len(missing) != len(botkeys):
-            log("Results and Missing bots do not equal bots in game.", "FAILURE")
+            log("D" + str(divisionNumber) + ": " + "Results and Missing bots do not equal bots in game.", "FAILURE")
             quit()
 
         #Add robots to resutls in order of points, missing at end.
@@ -115,7 +115,7 @@ def rundivision(bots, divisionDir, robotsDir, botkeys, serverPort):
         for i in range(i+1, len(botkeys)): # loop will not run if i+1 == len(botkeys)
             botkeys[i] = missing.pop()
     else:
-        log("Server did not produce json file: " + jsonFile + ". Can't update results!", "ERROR")
+        log("D" + str(divisionNumber) + ": " + "Server did not produce json file: " + jsonFile + ". Can't update results!", "ERROR")
 
 
 def quit(signal=None, frame=None):
@@ -225,11 +225,11 @@ def main():
             for divisionNumber in range(divisionsTotal-1):
                 # if serverMax server threads are already running then wait for one to finish
                 while threading.active_count() - 1 == serverMax:
-                    time.sleep(10)
+                    time.sleep(1)
                 # Start running a new division
                 divisionDir = os.path.join(roundDir, "crossdivision-" + str(divisionNumber) + "x" + str(divisionNumber+1))
                 t = threading.Thread(target=rundivision, 
-                    args=(bots, divisionDir, robotsDir, crossDivisions[divisionNumber], serverPort), 
+                    args=(bots, divisionNumber, divisionDir, robotsDir, crossDivisions[divisionNumber], serverPort), 
                     daemon=True)
                 t.start()
                 serverPort += 1
@@ -255,7 +255,7 @@ def main():
             # Start running a new division
             divisionDir = os.path.join(roundDir, "division-" + str(divisionNumber))
             t = threading.Thread(target=rundivision, 
-                args=(bots, divisionDir, robotsDir, divisions[divisionNumber], serverPort), 
+                args=(bots, divisionNumber, divisionDir, robotsDir, divisions[divisionNumber], serverPort), 
                 daemon=True)
             t.start()
             serverPort += 1
