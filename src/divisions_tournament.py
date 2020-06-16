@@ -19,19 +19,27 @@ from netbots_log import log
 from netbots_log import setLogLevel
 from netbots_log import setLogFile
 
+# THE FOLLOWING CAN BE CHANGED AS NEEDED
 serverMax = 3  # Max number of netbots servers to run at once.
-botsMax = 64
+games = 1000  # Games in each tournament
+stepsec = 0.001  # Duration of each step in seconds
+stepmax = 5000  # Max steps in each game
+
+# Do not change the following without considering the code below that uses these values
+botsMax = 64 # Max bots in div tournament
 botsInDivision = 4  # This cannot be changed without significant changes to the code below.
 
 def rundivision(bots, divisionNumber, divisionDir, robotsDir, botkeys, serverPort):
+    global games, stepmax, stepsec
+
     pythoncmd = ['python3']
     srvoptions = [
         os.path.join('src','netbots_server.py'),
         '-p', str(serverPort),
         '-bots', str(botsInDivision), 
-        '-games', '1000',
-        '-stepsec', '0.001',
-        '-stepmax','5000',
+        '-games', str(games),
+        '-stepsec', str(stepsec),
+        '-stepmax', str(stepmax),
         '-maxsecstojoin', '10',
         '-startperms',
         '-noviewers',
