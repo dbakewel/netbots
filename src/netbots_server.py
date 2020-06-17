@@ -24,7 +24,7 @@ class SrvData:
     conf = {
         # Static vars (some are settable at start up by server command line switches and then do not change after that.)
         'serverName': "NetBot Server",
-        'serverVersion': "2.1.3",
+        'serverVersion': "2.2.0",
 
         # Game and Tournament
         'botsInGame': 4,  # Number of bots required to join before game can start.
@@ -313,9 +313,10 @@ def recvReplyMsgs(d):
             except Exception as e:
                 log(str(e), "ERROR")
 
-    for src in d.bots:
-        if src not in botMsgCount:
-            d.bots[src]['missedSteps'] += 1
+    if d.state['gameNumber'] > 0: # Don't count missed steps while waiting for bots to join.
+        for src in d.bots:
+            if src not in botMsgCount:
+                d.bots[src]['missedSteps'] += 1
 
     d.state['msgTime'] += time.perf_counter() - startTime
 
@@ -1036,8 +1037,13 @@ def main():
                 jsonScoreboard(d)
                 quit()
         elif d.conf['maxSecsToJoin'] < float(time.time() - d.state['startTime']): 
-            log("Not enough bots joined game before max seconds to join ( " + d.conf['maxSecsToJoin'] + " sec). Exiting.", "ERROR")
-            exit()
+            log("Not enough bots joined game before max seconds to join (" + str(d.conf['maxSecsToJoin']) + " secs).", "ERROR")
+            if len(d.bots) >= 2:
+                d.conf['botsInGame'] = len(d.bots)
+                log("Starting game with only " + str(d.conf['botsInGame']) + " bots.", "WARNING")
+            else:
+                log("Cannot start game with less than 2 bots. Exiting.", "FAILURE")
+                quit()
 
         recvReplyMsgs(d)
 
