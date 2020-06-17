@@ -29,7 +29,7 @@ stepmax = 5000  # Max steps in each game
 botsMax = 64 # Max bots in div tournament
 botsInDivision = 4  # This cannot be changed without significant changes to the code below.
 
-def rundivision(bots, divisionNumber, divisionDir, robotsDir, botkeys, serverPort):
+def rundivision(bots, divisionName, divisionDir, robotsDir, botkeys, serverPort):
     global games, stepmax, stepsec
 
     pythoncmd = ['python3']
@@ -49,13 +49,13 @@ def rundivision(bots, divisionNumber, divisionDir, robotsDir, botkeys, serverPor
 
     fd = []
 
-    log("Running Division: " + str(divisionNumber))
+    log(str(divisionName) + ": " + "Starting Division")
     os.mkdir(divisionDir)
 
     f = open(os.path.join(divisionDir,"server.output.txt"), "w")
     fd.append(f)
     cmdline = pythoncmd + srvoptions + [os.path.join(divisionDir,"results.json")]
-    log("D" + str(divisionNumber) + ": " + cmdline, "VERBOSE")
+    log(str(divisionName) + ": " + str(cmdline), "VERBOSE")
     srvProc = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
 
     botProcs = []
@@ -64,7 +64,7 @@ def rundivision(bots, divisionNumber, divisionDir, robotsDir, botkeys, serverPor
         f = open(os.path.join(divisionDir, bot['file'] + ".output.txt"), "w")
         fd.append(f)
         cmdline = pythoncmd + [os.path.join(robotsDir, bot['file']), '-p', str(bot['port']),'-sp', str(serverPort)]
-        log("D" + str(divisionNumber) + ": " + cmdline, "VERBOSE")
+        log(str(divisionName) + ": " + str(cmdline), "VERBOSE")
         p = subprocess.Popen(cmdline, stdout=f, stderr=subprocess.STDOUT)
         botProcs.append(p)
 
@@ -74,7 +74,7 @@ def rundivision(bots, divisionNumber, divisionDir, robotsDir, botkeys, serverPor
     botDead = False
     for bot in botProcs:
         if bot.poll() != None:
-            log("D" + str(divisionNumber) + ": " + "A bot crashed shortly after being run. {}".format(bot.args), "ERROR")
+            log(str(divisionName) + ": " + "A bot crashed shortly after being run. {}".format(bot.args), "ERROR")
 
     # wait for server to quit, either because all games are done or not enough robots joined to start playing
     srvProc.wait()
@@ -89,7 +89,7 @@ def rundivision(bots, divisionNumber, divisionDir, robotsDir, botkeys, serverPor
     #kill all robots
     for bot in botProcs:
         if bot.poll() == None:
-            log("D" + str(divisionNumber) + ": " + "Needed to terminate bot.", "WARNING")
+            log(str(divisionName) + ": " + "Needed to terminate bot.", "WARNING")
             bot.terminate()
 
     time.sleep(2)
@@ -109,11 +109,11 @@ def rundivision(bots, divisionNumber, divisionDir, robotsDir, botkeys, serverPor
         missing = []
         for botkey in botkeys:
             if botkey not in results['bots']:
-                log("D" + str(divisionNumber) + ": " + "Bot missing from results probably because it did not join game: " + botkey, "WARNING")
+                log(str(divisionName) + ": " + "Bot missing from results probably because it did not join game: " + botkey, "WARNING")
                 missing.append(botkey)
 
         if len(results['bots']) + len(missing) != len(botkeys):
-            log("D" + str(divisionNumber) + ": " + "Results and Missing bots do not equal bots in game.", "FAILURE")
+            log(str(divisionName) + ": " + "Results and Missing bots do not equal bots in game.", "FAILURE")
             quit()
 
         #Add robots to resutls in order of points, missing at end.
@@ -123,7 +123,9 @@ def rundivision(bots, divisionNumber, divisionDir, robotsDir, botkeys, serverPor
         for i in range(i+1, len(botkeys)): # loop will not run if i+1 == len(botkeys)
             botkeys[i] = missing.pop()
     else:
-        log("D" + str(divisionNumber) + ": " + "Server did not produce json file: " + jsonFile + ". Can't update results!", "ERROR")
+        log(str(divisionName) + ": " + "Server did not produce json file: " + jsonFile + ". Can't update results!", "ERROR")
+    
+    log(str(divisionName) + ": " + "Completed Division")
 
 
 def quit(signal=None, frame=None):
@@ -208,7 +210,7 @@ def main():
         round += 1
         lastRoundResult = str(divisions)
 
-        log("Starting Round " + str(round))
+        log("R" + str(round) + ": Starting Round")
 
         roundDir = os.path.join(outputDir,"round-" + str(round))
         os.mkdir(roundDir)
@@ -236,8 +238,9 @@ def main():
                     time.sleep(1)
                 # Start running a new division
                 divisionDir = os.path.join(roundDir, "crossdivision-" + str(divisionNumber) + "x" + str(divisionNumber+1))
+                divisionName = "R" + str(round) + "D" + str(divisionNumber) + "x" + str(divisionNumber+1)
                 t = threading.Thread(target=rundivision, 
-                    args=(bots, divisionNumber, divisionDir, robotsDir, crossDivisions[divisionNumber], serverPort), 
+                    args=(bots, divisionName, divisionDir, robotsDir, crossDivisions[divisionNumber], serverPort), 
                     daemon=True)
                 t.start()
                 serverPort += 1
@@ -262,8 +265,9 @@ def main():
                 time.sleep(1)
             # Start running a new division
             divisionDir = os.path.join(roundDir, "division-" + str(divisionNumber))
+            divisionName = "R" + str(round) + "D" + str(divisionNumber)
             t = threading.Thread(target=rundivision, 
-                args=(bots, divisionNumber, divisionDir, robotsDir, divisions[divisionNumber], serverPort), 
+                args=(bots, divisionName, divisionDir, robotsDir, divisions[divisionNumber], serverPort), 
                 daemon=True)
             t.start()
             serverPort += 1
@@ -289,7 +293,8 @@ def main():
 
         with open(resultsfilename,"a+") as f: 
             f.write(output)
-        log("Results written to " + resultsfilename)
+        log("R" + str(round) + ": Results written to " + resultsfilename)
+        log("R" + str(round) + ": Completed Round")
 
     if round == maxRound:
         log(f"Quiting because max rounds ({maxRound + 1}) completed.")
