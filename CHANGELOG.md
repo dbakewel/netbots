@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2020-06-16
+### Changed
+- Significant update to divisional tournaments: 1) Can run more than one division (netbots server) at a time, 2) handles crashed robots, 3) better logging, 4) tunable vars moved to top of script.
+- Change server so it runs with whatever bots have joined by the time maxSecsToJoin is reached, as long as 2 robots or more have joined. Server still only allows max botsInGame to join and no more robots can join after game has started.
+- The server no longer counts missed steps while waiting for bots to join game.
+
 ## [2.1.3] - 2020-05-30
 ### Changed
 - Change scoreboard Missteps from an absolute value to a %.
@@ -117,8 +123,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0] - 2019-04-16
 - Beta release.
 
-[Unreleased]: https://github.com/dbakewel/netbots/compare/2.1.3...HEAD
-[2.1.2]: https://github.com/dbakewel/netbots/compare/2.1.1...2.1.3
+[Unreleased]: https://github.com/dbakewel/netbots/compare/2.2.0...HEAD
+[2.2.0]: https://github.com/dbakewel/netbots/compare/2.1.3...2.2.0
+[2.1.3]: https://github.com/dbakewel/netbots/compare/2.1.2...2.1.3
 [2.1.2]: https://github.com/dbakewel/netbots/compare/2.1.1...2.1.2
 [2.1.1]: https://github.com/dbakewel/netbots/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/dbakewel/netbots/compare/2.0.0...2.1.0
