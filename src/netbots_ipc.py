@@ -297,7 +297,7 @@ class NetBotSocket:
         return umsgpack.packb(msg, use_bin_type=True)
 
     def deserialize(self, b):
-        return umsgpack.unpackb(b, raw=False)
+        return umsgpack.unpackb(b, raw=False,  strict_map_key=False)
 
     def sendMessage(self, msg, destinationIP=None, destinationPort=None, packedAndChecked=False):
         """
